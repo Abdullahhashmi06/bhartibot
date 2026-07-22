@@ -1,6 +1,7 @@
 export type RequirementType = "required" | "preferred";
 export type WorkMode = "on-site" | "hybrid" | "remote";
 export type QuestionType = "text" | "yes_no";
+export type InternshipStatus = "draft" | "published";
 
 export interface Requirement {
   id?: string;
@@ -25,7 +26,7 @@ export interface Internship {
   location: string | null;
   work_mode: WorkMode | null;
   duration: string | null;
-  status: string;
+  status: InternshipStatus | string;
   public_slug: string | null;
   created_at: string;
 }

@@ -123,3 +123,71 @@ export async function createInternship(
 
   return { internship: internship as Internship, error: null };
 }
+
+/**
+ * Publishes an internship: sets status to "published".
+ * Ensures a public_slug exists so recruiters can share /apply/[slug].
+ */
+export async function publishInternship(
+  supabase: SupabaseClient,
+  internshipId: string,
+  fallbackTitle: string
+): Promise<{ internship: Internship | null; error: string | null }> {
+  const { data: existing, error: fetchError } = await supabase
+    .from("internships")
+    .select("*")
+    .eq("id", internshipId)
+    .single();
+
+  if (fetchError || !existing) {
+    return {
+      internship: null,
+      error: fetchError?.message ?? "Internship not found.",
+    };
+  }
+
+  const publicSlug =
+    (existing.public_slug as string | null)?.trim() ||
+    slugify(fallbackTitle || (existing.title as string) || "internship");
+
+  const { data, error } = await supabase
+    .from("internships")
+    .update({
+      status: "published",
+      public_slug: publicSlug,
+    })
+    .eq("id", internshipId)
+    .select()
+    .single();
+
+  if (error || !data) {
+    return {
+      internship: null,
+      error: error?.message ?? "Failed to publish internship.",
+    };
+  }
+
+  return { internship: data as Internship, error: null };
+}
+
+/** Moves a published internship back to draft (hides the public apply flow). */
+export async function unpublishInternship(
+  supabase: SupabaseClient,
+  internshipId: string
+): Promise<{ internship: Internship | null; error: string | null }> {
+  const { data, error } = await supabase
+    .from("internships")
+    .update({ status: "draft" })
+    .eq("id", internshipId)
+    .select()
+    .single();
+
+  if (error || !data) {
+    return {
+      internship: null,
+      error: error?.message ?? "Failed to move internship to draft.",
+    };
+  }
+
+  return { internship: data as Internship, error: null };
+}

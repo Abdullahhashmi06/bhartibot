@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import Shell from "@/components/layout/Shell";
 import Tag from "@/components/ui/Tag";
 import ScreeningQuestions from "@/components/internships/ScreeningQuestions";
+import PublishPanel from "@/components/internships/PublishPanel";
 import { createClient } from "@/lib/supabase/server";
 import {
   getInternshipBySlug,
@@ -37,6 +38,7 @@ export default async function InternshipDetailPage({
 
   const required = requirements.filter((r) => r.type === "required");
   const preferred = requirements.filter((r) => r.type === "preferred");
+  const isPublished = internship.status === "published";
 
   return (
     <Shell>
@@ -50,7 +52,7 @@ export default async function InternshipDetailPage({
         </Link>
 
         <div>
-          <Tag tone={internship.status === "published" ? "teal" : "neutral"}>
+          <Tag tone={isPublished ? "teal" : "neutral"}>
             {internship.status}
           </Tag>
           <h1 className="mt-3 font-display text-2xl font-medium text-ink">
@@ -84,9 +86,12 @@ export default async function InternshipDetailPage({
           initialQuestions={questions}
         />
 
-        <div className="rounded-md border border-dashed border-border p-4 text-sm text-muted">
-          Publishing and the public application link land on Day 5.
-        </div>
+        <PublishPanel
+          internshipId={internship.id}
+          title={internship.title}
+          publicSlug={internship.public_slug}
+          initialStatus={internship.status}
+        />
       </div>
     </Shell>
   );

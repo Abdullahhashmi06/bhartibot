@@ -4,9 +4,9 @@ AI-assisted internship application & screening platform. Recruiters define
 requirements, applicants submit CVs through a public link, and AI maps
 evidence against those requirements. Recruiters make the final call.
 
-**Day 4 status (Developer A):** Internship detail page shows description,
-requirements, and a screening-questions panel (Text / Yes-No) with
-add / view / delete. Publishing + public link land Day 5.
+**Day 5 status (Developer A):** Recruiters can publish an internship from
+the detail page, see draft vs published state, and copy the public
+`/apply/[slug]` link. The public student form lands Day 6.
 
 ## Stack
 
@@ -66,6 +66,7 @@ components/
   auth/LogoutButton.tsx              client-side sign-out
   internships/RequirementList.tsx     required/preferred inputs (create form)
   internships/ScreeningQuestions.tsx  add / view / delete questions (Day 4)
+  internships/PublishPanel.tsx          publish + copy public link (Day 5)
   ui/Button.tsx                       button + link-button variants
   ui/Tag.tsx                           status/requirement pill
   ui/FormNotice.tsx                     inline error/info banner for forms
@@ -139,6 +140,21 @@ create policy "questions_delete_own_org" on questions for delete using (
   )
 );
 ```
+
+## Testing the Day 5 flow locally (Developer A)
+
+1. Open a draft internship from `/dashboard`.
+2. Confirm the Publish section shows status **draft**.
+3. Click **Publish Internship**.
+4. Confirm status becomes **published** and a public link appears
+   (`/apply/<slug>`).
+5. Click **Copy link** and paste somewhere to verify.
+6. Optionally click **Move back to draft** and confirm the link panel hides.
+7. Dashboard list should reflect the updated status tag.
+
+If publish fails with an RLS error, Developer B needs an UPDATE policy on
+`internships` for the recruiter's organisation (similar to the select/insert
+policies already used for create).
 
 ## Testing the Day 4 flow locally (Developer A)
 
@@ -216,7 +232,8 @@ create policy "requirements_insert_own_org" on requirements for insert with chec
 - [x] Day 2 — Supabase Auth wired to `/login`/`/signup`/logout, `/dashboard` protected via middleware
 - [x] Day 3 — Create Internship form saves to Supabase, dashboard lists real internships
 - [x] Day 4 (Dev A) — Internship detail + screening questions UI (add / view / delete, Text & Yes-No)
-- [ ] Days 5–7 — publish, public application link, student apply, CV upload
+- [x] Day 5 (Dev A) — Publish button, draft/published state, copy public `/apply/[slug]` link
+- [ ] Days 6–7 — public apply form, CV upload, recruiter applications list
 
 ## Note on naming
 
