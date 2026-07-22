@@ -35,9 +35,9 @@ Open [http://localhost:3000](http://localhost:3000). Without a real
 | Route                          | Purpose                                                  |
 |----------------------------------|------------------------------------------------------------|
 | `/`                               | Landing page                                                |
-| `/login`                          | Recruiter login — wired to Supabase Auth                    |
-| `/signup`                         | Recruiter signup — wired to Supabase Auth                    |
-| `/auth/callback`                  | Exchanges the email-confirmation code for a session          |
+| `/login`                          | Recruiter login via email OTP                                |
+| `/signup`                         | Recruiter signup + email OTP verification                    |
+| `/auth/callback`                  | Exchanges auth codes / magic-link sessions                   |
 | `/dashboard`                      | **Protected.** Empty-state dashboard + logout                |
 | `/dashboard/create-internship`    | **Protected.** Placeholder — real form lands Day 3            |
 | `/internships/[slug]`             | **Protected.** Internship detail + screening questions (Day 4) |
@@ -54,9 +54,9 @@ app/
   layout.tsx                     root layout (fonts, metadata)
   globals.css                     Tailwind base + design tokens
   page.tsx                        landing page
-  login/page.tsx                   Supabase signInWithPassword
-  signup/page.tsx                  Supabase signUp (+ org/name metadata)
-  auth/callback/route.ts            email-confirmation code exchange
+  login/page.tsx                   email OTP sign-in (signInWithOtp + verifyOtp)
+  signup/page.tsx                  signUp + email OTP verification
+  auth/callback/route.ts            email link / code exchange fallback
   dashboard/page.tsx                protected, reads session server-side
   dashboard/create-internship/page.tsx   placeholder — real form Day 3
   internships/[slug]/page.tsx       detail + screening questions (Day 4)
@@ -64,6 +64,7 @@ components/
   layout/Navbar.tsx                top nav, active-link + auth-aware
   layout/Shell.tsx                  shared page wrapper (nav + footer)
   auth/LogoutButton.tsx              client-side sign-out
+  auth/OtpVerifyForm.tsx              shared 6-digit OTP entry + resend
   internships/RequirementList.tsx     required/preferred inputs (create form)
   internships/ScreeningQuestions.tsx  add / view / delete questions (Day 4)
   internships/PublishPanel.tsx          publish + copy public link (Day 5)
@@ -205,17 +206,16 @@ create policy "requirements_insert_own_org" on requirements for insert with chec
 7. Log in as a second recruiter (different organization) and confirm you
    only ever see your own organization's internships — never the other's.
 
-## Testing the Day 2 flow locally
+## Testing auth (email OTP)
 
 1. Set real Supabase values in `.env.local`.
-2. `npm run dev`, go to `/signup`, create a recruiter account.
-3. If email confirmation is on in your Supabase project, confirm via the
-   emailed link (redirects through `/auth/callback`), then `/login`.
-4. If email confirmation is off, signup logs you in immediately.
-5. Confirm `/dashboard` loads with your name/org and "No internships yet."
-6. Log out, confirm you're bounced to `/login`.
-7. Try visiting `/dashboard` directly while logged out — confirm the
-   redirect to `/login?next=/dashboard`.
+2. In Supabase, enable Confirm email and put `{{ .Token }}` in the
+   Confirm signup + Magic Link email templates (see `docs/backend-setup.md`).
+3. `npm run dev`, go to `/signup`, create a recruiter account.
+4. Enter the 6-digit code from email → you should land on `/dashboard`.
+5. Log out, go to `/login`, enter the same email, send code, verify OTP.
+6. Confirm `/dashboard` loads. Visit `/dashboard` while logged out and
+   confirm redirect to `/login?next=/dashboard`.
 
 ## Branching
 

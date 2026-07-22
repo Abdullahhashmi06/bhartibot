@@ -7,21 +7,24 @@ import Shell from "@/components/layout/Shell";
 import { Button } from "@/components/ui/Button";
 import FormNotice from "@/components/ui/FormNotice";
 import Tag from "@/components/ui/Tag";
+import OtpVerifyForm from "@/components/auth/OtpVerifyForm";
 import { createClient } from "@/lib/supabase/client";
+
+type Step = "details" | "otp";
 
 export default function SignupPage() {
   const router = useRouter();
   const supabase = createClient();
 
+  const [step, setStep] = useState<Step>("details");
   const [fullName, setFullName] = useState("");
   const [orgName, setOrgName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState<"idle" | "loading">("idle");
   const [error, setError] = useState<string | null>(null);
-  const [checkEmail, setCheckEmail] = useState(false);
 
-  async function handleSubmit(e: FormEvent) {
+  async function handleSignup(e: FormEvent) {
     e.preventDefault();
     setError(null);
 
@@ -33,15 +36,14 @@ export default function SignupPage() {
     setStatus("loading");
 
     // full_name and organization_name ride along as user metadata.
-    // Developer B's DB trigger (on auth.users insert) reads this to
-    // create the organizations + profiles rows.
+    // Partner's DB trigger (on auth.users insert) creates org + profile.
     const { data, error: signUpError } = await supabase.auth.signUp({
-      email,
+      email: email.trim(),
       password,
       options: {
         data: {
-          full_name: fullName,
-          organization_name: orgName,
+          full_name: fullName.trim(),
+          organization_name: orgName.trim(),
         },
         emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
@@ -54,35 +56,67 @@ export default function SignupPage() {
       return;
     }
 
-    // If email confirmation is required, there's no session yet.
+    // Existing account — Supabase may return an empty identities list.
+    if (data.user && (data.user.identities?.length ?? 0) === 0) {
+      setError("An account with this email already exists. Log in instead.");
+      return;
+    }
+
+    // Confirm-email disabled in Supabase → session returned immediately.
     if (data.session) {
       router.push("/dashboard");
       router.refresh();
-    } else {
-      setCheckEmail(true);
+      return;
     }
+
+    setStep("otp");
+  }
+
+  async function handleVerifyOtp(token: string): Promise<string | null> {
+    const { error: verifyError } = await supabase.auth.verifyOtp({
+      email: email.trim(),
+      token,
+      type: "signup",
+    });
+
+    if (verifyError) {
+      return verifyError.message;
+    }
+
+    router.push("/dashboard");
+    router.refresh();
+    return null;
+  }
+
+  async function handleResendOtp(): Promise<string | null> {
+    const { error: resendError } = await supabase.auth.resend({
+      type: "signup",
+      email: email.trim(),
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+
+    return resendError?.message ?? null;
   }
 
   return (
     <Shell>
       <div className="mx-auto flex max-w-sm flex-col gap-6 py-10">
         <div>
-          <Tag tone="teal">Wired to Supabase Auth</Tag>
+          <Tag tone="teal">Email OTP verification</Tag>
           <h1 className="mt-3 font-display text-2xl font-medium text-ink">
-            Create a recruiter account
+            {step === "details" ? "Create a recruiter account" : "Verify your email"}
           </h1>
           <p className="mt-1 text-sm text-muted">
-            One account per organization to start.
+            {step === "details"
+              ? "One account per organization to start."
+              : "Enter the code we emailed you to finish creating your account."}
           </p>
         </div>
 
-        {checkEmail ? (
-          <FormNotice tone="info">
-            Almost there — we sent a confirmation link to{" "}
-            <strong>{email}</strong>. Click it, then log in.
-          </FormNotice>
-        ) : (
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        {step === "details" ? (
+          <form onSubmit={handleSignup} className="flex flex-col gap-4">
             {error && <FormNotice tone="error">{error}</FormNotice>}
 
             <Field
@@ -119,9 +153,17 @@ export default function SignupPage() {
             />
 
             <Button type="submit" className="mt-2 w-full" disabled={status === "loading"}>
-              {status === "loading" ? "Creating account…" : "Create account"}
+              {status === "loading" ? "Sending code…" : "Create account"}
             </Button>
           </form>
+        ) : (
+          <OtpVerifyForm
+            email={email.trim()}
+            onVerify={handleVerifyOtp}
+            onResend={handleResendOtp}
+            verifyLabel="Verify & continue"
+            hint="We sent a 6-digit verification code to"
+          />
         )}
 
         <p className="text-sm text-muted">
