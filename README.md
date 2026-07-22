@@ -4,14 +4,15 @@ AI-assisted internship application & screening platform. Recruiters define
 requirements, applicants submit CVs through a public link, and AI maps
 evidence against those requirements. Recruiters make the final call.
 
-**Day 2 status:** Signup, login, logout, and route protection are wired to
-Supabase Auth. Internship creation is still a placeholder (Day 3).
+**Day 3 status:** Recruiters can create an internship with required/preferred
+requirements, see it listed on the dashboard, and open its detail page.
+Publishing + the public application link land Days 4–7.
 
 ## Stack
 
 - Next.js 14 (App Router) + TypeScript
 - Tailwind CSS
-- Supabase Auth via `@supabase/ssr` (Postgres/Storage schema owned by Developer B)
+- Supabase Auth + Postgres via `@supabase/ssr`
 
 ## Getting started
 
@@ -102,6 +103,45 @@ Postgres trigger on `auth.users` insert that reads
 that `organization_id`. Flag it if you need the metadata shaped differently
 — easy to adjust before you build the trigger.
 
+## Required SQL — requirements table policies (Day 3)
+
+The app now inserts rows into `requirements` when an internship is created.
+If your Supabase project only has the Day 2 policies, requirement inserts
+will fail with a Row Level Security error. Run this once in the Supabase
+SQL Editor:
+
+```sql
+create policy "requirements_select_own_org" on requirements for select using (
+  internship_id in (
+    select id from internships where organization_id in (
+      select organization_id from profiles where id = auth.uid()
+    )
+  )
+);
+
+create policy "requirements_insert_own_org" on requirements for insert with check (
+  internship_id in (
+    select id from internships where organization_id in (
+      select organization_id from profiles where id = auth.uid()
+    )
+  )
+);
+```
+
+## Testing the Day 3 flow locally
+
+1. Log in with a recruiter account (Day 2 must already work).
+2. Go to `/dashboard/create-internship`.
+3. Fill in title, location, duration; add a couple of required and
+   preferred requirements; submit.
+4. You should land back on `/dashboard` and see the internship listed.
+5. Click it — the detail page should show the description and both
+   requirement columns.
+6. In Supabase → Table Editor, confirm rows exist in `internships` and
+   `requirements` with the correct `organization_id` / `internship_id`.
+7. Log in as a second recruiter (different organization) and confirm you
+   only ever see your own organization's internships — never the other's.
+
 ## Testing the Day 2 flow locally
 
 1. Set real Supabase values in `.env.local`.
@@ -127,4 +167,15 @@ that `organization_id`. Flag it if you need the metadata shaped differently
 
 - [x] Day 1 — application skeleton, placeholder routes, shared layout
 - [x] Day 2 — Supabase Auth wired to `/login`/`/signup`/logout, `/dashboard` protected via middleware
-- [ ] Day 3 — Create Internship form connected to the database
+- [x] Day 3 — Create Internship form saves to Supabase, dashboard lists real internships
+- [ ] Days 4–7 — screening questions, publish, public application link
+
+## Note on naming
+
+`docs/database-schema.md` refers to the organizations table as
+"organisations" (British spelling) in prose, but the actual foreign key
+column everywhere is `organization_id` (American spelling), matching the
+original project context doc and this codebase. The application code never
+queries the organizations table by name directly, so this is a documentation
+wording detail only — but worth agreeing on one spelling with Developer B
+before it causes a real mismatch later (e.g. in a future direct query).

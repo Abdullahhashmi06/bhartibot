@@ -1,0 +1,125 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { Internship, NewInternshipInput, Requirement } from "@/lib/types";
+import { slugify } from "@/lib/utils/slug";
+
+/** The organization_id of the currently logged-in recruiter. */
+export async function getCurrentOrganizationId(
+  supabase: SupabaseClient
+): Promise<string | null> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("organization_id")
+    .eq("id", user.id)
+    .single();
+
+  if (error || !data) return null;
+  return data.organization_id as string;
+}
+
+/** Fetch one internship by its public slug (used on the detail page). */
+export async function getInternshipBySlug(
+  supabase: SupabaseClient,
+  slug: string
+): Promise<Internship | null> {
+  const { data, error } = await supabase
+    .from("internships")
+    .select("*")
+    .eq("public_slug", slug)
+    .single();
+
+  if (error || !data) return null;
+  return data as Internship;
+}
+
+/** All internships belonging to the current recruiter's organization. */
+export async function getRecruiterInternships(
+  supabase: SupabaseClient
+): Promise<Internship[]> {
+  const { data, error } = await supabase
+    .from("internships")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("getRecruiterInternships failed:", error.message);
+    return [];
+  }
+  return (data as Internship[]) ?? [];
+}
+
+/** Required + preferred requirement rows for one internship. */
+export async function getInternshipRequirements(
+  supabase: SupabaseClient,
+  internshipId: string
+): Promise<Requirement[]> {
+  const { data, error } = await supabase
+    .from("requirements")
+    .select("id, requirement, type")
+    .eq("internship_id", internshipId);
+
+  if (error) {
+    console.error("getInternshipRequirements failed:", error.message);
+    return [];
+  }
+  return (data as Requirement[]) ?? [];
+}
+
+/**
+ * Creates an internship + its requirements for the current recruiter's
+ * organization. Row Level Security still double-checks organization_id
+ * server-side — this function just supplies it.
+ */
+export async function createInternship(
+  supabase: SupabaseClient,
+  input: NewInternshipInput
+): Promise<{ internship: Internship | null; error: string | null }> {
+  const organizationId = await getCurrentOrganizationId(supabase);
+  if (!organizationId) {
+    return { internship: null, error: "No organization found for this account." };
+  }
+
+  const { data: internship, error: internshipError } = await supabase
+    .from("internships")
+    .insert({
+      organization_id: organizationId,
+      title: input.title,
+      field: input.field,
+      description: input.description,
+      location: input.location,
+      work_mode: input.work_mode,
+      duration: input.duration,
+      status: "draft",
+      public_slug: slugify(input.title),
+    })
+    .select()
+    .single();
+
+  if (internshipError || !internship) {
+    return { internship: null, error: internshipError?.message ?? "Failed to create internship." };
+  }
+
+  const requirementRows = input.requirements
+    .filter((r) => r.requirement.trim().length > 0)
+    .map((r) => ({
+      internship_id: internship.id,
+      requirement: r.requirement.trim(),
+      type: r.type,
+    }));
+
+  if (requirementRows.length > 0) {
+    const { error: requirementsError } = await supabase
+      .from("requirements")
+      .insert(requirementRows);
+
+    if (requirementsError) {
+      return { internship, error: `Internship saved, but requirements failed: ${requirementsError.message}` };
+    }
+  }
+
+  return { internship: internship as Internship, error: null };
+}
