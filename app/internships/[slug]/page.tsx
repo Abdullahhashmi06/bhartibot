@@ -1,11 +1,15 @@
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
 import Shell from "@/components/layout/Shell";
 import Tag from "@/components/ui/Tag";
+import ScreeningQuestions from "@/components/internships/ScreeningQuestions";
 import { createClient } from "@/lib/supabase/server";
 import {
   getInternshipBySlug,
   getInternshipRequirements,
 } from "@/lib/queries/internships";
+import { getInternshipQuestions } from "@/lib/queries/questions";
 
 export default async function InternshipDetailPage({
   params,
@@ -26,13 +30,25 @@ export default async function InternshipDetailPage({
     notFound();
   }
 
-  const requirements = await getInternshipRequirements(supabase, internship.id);
+  const [requirements, questions] = await Promise.all([
+    getInternshipRequirements(supabase, internship.id),
+    getInternshipQuestions(supabase, internship.id),
+  ]);
+
   const required = requirements.filter((r) => r.type === "required");
   const preferred = requirements.filter((r) => r.type === "preferred");
 
   return (
     <Shell>
-      <div className="mx-auto flex max-w-2xl flex-col gap-6 py-10">
+      <div className="mx-auto flex max-w-2xl flex-col gap-6 py-4">
+        <Link
+          href="/dashboard"
+          className="inline-flex w-fit items-center gap-1.5 text-sm text-muted transition-colors hover:text-ink"
+        >
+          <ArrowLeft size={14} />
+          Back to dashboard
+        </Link>
+
         <div>
           <Tag tone={internship.status === "published" ? "teal" : "neutral"}>
             {internship.status}
@@ -41,16 +57,21 @@ export default async function InternshipDetailPage({
             {internship.title}
           </h1>
           <p className="mt-1 text-sm text-muted">
-            {internship.field} · {internship.location}
-            {internship.work_mode ? ` · ${internship.work_mode}` : ""}
-            {internship.duration ? ` · ${internship.duration}` : ""}
+            {[internship.field, internship.location, internship.work_mode, internship.duration]
+              .filter(Boolean)
+              .join(" · ")}
           </p>
         </div>
 
         {internship.description && (
-          <p className="text-sm leading-relaxed text-text">
-            {internship.description}
-          </p>
+          <div>
+            <h2 className="font-display text-sm font-medium text-ink">
+              Description
+            </h2>
+            <p className="mt-2 text-sm leading-relaxed text-text">
+              {internship.description}
+            </p>
+          </div>
         )}
 
         <div className="grid grid-cols-1 gap-6 border-t border-border pt-6 sm:grid-cols-2">
@@ -58,9 +79,13 @@ export default async function InternshipDetailPage({
           <RequirementColumn title="Preferred" tone="teal" items={preferred} />
         </div>
 
+        <ScreeningQuestions
+          internshipId={internship.id}
+          initialQuestions={questions}
+        />
+
         <div className="rounded-md border border-dashed border-border p-4 text-sm text-muted">
-          Publishing, the public application link, and submitted applications
-          land in the next milestone (Days 4–7).
+          Publishing and the public application link land on Day 5.
         </div>
       </div>
     </Shell>

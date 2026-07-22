@@ -1,10 +1,19 @@
 export type RequirementType = "required" | "preferred";
 export type WorkMode = "on-site" | "hybrid" | "remote";
+export type QuestionType = "text" | "yes_no";
 
 export interface Requirement {
   id?: string;
   requirement: string;
   type: RequirementType;
+}
+
+export interface ScreeningQuestion {
+  id: string;
+  internship_id: string;
+  question: string;
+  type: QuestionType;
+  created_at: string;
 }
 
 export interface Internship {
