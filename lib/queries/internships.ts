@@ -36,6 +36,22 @@ export async function getInternshipBySlug(
   return data as Internship;
 }
 
+/** Fetch a published internship by slug (public apply page). */
+export async function getPublishedInternshipBySlug(
+  supabase: SupabaseClient,
+  slug: string
+): Promise<Internship | null> {
+  const { data, error } = await supabase
+    .from("internships")
+    .select("*")
+    .eq("public_slug", slug)
+    .eq("status", "published")
+    .single();
+
+  if (error || !data) return null;
+  return data as Internship;
+}
+
 /** All internships belonging to the current recruiter's organization. */
 export async function getRecruiterInternships(
   supabase: SupabaseClient

@@ -4,9 +4,10 @@ AI-assisted internship application & screening platform. Recruiters define
 requirements, applicants submit CVs through a public link, and AI maps
 evidence against those requirements. Recruiters make the final call.
 
-**Day 5 status (Developer A):** Recruiters can publish an internship from
-the detail page, see draft vs published state, and copy the public
-`/apply/[slug]` link. The public student form lands Day 6.
+**Day 6 status (Developer A):** Public `/apply/[slug]` page with student
+application form. Applicants submit personal details, education, links,
+screening answers, and optional CV selection. Applications persist in
+Supabase with status `new`. CV file storage lands Day 7.
 
 ## Stack
 
@@ -41,6 +42,8 @@ Open [http://localhost:3000](http://localhost:3000). Without a real
 | `/dashboard`                      | **Protected.** Empty-state dashboard + logout                |
 | `/dashboard/create-internship`    | **Protected.** Placeholder — real form lands Day 3            |
 | `/internships/[slug]`             | **Protected.** Internship detail + screening questions (Day 4) |
+| `/apply/[slug]`                   | **Public.** Published internship + student application form (Day 6) |
+| `/apply/[slug]/success`           | **Public.** Confirmation after application submit (Day 6) |
 
 `/dashboard` and everything under it require a session. Visiting them
 while logged out redirects to `/login?next=<page>`; visiting `/login` or
@@ -60,6 +63,8 @@ app/
   dashboard/page.tsx                protected, reads session server-side
   dashboard/create-internship/page.tsx   placeholder — real form Day 3
   internships/[slug]/page.tsx       detail + screening questions (Day 4)
+  apply/[slug]/page.tsx             public apply form (Day 6)
+  apply/[slug]/success/page.tsx     post-submit confirmation (Day 6)
 components/
   layout/Navbar.tsx                top nav, active-link + auth-aware
   layout/Shell.tsx                  shared page wrapper (nav + footer)
@@ -68,12 +73,14 @@ components/
   internships/RequirementList.tsx     required/preferred inputs (create form)
   internships/ScreeningQuestions.tsx  add / view / delete questions (Day 4)
   internships/PublishPanel.tsx          publish + copy public link (Day 5)
+  applications/ApplicationForm.tsx    student application form (Day 6)
   ui/Button.tsx                       button + link-button variants
   ui/Tag.tsx                           status/requirement pill
   ui/FormNotice.tsx                     inline error/info banner for forms
 lib/
   queries/internships.ts             create / list / detail internship helpers
   queries/questions.ts               get / create / delete screening questions
+  queries/applications.ts            submit student applications + answers
   supabase/client.ts                Supabase client for Client Components
   supabase/server.ts                 Supabase client for Server Components
 middleware.ts                        session refresh + route protection
@@ -141,6 +148,24 @@ create policy "questions_delete_own_org" on questions for delete using (
   )
 );
 ```
+
+## Testing the Day 6 flow locally (Developer A)
+
+1. Log in, open a draft internship, and click **Publish Internship**.
+2. Copy the public `/apply/<slug>` link.
+3. Open the link in a private/incognito window (no recruiter session).
+4. Confirm the internship title, description, and requirements are visible.
+5. Fill in name, email, education fields, and optional links.
+6. Answer any screening questions (Text and Yes/No).
+7. Optionally select a PDF CV (storage upload lands Day 7).
+8. Click **Submit Application** — you should land on `/apply/<slug>/success`.
+9. In Supabase → Table Editor, confirm a row in `applications` with
+   `status = new` and matching rows in `answers`.
+10. Confirm draft internships return 404 on `/apply/<slug>` (not published).
+
+Developer B must apply `supabase/migrations/20260723_applications.sql`
+before submissions work (applications + answers tables, public RLS, and
+missing UPDATE/DELETE policies).
 
 ## Testing the Day 5 flow locally (Developer A)
 
@@ -233,7 +258,8 @@ create policy "requirements_insert_own_org" on requirements for insert with chec
 - [x] Day 3 — Create Internship form saves to Supabase, dashboard lists real internships
 - [x] Day 4 (Dev A) — Internship detail + screening questions UI (add / view / delete, Text & Yes-No)
 - [x] Day 5 (Dev A) — Publish button, draft/published state, copy public `/apply/[slug]` link
-- [ ] Days 6–7 — public apply form, CV upload, recruiter applications list
+- [x] Day 6 (Dev A) — Public apply page, student application form, screening answers saved
+- [ ] Day 7 — CV upload to storage, recruiter applications list
 
 ## Note on naming
 

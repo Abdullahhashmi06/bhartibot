@@ -36,10 +36,13 @@ organisations
     v
 internships
     |
-    +-------------------+
-    |                   |
-    v                   v
-requirements         questions
+    +-------------------+-------------------+
+    |                   |                   |
+    v                   v                   v
+requirements         questions         applications
+                                            |
+                                            v
+                                         answers
 
 ---
 
@@ -223,6 +226,72 @@ The exact supported question types can evolve as the application form is impleme
 
 ---
 
+# 6. applications
+
+Stores student internship applications submitted through public apply links.
+
+## Columns
+
+| Column | Type | Constraints / Default | Description |
+|---|---|---|---|
+| id | uuid | Primary Key, default `gen_random_uuid()` | Unique application identifier |
+| internship_id | uuid | NOT NULL, Foreign Key | Internship the applicant applied to |
+| applicant_name | text | NOT NULL | Applicant's full name |
+| email | text | NOT NULL | Applicant email |
+| phone | text | nullable | Phone number |
+| university | text | nullable | University or institution |
+| degree | text | nullable | Degree program |
+| semester | text | nullable | Current semester |
+| cgpa | text | nullable | CGPA or GPA |
+| linkedin_url | text | nullable | LinkedIn profile URL |
+| github_url | text | nullable | GitHub profile URL |
+| portfolio_url | text | nullable | Portfolio URL |
+| cv_path | text | nullable | Storage path for uploaded CV (Day 7) |
+| status | text | NOT NULL, default `'new'` | Recruiter workflow status |
+| created_at | timestamptz | NOT NULL, default `now()` | Submission time |
+
+## Foreign Keys
+
+`applications.internship_id` references `internships.id`.
+
+## Application Status
+
+Expected values:
+
+- `new`
+- `under_review`
+- `shortlisted`
+- `rejected`
+
+New applications default to `new`.
+
+---
+
+# 7. answers
+
+Stores applicant responses to screening questions.
+
+## Columns
+
+| Column | Type | Constraints / Default | Description |
+|---|---|---|---|
+| id | uuid | Primary Key, default `gen_random_uuid()` | Unique answer identifier |
+| application_id | uuid | NOT NULL, Foreign Key | Parent application |
+| question_id | uuid | NOT NULL, Foreign Key | Screening question answered |
+| answer | text | NOT NULL | Applicant's response |
+| created_at | timestamptz | NOT NULL, default `now()` | Time the answer was saved |
+
+## Foreign Keys
+
+- `answers.application_id` references `applications.id`
+- `answers.question_id` references `questions.id`
+
+## Constraints
+
+One answer per question per application (`unique (application_id, question_id)`).
+
+---
+
 # Row Level Security
 
 Row Level Security (RLS) is enabled on the application tables.
@@ -269,9 +338,10 @@ Initial Day 1 schema completed:
 - [x] Primary keys configured
 - [x] Foreign key relationships configured
 - [x] Row Level Security enabled
-- [ ] RLS policies
+- [x] applications (Day 6)
+- [x] answers (Day 6)
+- [ ] RLS policies (partial — see migrations)
 - [ ] Authentication/profile creation integration
-- [ ] Application-related tables
 - [ ] CV storage
 - [ ] AI analysis tables
 

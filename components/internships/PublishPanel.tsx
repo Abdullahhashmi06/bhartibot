@@ -162,8 +162,8 @@ export default function PublishPanel({
             </div>
           </label>
           <p className="text-xs text-muted">
-            Applicants open this link to apply. The public apply form lands Day
-            6 — until then the URL is ready to share.
+            Applicants open this link to fill in the application form and submit
+            their details.
           </p>
           <Button
             type="button"
