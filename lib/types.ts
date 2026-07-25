@@ -44,6 +44,10 @@ export interface NewInternshipInput {
   work_mode: WorkMode;
   duration: string;
   requirements: Requirement[];
+  questions?: {
+    question: string;
+    type: QuestionType;
+  }[];
 }
 
 export interface Application {
@@ -81,6 +85,7 @@ export interface NewApplicationInput {
   linkedin_url?: string;
   github_url?: string;
   portfolio_url?: string;
+  cv: File;
   answers: ApplicationAnswerInput[];
 }
 

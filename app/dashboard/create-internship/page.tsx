@@ -7,9 +7,10 @@ import { Button } from "@/components/ui/Button";
 import FormNotice from "@/components/ui/FormNotice";
 import Tag from "@/components/ui/Tag";
 import RequirementList from "@/components/internships/RequirementList";
+import QuestionList from "@/components/internships/QuestionList";
 import { createClient } from "@/lib/supabase/client";
 import { createInternship } from "@/lib/queries/internships";
-import { FIELD_OPTIONS, WorkMode } from "@/lib/types";
+import { FIELD_OPTIONS, WorkMode, QuestionType } from "@/lib/types";
 
 const WORK_MODES: { value: WorkMode; label: string }[] = [
   { value: "on-site", label: "On-site" },
@@ -29,7 +30,17 @@ export default function CreateInternshipPage() {
   const [duration, setDuration] = useState("");
   const [required, setRequired] = useState<string[]>([""]);
   const [preferred, setPreferred] = useState<string[]>([""]);
-
+  const [questions, setQuestions] = useState<
+    {
+      question: string;
+      type: QuestionType;
+    }[]
+  >([
+    {
+      question: "",
+      type: "text",
+    },
+  ]);
   const [status, setStatus] = useState<"idle" | "loading">("idle");
   const [error, setError] = useState<string | null>(null);
 
@@ -179,6 +190,10 @@ export default function CreateInternshipPage() {
               placeholder="Pandas"
             />
           </div>
+          <QuestionList
+        items={questions}
+            onChange={setQuestions}
+          />
 
           <Button type="submit" disabled={status === "loading"} className="mt-2">
             {status === "loading" ? "Creating…" : "Create Internship"}

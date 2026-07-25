@@ -137,6 +137,28 @@ export async function createInternship(
     }
   }
 
+  const questionRows = (input.questions ?? [])
+  .filter((q) => q.question.trim().length > 0)
+  .map((q) => ({
+    internship_id: internship.id,
+    question: q.question.trim(),
+    type: q.type,
+  }));
+
+  if (questionRows.length > 0) {
+    const { error: questionsError } = await supabase
+      .from("questions")
+      .insert(questionRows);
+
+      if (questionsError) {
+        return {
+          internship,
+          error: `Internship saved, but questions failed: ${questionsError.message}`,
+        };
+      }
+    }
+
+
   return { internship: internship as Internship, error: null };
 }
 
