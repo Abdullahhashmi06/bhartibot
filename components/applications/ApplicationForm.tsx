@@ -7,6 +7,7 @@ import FormNotice from "@/components/ui/FormNotice";
 import { createClient } from "@/lib/supabase/client";
 import { createApplication } from "@/lib/queries/applications";
 import { ScreeningQuestion } from "@/lib/types";
+import { uploadCv } from "@/lib/queries/storage";
 
 const inputClass =
   "w-full rounded-md border border-border bg-white px-3 py-2 text-sm text-text placeholder:text-muted/70 focus:border-ink";
@@ -68,6 +69,20 @@ export default function ApplicationForm({
 
     setStatus("submitting");
 
+    let cvPath: string | undefined;
+
+    if (cvFile) {
+      const { path, error } = await uploadCv(supabase, cvFile);
+
+      if (error || !path) {
+        setStatus("idle");
+        setError(error ?? "Failed to upload CV.");
+        return;
+      }
+
+      cvPath = path;
+    }
+
     const { application, error: submitError } = await createApplication(
       supabase,
       {
@@ -82,6 +97,7 @@ export default function ApplicationForm({
         linkedin_url: linkedinUrl,
         github_url: githubUrl,
         portfolio_url: portfolioUrl,
+        cv_path: cvPath,
         answers: questions.map((q) => ({
           question_id: q.id,
           answer: answers[q.id],
@@ -103,13 +119,6 @@ export default function ApplicationForm({
     if (submitError) {
       setError(submitError);
       return;
-    }
-
-    if (cvFile) {
-      // CV storage upload lands Day 7 — form accepts the file for UX continuity.
-      console.info(
-        "CV selected but not uploaded yet — Day 7 wires Supabase Storage."
-      );
     }
 
     router.push(`/apply/${slug}/success`);

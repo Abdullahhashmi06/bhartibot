@@ -85,7 +85,9 @@ export interface NewApplicationInput {
   linkedin_url?: string;
   github_url?: string;
   portfolio_url?: string;
-  cv: File;
+
+  cv_path?: string;
+
   answers: ApplicationAnswerInput[];
 }
 

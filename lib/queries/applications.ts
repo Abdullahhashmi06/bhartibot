@@ -23,6 +23,9 @@ export async function createApplication(
       linkedin_url: input.linkedin_url?.trim() || null,
       github_url: input.github_url?.trim() || null,
       portfolio_url: input.portfolio_url?.trim() || null,
+
+      cv_path: input.cv_path ?? null,
+
       status: "new",
     })
     .select()
