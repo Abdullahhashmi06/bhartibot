@@ -43,13 +43,29 @@ export default async function InternshipDetailPage({
   return (
     <Shell>
       <div className="mx-auto flex max-w-2xl flex-col gap-6 py-4">
-        <Link
-          href="/dashboard"
-          className="inline-flex w-fit items-center gap-1.5 text-sm text-muted transition-colors hover:text-ink"
-        >
-          <ArrowLeft size={14} />
-          Back to dashboard
-        </Link>
+        <div className="flex items-center justify-between">
+          <Link
+            href="/dashboard"
+            className="inline-flex w-fit items-center gap-1.5 text-sm text-muted transition-colors hover:text-ink"
+          >
+            <ArrowLeft size={14} />
+            Back to dashboard
+          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/internships/${params.slug}/edit`}
+              className="inline-flex items-center gap-1.5 rounded-md border border-border bg-white px-3 py-1.5 text-sm text-muted transition-colors hover:border-ink hover:text-ink"
+            >
+              ✏️ Edit
+            </Link>
+            <Link
+              href={`/dashboard/applications/${internship.id}`}
+              className="inline-flex items-center gap-1.5 rounded-md border border-border bg-white px-3 py-1.5 text-sm text-muted transition-colors hover:border-ink hover:text-ink"
+            >
+              👥 View Applicants
+            </Link>
+          </div>
+        </div>
 
         <div>
           <Tag tone={isPublished ? "teal" : "neutral"}>

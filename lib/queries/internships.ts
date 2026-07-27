@@ -229,3 +229,55 @@ export async function unpublishInternship(
 
   return { internship: data as Internship, error: null };
 }
+
+/** Update editable fields on an existing internship (title, description, requirements). */
+export async function updateInternship(
+  supabase: SupabaseClient,
+  internshipId: string,
+  patch: {
+    title?: string;
+    description?: string;
+    requirements?: Requirement[];
+  }
+): Promise<{ internship: Internship | null; error: string | null }> {
+  const updates: Record<string, string> = {};
+  if (patch.title !== undefined) {
+    updates.title = patch.title;
+    updates.public_slug = slugify(patch.title);
+  }
+  if (patch.description !== undefined) updates.description = patch.description;
+
+  if (Object.keys(updates).length > 0) {
+    const { error } = await supabase
+      .from("internships")
+      .update(updates)
+      .eq("id", internshipId);
+
+    if (error) {
+      return { internship: null, error: error?.message ?? "Failed to update internship." };
+    }
+  }
+
+  if (patch.requirements !== undefined) {
+    await supabase.from("requirements").delete().eq("internship_id", internshipId);
+
+    const rows = patch.requirements
+      .filter((r) => r.requirement.trim().length > 0)
+      .map((r) => ({ internship_id: internshipId, requirement: r.requirement.trim(), type: r.type }));
+
+    if (rows.length > 0) {
+      const { error: reqErr } = await supabase.from("requirements").insert(rows);
+      if (reqErr) {
+        return { internship: null, error: `Internship updated, but requirements failed: ${reqErr.message}` };
+      }
+    }
+  }
+
+  const { data: fresh } = await supabase
+    .from("internships")
+    .select("*")
+    .eq("id", internshipId)
+    .single();
+
+  return { internship: (fresh as Internship) ?? null, error: null };
+}
