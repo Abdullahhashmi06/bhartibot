@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { Application, NewApplicationInput } from "@/lib/types";
+import { Application, ApplicationStatus, NewApplicationInput } from "@/lib/types";
 
 /**
  * Submit a student application plus screening answers.
@@ -58,4 +58,103 @@ export async function createApplication(
   }
 
   return { application: application as Application, error: null };
+}
+
+/** All applications for a specific internship (recruiter view). */
+export async function getApplicationsByInternship(
+  supabase: SupabaseClient,
+  internshipId: string
+): Promise<Application[]> {
+  const { data, error } = await supabase
+    .from("applications")
+    .select("*")
+    .eq("internship_id", internshipId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("getApplicationsByInternship failed:", error.message);
+    return [];
+  }
+  return (data as Application[]) ?? [];
+}
+
+/** Fetch a single application by ID. */
+export async function getApplicationById(
+  supabase: SupabaseClient,
+  applicationId: string
+): Promise<Application | null> {
+  const { data, error } = await supabase
+    .from("applications")
+    .select("*")
+    .eq("id", applicationId)
+    .single();
+
+  if (error || !data) return null;
+  return data as Application;
+}
+
+/** Fetch screening answers for a given application, joined with question text. */
+export async function getApplicationAnswers(
+  supabase: SupabaseClient,
+  applicationId: string
+): Promise<{ question: string; answer: string }[]> {
+  const { data, error } = await supabase
+    .from("answers")
+    .select("answer, questions(question)")
+    .eq("application_id", applicationId)
+    .order("created_at", { ascending: true });
+
+  if (error || !data) return [];
+
+  return data.map((row: { answer: string; questions: { question: string } | null }) => ({
+    question: row.questions?.question ?? "Unknown question",
+    answer: row.answer,
+  }));
+}
+
+/** Update an application's recruiter-facing status. */
+export async function updateApplicationStatus(
+  supabase: SupabaseClient,
+  applicationId: string,
+  status: ApplicationStatus
+): Promise<{ error: string | null }> {
+  const { error } = await supabase
+    .from("applications")
+    .update({ status })
+    .eq("id", applicationId);
+
+  if (error) return { error: error.message };
+  return { error: null };
+}
+
+/** Count of applications per internship for the current org. */
+export async function getApplicationsCountByInternship(
+  supabase: SupabaseClient,
+  internshipId: string
+): Promise<number> {
+  const { count, error } = await supabase
+    .from("applications")
+    .select("*", { count: "exact", head: true })
+    .eq("internship_id", internshipId);
+
+  if (error) return 0;
+  return count ?? 0;
+}
+
+/** Aggregate stats for all applications across the recruiter's internships. */
+export async function getOrgApplicationStats(
+  supabase: SupabaseClient
+): Promise<{ total: number; new: number; shortlisted: number; rejected: number }> {
+  const { data, error } = await supabase
+    .from("applications")
+    .select("status");
+
+  if (error || !data) return { total: 0, new: 0, shortlisted: 0, rejected: 0 };
+
+  const total = data.length;
+  const newCount = data.filter((a) => a.status === "new").length;
+  const shortlisted = data.filter((a) => a.status === "shortlisted").length;
+  const rejected = data.filter((a) => a.status === "rejected").length;
+
+  return { total, new: newCount, shortlisted, rejected };
 }

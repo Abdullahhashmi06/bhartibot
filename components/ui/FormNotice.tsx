@@ -1,8 +1,9 @@
-type Tone = "error" | "info";
+type Tone = "error" | "info" | "success";
 
 const toneStyles: Record<Tone, string> = {
   error: "border-rose/40 bg-rose/10 text-[#8A3A20]",
   info: "border-teal/40 bg-teal/10 text-[#1D6E63]",
+  success: "border-teal/40 bg-teal/10 text-[#1D6E63]",
 };
 
 export default function FormNotice({
