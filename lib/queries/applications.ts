@@ -106,10 +106,15 @@ export async function getApplicationAnswers(
 
   if (error || !data) return [];
 
-  return data.map((row: { answer: string; questions: { question: string } | null }) => ({
-    question: row.questions?.question ?? "Unknown question",
-    answer: row.answer,
-  }));
+  return data.map(
+    (row: {
+      answer: string;
+      questions: { question: string }[] | null;
+    }) => ({
+      question: row.questions?.[0]?.question ?? "Unknown question",
+      answer: row.answer,
+    })
+  );
 }
 
 /** Update an application's recruiter-facing status. */

@@ -2,7 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
-import { PlusCircle, Trash2 } from "lucide-react";
+import { PlusCircle, Trash2, Save, FileText } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import FormNotice from "@/components/ui/FormNotice";
 import { createClient } from "@/lib/supabase/client";
@@ -10,7 +10,7 @@ import { updateInternship } from "@/lib/queries/internships";
 import { Internship, Requirement, RequirementType } from "@/lib/types";
 
 const inputClass =
-  "w-full rounded-md border border-border bg-white px-3 py-2 text-sm text-text placeholder:text-muted/70 focus:border-ink focus:outline-none";
+  "w-full rounded-xl border border-border bg-slate-50/50 px-4 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-teal focus:bg-white focus:outline-none transition-all";
 
 export default function EditInternshipForm({
   internship,
@@ -78,20 +78,26 @@ export default function EditInternshipForm({
     router.refresh();
   }
 
-  const required = requirements.filter((r) => r.type === "required");
-  const preferred = requirements.filter((r) => r.type === "preferred");
-
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+    <form onSubmit={handleSubmit} className="rounded-3xl border border-border bg-white p-6 sm:p-8 shadow-card space-y-6">
+      <div className="flex items-center justify-between border-b border-border pb-4">
+        <div className="flex items-center gap-2">
+          <FileText className="h-5 w-5 text-teal" />
+          <h2 className="font-display font-bold text-lg text-primary">
+            Edit Role Parameters & Requirements
+          </h2>
+        </div>
+      </div>
+
       {error && <FormNotice tone="error">{error}</FormNotice>}
       {success && (
-        <FormNotice tone="success">Internship updated successfully.</FormNotice>
+        <FormNotice tone="success">Internship requirements updated successfully.</FormNotice>
       )}
 
       {/* Title */}
-      <div className="flex flex-col gap-1.5">
-        <label className="text-sm font-medium text-text">
-          Title <span className="text-rose">*</span>
+      <div className="space-y-1.5">
+        <label className="text-xs font-semibold text-text-primary">
+          Role Title <span className="text-danger">*</span>
         </label>
         <input
           type="text"
@@ -103,27 +109,29 @@ export default function EditInternshipForm({
       </div>
 
       {/* Description */}
-      <div className="flex flex-col gap-1.5">
-        <label className="text-sm font-medium text-text">Description</label>
+      <div className="space-y-1.5">
+        <label className="text-xs font-semibold text-text-primary">Description</label>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          rows={5}
+          rows={4}
           className={inputClass}
           placeholder="Describe the role, responsibilities, and what the intern will learn…"
         />
       </div>
 
       {/* Requirements */}
-      <div className="flex flex-col gap-4 border-t border-border pt-6">
-        <h2 className="font-display text-base font-medium text-ink">
-          Requirements
-        </h2>
+      <div className="space-y-4 border-t border-border pt-6">
+        <h3 className="font-display font-bold text-base text-primary">
+          Requirements Mapping
+        </h3>
 
         {/* Required */}
-        <div>
-          <p className="text-sm font-medium text-text mb-2">Required</p>
-          <div className="flex flex-col gap-2">
+        <div className="space-y-2">
+          <label className="text-xs font-bold font-mono uppercase text-warning">
+            Required Qualifications
+          </label>
+          <div className="space-y-2">
             {requirements.map((req, idx) =>
               req.type === "required" ? (
                 <div key={idx} className="flex items-center gap-2">
@@ -137,9 +145,9 @@ export default function EditInternshipForm({
                   <button
                     type="button"
                     onClick={() => removeRequirement(idx)}
-                    className="text-muted hover:text-rose transition-colors p-1"
+                    className="text-text-muted hover:text-danger transition-colors p-2"
                   >
-                    <Trash2 size={14} />
+                    <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
               ) : null
@@ -148,17 +156,19 @@ export default function EditInternshipForm({
           <button
             type="button"
             onClick={() => addRequirement("required")}
-            className="mt-2 inline-flex items-center gap-1.5 text-sm text-muted hover:text-ink transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-teal-dark hover:underline pt-1"
           >
-            <PlusCircle size={14} />
-            Add required
+            <PlusCircle className="h-3.5 w-3.5" />
+            Add required qualification
           </button>
         </div>
 
         {/* Preferred */}
-        <div>
-          <p className="text-sm font-medium text-text mb-2">Preferred</p>
-          <div className="flex flex-col gap-2">
+        <div className="space-y-2 pt-2">
+          <label className="text-xs font-bold font-mono uppercase text-teal">
+            Preferred / Bonus Skills
+          </label>
+          <div className="space-y-2">
             {requirements.map((req, idx) =>
               req.type === "preferred" ? (
                 <div key={idx} className="flex items-center gap-2">
@@ -172,9 +182,9 @@ export default function EditInternshipForm({
                   <button
                     type="button"
                     onClick={() => removeRequirement(idx)}
-                    className="text-muted hover:text-rose transition-colors p-1"
+                    className="text-text-muted hover:text-danger transition-colors p-2"
                   >
-                    <Trash2 size={14} />
+                    <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
               ) : null
@@ -183,17 +193,24 @@ export default function EditInternshipForm({
           <button
             type="button"
             onClick={() => addRequirement("preferred")}
-            className="mt-2 inline-flex items-center gap-1.5 text-sm text-muted hover:text-ink transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-teal-dark hover:underline pt-1"
           >
-            <PlusCircle size={14} />
-            Add preferred
+            <PlusCircle className="h-3.5 w-3.5" />
+            Add preferred qualification
           </button>
         </div>
       </div>
 
-      <Button type="submit" disabled={status === "saving"} className="mt-2 w-fit">
-        {status === "saving" ? "Saving…" : "Save Changes"}
-      </Button>
+      <div className="pt-4 border-t border-border flex justify-end">
+        <Button
+          type="submit"
+          variant="gradient"
+          isLoading={status === "saving"}
+          leftIcon={<Save className="h-4 w-4" />}
+        >
+          Save Role Changes
+        </Button>
+      </div>
     </form>
   );
 }

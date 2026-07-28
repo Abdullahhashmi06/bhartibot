@@ -1,8 +1,8 @@
-# BhartiBot Database Schema
+# InternIQ Database Schema
 
 ## Overview
 
-BhartiBot uses Supabase PostgreSQL as its primary database.
+InternIQ uses Supabase PostgreSQL as its primary database.
 
 The initial database schema supports the recruiter-side internship workflow. It stores:
 
@@ -48,7 +48,7 @@ requirements         questions         applications
 
 # 1. organisations
 
-Stores organisations/companies that use BhartiBot to create internship openings.
+Stores organisations/companies that use InternIQ to create internship openings.
 
 ## Columns
 
@@ -95,7 +95,7 @@ Each profile corresponds to a Supabase authenticated user and belongs to an orga
 
 ## Purpose
 
-Using the authenticated user's UUID as the profile ID creates a direct relationship between Supabase Authentication and the BhartiBot recruiter profile.
+Using the authenticated user's UUID as the profile ID creates a direct relationship between Supabase Authentication and the InternIQ recruiter profile.
 
 ---
 
@@ -312,7 +312,7 @@ Public applicant access will be handled separately for published internship appl
 
 # Supabase Authentication
 
-BhartiBot uses Supabase Auth for recruiter authentication.
+InternIQ uses Supabase Auth for recruiter authentication.
 
 The relationship between authentication and recruiter profiles is:
 
@@ -322,7 +322,7 @@ auth.users.id
     v
 profiles.id
 
-The `profiles` table contains BhartiBot-specific information about the authenticated recruiter.
+The `profiles` table contains InternIQ-specific information about the authenticated recruiter.
 
 ---
 

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, ArrowRight } from "lucide-react";
 import Shell from "@/components/layout/Shell";
 import { ButtonLink } from "@/components/ui/Button";
 import { createClient } from "@/lib/supabase/server";
@@ -20,29 +20,35 @@ export default async function ApplySuccessPage({
 
   return (
     <Shell>
-      <div className="mx-auto flex max-w-lg flex-col items-center gap-6 py-16 text-center">
-        <CheckCircle2 size={48} className="text-teal" strokeWidth={1.5} />
-        <div>
-          <h1 className="font-display text-2xl font-medium text-ink">
-            Application submitted
+      <div className="mx-auto flex max-w-lg flex-col items-center justify-center gap-6 py-20 px-4 text-center">
+        <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-emerald-light text-emerald border-2 border-emerald/30 shadow-teal">
+          <CheckCircle2 className="h-10 w-10" />
+        </div>
+
+        <div className="space-y-2">
+          <h1 className="font-display font-extrabold text-3xl text-primary tracking-tight">
+            Application Submitted Successfully!
           </h1>
-          <p className="mt-3 text-sm leading-relaxed text-muted">
+          <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
             Thank you for applying to{" "}
-            <span className="font-medium text-text">{internship.title}</span>.
-            The recruiting team will review your application and get in touch if
-            there is a fit.
+            <span className="font-bold text-primary">{internship.title}</span>.
+            The recruiting team will evaluate your application and PDF CV evidence with InternIQ AI.
           </p>
         </div>
-        <ButtonLink href="/" variant="secondary">
-          Back to BhartiBot
-        </ButtonLink>
-        <p className="text-xs text-muted">
-          Need to apply again?{" "}
+
+        <div className="pt-2 flex flex-col sm:flex-row gap-3">
+          <ButtonLink href="/" variant="gradient" rightIcon={<ArrowRight className="h-4 w-4" />}>
+            Back to InternIQ Platform
+          </ButtonLink>
+        </div>
+
+        <p className="text-xs text-text-muted">
+          Need to submit another response?{" "}
           <Link
             href={`/apply/${params.slug}`}
-            className="text-ink underline underline-offset-2 hover:no-underline"
+            className="font-bold text-teal-dark underline hover:no-underline"
           >
-            Return to the application form
+            Return to application form
           </Link>
         </p>
       </div>

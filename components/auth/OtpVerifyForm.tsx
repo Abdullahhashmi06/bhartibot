@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { KeyRound, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import FormNotice from "@/components/ui/FormNotice";
 
@@ -8,7 +9,7 @@ export default function OtpVerifyForm({
   email,
   onVerify,
   onResend,
-  verifyLabel = "Verify code",
+  verifyLabel = "Verify Passcode",
   hint,
 }: {
   email: string;
@@ -31,7 +32,7 @@ export default function OtpVerifyForm({
 
     const code = otp.replace(/\s/g, "");
     if (!/^\d{6}$/.test(code)) {
-      setError("Enter the 6-digit code from your email.");
+      setError("Enter the complete 6-digit passcode from your email.");
       return;
     }
 
@@ -56,21 +57,24 @@ export default function OtpVerifyForm({
       return;
     }
 
-    setInfo("A new code was sent. Check your inbox.");
+    setInfo("A new 6-digit passcode has been sent to your inbox.");
   }
 
   return (
-    <form onSubmit={handleVerify} className="flex flex-col gap-4">
+    <form onSubmit={handleVerify} className="space-y-4">
       {error && <FormNotice tone="error">{error}</FormNotice>}
       {info && <FormNotice tone="info">{info}</FormNotice>}
 
-      <p className="text-sm text-muted">
-        {hint ?? "We sent a 6-digit code to"}{" "}
-        <span className="font-medium text-ink">{email}</span>.
-      </p>
+      <div className="rounded-xl border border-border bg-slate-50 p-3.5 text-xs text-text-secondary leading-relaxed">
+        {hint ?? "We sent a 6-digit verification code to"}{" "}
+        <span className="font-semibold text-primary">{email}</span>.
+      </div>
 
-      <label className="flex flex-col gap-1.5">
-        <span className="text-sm font-medium text-text">Verification code</span>
+      <div className="space-y-1.5">
+        <label className="text-xs font-semibold text-text-primary flex items-center justify-between">
+          <span>Enter 6-Digit Passcode</span>
+          <KeyRound className="h-3.5 w-3.5 text-text-muted" />
+        </label>
         <input
           type="text"
           inputMode="numeric"
@@ -81,22 +85,30 @@ export default function OtpVerifyForm({
           onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
           placeholder="123456"
           required
-          className="rounded-md border border-border bg-white px-3 py-2 font-mono text-lg tracking-[0.3em] text-text placeholder:text-muted/70 focus:border-ink"
+          className="w-full text-center rounded-xl border border-border bg-slate-50/50 py-3 font-mono text-2xl font-bold tracking-[0.4em] text-primary placeholder:text-text-muted/40 focus:border-teal focus:bg-white focus:outline-none transition-all"
         />
-      </label>
+      </div>
 
-      <Button type="submit" className="w-full" disabled={status !== "idle"}>
-        {status === "verifying" ? "Verifying…" : verifyLabel}
+      <Button
+        type="submit"
+        variant="gradient"
+        className="w-full py-3"
+        isLoading={status === "verifying"}
+      >
+        {verifyLabel}
       </Button>
 
-      <button
-        type="button"
-        onClick={handleResend}
-        disabled={status !== "idle"}
-        className="text-sm text-muted underline underline-offset-2 hover:text-ink disabled:opacity-50"
-      >
-        {status === "resending" ? "Sending…" : "Resend code"}
-      </button>
+      <div className="text-center pt-1">
+        <button
+          type="button"
+          onClick={handleResend}
+          disabled={status !== "idle"}
+          className="inline-flex items-center gap-1.5 text-xs font-mono text-text-secondary hover:text-teal transition-colors disabled:opacity-50"
+        >
+          <RefreshCw className={`h-3.5 w-3.5 ${status === "resending" ? "animate-spin text-teal" : ""}`} />
+          <span>{status === "resending" ? "Sending..." : "Resend new passcode"}</span>
+        </button>
+      </div>
     </form>
   );
 }

@@ -1,8 +1,9 @@
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Users } from "lucide-react";
+import { ArrowLeft, Users, Briefcase, Plus, Sparkles } from "lucide-react";
 import Shell from "@/components/layout/Shell";
 import Tag from "@/components/ui/Tag";
+import MetricCard from "@/components/ai/MetricCard";
 import ApplicantList from "@/components/applications/ApplicantList";
 import { createClient } from "@/lib/supabase/server";
 import { getApplicationsByInternship } from "@/lib/queries/applications";
@@ -28,7 +29,6 @@ export default async function InternshipApplicantsPage({
     params.internshipId
   );
 
-  // Per-status counts
   const newCount = applications.filter((a) => a.status === "new").length;
   const underReview = applications.filter(
     (a) => a.status === "under_review"
@@ -39,73 +39,92 @@ export default async function InternshipApplicantsPage({
   const rejected = applications.filter((a) => a.status === "rejected").length;
 
   return (
-    <Shell>
-      <div className="flex flex-col gap-6">
-        {/* Breadcrumb */}
-        <Link
-          href="/dashboard/applications"
-          className="inline-flex w-fit items-center gap-1.5 text-sm text-muted transition-colors hover:text-ink"
-        >
-          <ArrowLeft size={14} />
-          All Internships
-        </Link>
+    <Shell userEmail={user.email}>
+      <div className="space-y-6">
+        {/* Breadcrumb Navigation */}
+        <div className="flex items-center justify-between border-b border-border pb-4">
+          <Link
+            href="/dashboard/applications"
+            className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-text-secondary hover:text-primary transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" /> All Applications Hub
+          </Link>
 
-        {/* Header */}
-        <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border pb-6">
-          <div>
+          <Link
+            href={`/internships/${internship.public_slug}`}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-white px-3.5 py-2 text-xs font-semibold text-text-primary hover:border-teal hover:text-teal-dark shadow-subtle transition-all"
+          >
+            <Briefcase className="h-3.5 w-3.5 text-teal" />
+            Edit Internship Settings
+          </Link>
+        </div>
+
+        {/* Role Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <h1 className="font-display text-2xl font-medium text-ink">
+              <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-primary tracking-tight">
                 {internship.title}
               </h1>
-              <Tag
-                tone={internship.status === "published" ? "teal" : "neutral"}
-              >
+              <Tag tone={internship.status === "published" ? "teal" : "neutral"}>
                 {internship.status}
               </Tag>
             </div>
-            <p className="mt-1 text-sm text-muted">
-              {[internship.location, internship.work_mode]
+            <p className="text-xs sm:text-sm text-text-secondary">
+              {[internship.location, internship.work_mode, internship.duration]
                 .filter(Boolean)
                 .join(" · ")}
             </p>
           </div>
-
-          <Link
-            href={`/internships/${internship.public_slug}`}
-            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-white px-3 py-2 text-sm text-muted transition-colors hover:border-ink hover:text-ink"
-          >
-            Edit / Manage →
-          </Link>
         </div>
 
-        {/* Mini stats */}
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <MiniStat
-            label="Total"
+        {/* STATS METRICS GRID */}
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <MetricCard
+            label="Total Applicants"
             value={applications.length}
-            tone="ink"
+            icon={<Users className="h-4 w-4" />}
+            tone="navy"
           />
-          <MiniStat label="New" value={newCount} tone="neutral" />
-          <MiniStat label="Shortlisted" value={shortlisted} tone="teal" />
-          <MiniStat label="Rejected" value={rejected} tone="rose" />
+          <MetricCard
+            label="New Applications"
+            value={newCount}
+            icon={<Sparkles className="h-4 w-4" />}
+            tone="blue"
+          />
+          <MetricCard
+            label="Shortlisted Pool"
+            value={shortlisted}
+            icon={<Sparkles className="h-4 w-4" />}
+            tone="emerald"
+          />
+          <MetricCard
+            label="Rejected"
+            value={rejected}
+            icon={<Users className="h-4 w-4" />}
+            tone="rose"
+          />
         </div>
 
-        {/* Under-review note */}
-        {underReview > 0 && (
-          <p className="text-xs text-muted font-mono">
-            + {underReview} under review
-          </p>
-        )}
-
-        {/* Applicant list with search/filter (client component) */}
+        {/* APPLICANT LIST COMPONENT WITH SEARCH & FILTERS */}
         {applications.length === 0 ? (
-          <div className="flex flex-col items-center gap-2 rounded-md border border-dashed border-border py-20 text-center">
-            <Users size={32} className="text-muted/40" />
-            <p className="text-sm text-muted">No applications yet.</p>
-            {internship.status !== "published" && (
-              <p className="text-xs text-muted">
-                Publish this internship to start receiving applications.
+          <div className="flex flex-col items-center justify-center gap-3 rounded-3xl border border-dashed border-border bg-white py-20 text-center shadow-subtle">
+            <Users className="h-12 w-12 text-text-muted" />
+            <div className="space-y-1">
+              <p className="text-base font-bold text-primary">No Applications Received Yet</p>
+              <p className="text-xs text-text-secondary max-w-sm mx-auto">
+                {internship.status === "published"
+                  ? "Share your public link to start collecting PDF resumes."
+                  : "Publish this internship to enable public candidate submissions."}
               </p>
+            </div>
+            {internship.status !== "published" && (
+              <Link
+                href={`/internships/${internship.public_slug}`}
+                className="mt-2 inline-flex items-center gap-2 rounded-xl bg-gradient-primary text-white px-4 py-2 text-xs font-semibold shadow-teal"
+              >
+                Publish Internship Drive
+              </Link>
             )}
           </div>
         ) : (
@@ -116,31 +135,5 @@ export default async function InternshipApplicantsPage({
         )}
       </div>
     </Shell>
-  );
-}
-
-function MiniStat({
-  label,
-  value,
-  tone,
-}: {
-  label: string;
-  value: number;
-  tone: "ink" | "neutral" | "teal" | "rose";
-}) {
-  const bg = {
-    ink: "bg-ink text-paper",
-    neutral: "bg-white border-border text-muted",
-    teal: "bg-teal/10 border-teal/30 text-[#1D6E63]",
-    rose: "bg-rose/10 border-rose/30 text-[#8A3A20]",
-  }[tone];
-
-  return (
-    <div className={`rounded-md border p-4 ${bg}`}>
-      <p className="font-display text-2xl font-medium">{value}</p>
-      <p className="mt-0.5 font-mono text-[11px] uppercase tracking-wider opacity-70">
-        {label}
-      </p>
-    </div>
   );
 }

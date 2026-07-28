@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Edit3, Users, Briefcase } from "lucide-react";
 import Shell from "@/components/layout/Shell";
 import Tag from "@/components/ui/Tag";
 import ScreeningQuestions from "@/components/internships/ScreeningQuestions";
@@ -41,67 +41,74 @@ export default async function InternshipDetailPage({
   const isPublished = internship.status === "published";
 
   return (
-    <Shell>
-      <div className="mx-auto flex max-w-2xl flex-col gap-6 py-4">
-        <div className="flex items-center justify-between">
+    <Shell userEmail={user.email}>
+      <div className="mx-auto max-w-3xl space-y-8 py-4">
+        {/* Header Navigation */}
+        <div className="flex items-center justify-between border-b border-border pb-4">
           <Link
             href="/dashboard"
-            className="inline-flex w-fit items-center gap-1.5 text-sm text-muted transition-colors hover:text-ink"
+            className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-text-secondary hover:text-primary transition-colors"
           >
-            <ArrowLeft size={14} />
-            Back to dashboard
+            <ArrowLeft className="h-4 w-4" /> Back to Workspace Dashboard
           </Link>
+
           <div className="flex items-center gap-2">
             <Link
               href={`/internships/${params.slug}/edit`}
-              className="inline-flex items-center gap-1.5 rounded-md border border-border bg-white px-3 py-1.5 text-sm text-muted transition-colors hover:border-ink hover:text-ink"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-white px-3.5 py-2 text-xs font-semibold text-text-primary hover:border-teal hover:text-teal-dark shadow-subtle transition-all"
             >
-              ✏️ Edit
+              <Edit3 className="h-3.5 w-3.5 text-teal" /> Edit Role Parameters
             </Link>
             <Link
               href={`/dashboard/applications/${internship.id}`}
-              className="inline-flex items-center gap-1.5 rounded-md border border-border bg-white px-3 py-1.5 text-sm text-muted transition-colors hover:border-ink hover:text-ink"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-primary text-white px-3.5 py-2 text-xs font-semibold shadow-teal hover:opacity-95 transition-all"
             >
-              👥 View Applicants
+              <Users className="h-3.5 w-3.5" /> View Applicants
             </Link>
           </div>
         </div>
 
-        <div>
-          <Tag tone={isPublished ? "teal" : "neutral"}>
-            {internship.status}
-          </Tag>
-          <h1 className="mt-3 font-display text-2xl font-medium text-ink">
+        {/* ROLE HEADER CARD */}
+        <div className="rounded-3xl border border-border bg-white p-6 sm:p-8 shadow-card space-y-4">
+          <div className="flex items-center gap-2">
+            <Tag tone={isPublished ? "teal" : "neutral"}>
+              {internship.status}
+            </Tag>
+          </div>
+          <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-primary tracking-tight">
             {internship.title}
           </h1>
-          <p className="mt-1 text-sm text-muted">
+          <p className="text-xs sm:text-sm font-medium text-text-secondary">
             {[internship.field, internship.location, internship.work_mode, internship.duration]
               .filter(Boolean)
               .join(" · ")}
           </p>
+
+          {internship.description && (
+            <div className="pt-3 border-t border-border space-y-1.5">
+              <h2 className="font-display font-bold text-xs uppercase tracking-wider text-text-muted">
+                Role Description & Overview
+              </h2>
+              <p className="text-xs sm:text-sm leading-relaxed text-text-primary">
+                {internship.description}
+              </p>
+            </div>
+          )}
         </div>
 
-        {internship.description && (
-          <div>
-            <h2 className="font-display text-sm font-medium text-ink">
-              Description
-            </h2>
-            <p className="mt-2 text-sm leading-relaxed text-text">
-              {internship.description}
-            </p>
-          </div>
-        )}
-
-        <div className="grid grid-cols-1 gap-6 border-t border-border pt-6 sm:grid-cols-2">
-          <RequirementColumn title="Required" tone="amber" items={required} />
-          <RequirementColumn title="Preferred" tone="teal" items={preferred} />
+        {/* REQUIREMENTS COLUMNS */}
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+          <RequirementColumn title="Required Qualifications" tone="amber" items={required} />
+          <RequirementColumn title="Preferred Competencies" tone="teal" items={preferred} />
         </div>
 
+        {/* SCREENING QUESTIONS */}
         <ScreeningQuestions
           internshipId={internship.id}
           initialQuestions={questions}
         />
 
+        {/* PUBLISH PANEL */}
         <PublishPanel
           internshipId={internship.id}
           title={internship.title}
@@ -123,11 +130,11 @@ function RequirementColumn({
   items: { id?: string; requirement: string }[];
 }) {
   return (
-    <div>
-      <h3 className="font-display text-sm font-medium text-ink">{title}</h3>
-      <div className="mt-2 flex flex-wrap gap-1.5">
+    <div className="rounded-3xl border border-border bg-white p-6 shadow-card space-y-3">
+      <h3 className="font-display font-bold text-sm text-primary">{title}</h3>
+      <div className="flex flex-wrap gap-1.5">
         {items.length === 0 ? (
-          <span className="text-sm text-muted">None added</span>
+          <span className="text-xs text-text-muted italic">None specified</span>
         ) : (
           items.map((item) => (
             <Tag key={item.id ?? item.requirement} tone={tone}>

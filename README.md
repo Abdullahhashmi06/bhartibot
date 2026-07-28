@@ -1,4 +1,4 @@
-# BhartiBot
+# InternIQ
 
 AI-assisted internship application & screening platform. Recruiters define
 requirements, applicants submit CVs through a public link, and AI maps
@@ -21,7 +21,7 @@ Supabase with status `new`. CV file storage lands Day 7.
 
 ```bash
 git clone <repo-url>
-cd bhartibot
+cd <your-clone-directory>
 cp .env.local.example .env.local   # fill in the two values from Developer B
 npm install
 npm run dev
@@ -100,6 +100,42 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=
 Both are public and safe in the browser. The `SUPABASE_SERVICE_ROLE_KEY`
 and any AI API key must **only** ever be used in server-side code (route
 handlers / server actions), never in a client component, never committed.
+
+Add for AI resume analysis (server-only):
+
+```
+GEMINI_API_KEY=
+```
+
+Apply `supabase/migrations/20260728_candidate_ai_analysis.sql` before using
+AI analysis on the applicant detail page.
+
+## Testing AI analysis and error handling
+
+Prerequisites: `GEMINI_API_KEY` in `.env.local`, AI migration applied, at least
+one application with a PDF CV uploaded.
+
+1. Open `/dashboard/applications/<internshipId>/<applicationId>`.
+2. Confirm personal info, CV link, and screening answers load without clicking
+   **Analyze CV** — the page must never auto-call Gemini.
+3. Click **Analyze CV** and wait for the match score panel.
+4. Refresh the page — the cached analysis should appear with no new Gemini
+   request (check server logs).
+5. Click **Re-analyze CV** — only this explicit action should trigger a new
+   Gemini run and replace the stored analysis.
+6. Temporarily set `GEMINI_API_KEY` to an invalid value, click **Analyze CV**
+   (or **Try again** after a failure). Confirm:
+   - The applicant page still loads (CV opens, answers visible).
+   - An **AI Analysis** card shows a user-friendly reason (no stack trace).
+   - Server console logs `[InternIQ AI] …` with the technical detail.
+7. Restore the valid key. With a cached failure, click **Try again** — analysis
+   should succeed and the failure cache clears.
+8. To simulate quota exceeded, use an exhausted key or mock a 429 in
+   `lib/ai/gemini.ts` temporarily. Confirm the message reads
+   *Daily AI quota exceeded*, **Try again** is shown, and repeat page loads do
+   not hammer Gemini (failure is cached until you click **Try again**).
+9. Upload or test with a PDF over 5 MB — expect *This resume is too large to
+   analyze* without crashing the page.
 
 ## Handoff note for Developer B (auth → database)
 

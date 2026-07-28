@@ -2,29 +2,103 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --font-fraunces: "Fraunces", serif;
-  --font-inter: "Inter", sans-serif;
-  --font-plex-mono: "IBM Plex Mono", monospace;
+@layer base {
+  :root {
+    --background: 240 10% 98%;
+    --foreground: 222 47% 16%;
+    --font-jakarta: "Plus Jakarta Sans", sans-serif;
+    --font-inter: "Inter", sans-serif;
+    --font-jetbrains: "JetBrains Mono", monospace;
+  }
+
+  .dark {
+    --background: 222 47% 8%;
+    --foreground: 210 40% 98%;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  body {
+    background-color: #F7F9FC;
+    color: #16233B;
+    font-family: var(--font-inter), sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .dark body {
+    background-color: #050C16;
+    color: #F8FAFC;
+  }
 }
 
-html {
-  scroll-behavior: smooth;
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
 }
 
-body {
-  background-color: #FAFAF7;
-  color: #1C1C1E;
-}
-
-/* Visible keyboard focus, consistent across all interactive elements */
+/* Custom Focus States for Accessibility */
 a:focus-visible,
 button:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-  outline: 2px solid #E8A33D;
+  outline: 2px solid #17C6B5;
   outline-offset: 2px;
+}
+
+/* Glassmorphism utility */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.dark .glass-panel {
+  background: rgba(8, 20, 38, 0.85);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Primary Gradient Text */
+.text-gradient {
+  background: linear-gradient(135deg, #17C6B5 0%, #6F52ED 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Shimmer Animation for Loaders */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(226, 232, 240, 0.6) 25%,
+    rgba(241, 245, 249, 0.9) 50%,
+    rgba(226, 232, 240, 0.6) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {

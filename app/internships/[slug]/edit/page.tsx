@@ -1,6 +1,6 @@
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Edit3 } from "lucide-react";
 import Shell from "@/components/layout/Shell";
 import Tag from "@/components/ui/Tag";
 import EditInternshipForm from "@/components/internships/EditInternshipForm";
@@ -33,46 +33,44 @@ export default async function EditInternshipPage({
   ]);
 
   return (
-    <Shell>
-      <div className="mx-auto flex max-w-2xl flex-col gap-6 py-4">
-        {/* Breadcrumb */}
-        <Link
-          href={`/internships/${params.slug}`}
-          className="inline-flex w-fit items-center gap-1.5 text-sm text-muted transition-colors hover:text-ink"
-        >
-          <ArrowLeft size={14} />
-          Back to internship
-        </Link>
+    <Shell userEmail={user.email}>
+      <div className="mx-auto max-w-3xl space-y-8 py-4">
+        {/* Breadcrumb Header */}
+        <div className="flex items-center justify-between border-b border-border pb-4">
+          <Link
+            href={`/internships/${params.slug}`}
+            className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-text-secondary hover:text-primary transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" /> Back to Role Overview
+          </Link>
+        </div>
 
         {/* Header */}
-        <div className="border-b border-border pb-6">
+        <div className="rounded-3xl border border-border bg-white p-6 sm:p-8 shadow-card space-y-2">
           <Tag tone={internship.status === "published" ? "teal" : "neutral"}>
             {internship.status}
           </Tag>
-          <h1 className="mt-3 font-display text-2xl font-medium text-ink">
-            Edit: {internship.title}
+          <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-primary tracking-tight">
+            Edit Role: {internship.title}
           </h1>
-          <p className="mt-1 text-sm text-muted">
-            Changes are saved immediately to Supabase. Screening questions can
-            be managed below.
+          <p className="text-xs sm:text-sm text-text-secondary">
+            Update role title, description, technical requirements, and custom screening questions.
           </p>
         </div>
 
-        {/* Edit form (title, description, requirements) */}
+        {/* Edit Form */}
         <EditInternshipForm
           internship={internship}
           initialRequirements={requirements}
         />
 
-        {/* Screening questions */}
-        <div className="border-t border-border pt-6">
-          <ScreeningQuestions
-            internshipId={internship.id}
-            initialQuestions={questions}
-          />
-        </div>
+        {/* Screening Questions */}
+        <ScreeningQuestions
+          internshipId={internship.id}
+          initialQuestions={questions}
+        />
 
-        {/* Publish/unpublish */}
+        {/* Publish / Unpublish */}
         <PublishPanel
           internshipId={internship.id}
           title={internship.title}

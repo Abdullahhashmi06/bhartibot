@@ -25,7 +25,7 @@ Update these templates so the email includes the 6-digit code:
 Include:
 
 ```text
-Your BhartiBot verification code is: {{ .Token }}
+Your InternIQ verification code is: {{ .Token }}
 ```
 
 ### Magic Link
@@ -33,7 +33,7 @@ Your BhartiBot verification code is: {{ .Token }}
 Include:
 
 ```text
-Your BhartiBot login code is: {{ .Token }}
+Your InternIQ login code is: {{ .Token }}
 ```
 
 > If the template only has `{{ .ConfirmationURL }}`, users get a link instead of a typed OTP. Keep `{{ .Token }}` in the body for the in-app OTP screens.

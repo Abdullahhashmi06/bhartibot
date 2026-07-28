@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import { User, Mail, Phone, GraduationCap, Link2, UploadCloud, FileText, Send, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import FormNotice from "@/components/ui/FormNotice";
 import { createClient } from "@/lib/supabase/client";
@@ -10,7 +11,7 @@ import { ScreeningQuestion } from "@/lib/types";
 import { uploadCv } from "@/lib/queries/storage";
 
 const inputClass =
-  "w-full rounded-md border border-border bg-white px-3 py-2 text-sm text-text placeholder:text-muted/70 focus:border-ink";
+  "w-full rounded-xl border border-border bg-slate-50/50 px-4 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-teal focus:bg-white focus:outline-none transition-all shadow-subtle";
 
 export default function ApplicationForm({
   internshipId,
@@ -51,18 +52,18 @@ export default function ApplicationForm({
     setError(null);
 
     if (!applicantName.trim() || !email.trim()) {
-      setError("Name and email are required.");
+      setError("Full Name and Email address are required.");
       return;
     }
 
     if (cvFile && cvFile.type !== "application/pdf") {
-      setError("CV must be a PDF file.");
+      setError("CV must be a valid PDF document.");
       return;
     }
 
     for (const question of questions) {
       if (!answers[question.id]?.trim()) {
-        setError("Please answer all screening questions.");
+        setError("Please answer all screening questions before submitting.");
         return;
       }
     }
@@ -76,7 +77,7 @@ export default function ApplicationForm({
 
       if (error || !path) {
         setStatus("idle");
-        setError(error ?? "Failed to upload CV.");
+        setError(error ?? "Failed to upload CV file.");
         return;
       }
 
@@ -108,11 +109,7 @@ export default function ApplicationForm({
     setStatus("idle");
 
     if (submitError && !application) {
-      setError(
-        submitError.includes("row-level security")
-          ? "Could not submit. Confirm the applications migration and RLS policies are applied (Developer B)."
-          : submitError
-      );
+      setError(submitError);
       return;
     }
 
@@ -125,13 +122,17 @@ export default function ApplicationForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+    <form onSubmit={handleSubmit} className="space-y-8">
       {error && <FormNotice tone="error">{error}</FormNotice>}
 
-      <section className="flex flex-col gap-4">
-        <h2 className="font-display text-lg font-medium text-ink">
-          Personal Information
-        </h2>
+      {/* SECTION 1: PERSONAL INFORMATION */}
+      <div className="rounded-3xl border border-border bg-white p-6 sm:p-8 shadow-card space-y-5">
+        <div className="flex items-center gap-2 border-b border-border pb-3">
+          <User className="h-5 w-5 text-teal" />
+          <h2 className="font-display font-bold text-lg text-primary">
+            Personal Information
+          </h2>
+        </div>
 
         <Field label="Full Name" required>
           <input
@@ -144,7 +145,7 @@ export default function ApplicationForm({
         </Field>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field label="Email" required>
+          <Field label="Email Address" required>
             <input
               type="email"
               value={email}
@@ -153,7 +154,7 @@ export default function ApplicationForm({
               className={inputClass}
             />
           </Field>
-          <Field label="Phone">
+          <Field label="Phone Number">
             <input
               type="tel"
               value={phone}
@@ -163,12 +164,18 @@ export default function ApplicationForm({
             />
           </Field>
         </div>
-      </section>
+      </div>
 
-      <section className="flex flex-col gap-4 border-t border-border pt-6">
-        <h2 className="font-display text-lg font-medium text-ink">Education</h2>
+      {/* SECTION 2: ACADEMIC BACKGROUND */}
+      <div className="rounded-3xl border border-border bg-white p-6 sm:p-8 shadow-card space-y-5">
+        <div className="flex items-center gap-2 border-b border-border pb-3">
+          <GraduationCap className="h-5 w-5 text-purple-ai" />
+          <h2 className="font-display font-bold text-lg text-primary">
+            Academic Background
+          </h2>
+        </div>
 
-        <Field label="University">
+        <Field label="University / College Name">
           <input
             type="text"
             value={university}
@@ -179,7 +186,7 @@ export default function ApplicationForm({
         </Field>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <Field label="Degree">
+          <Field label="Degree Program">
             <input
               type="text"
               value={degree}
@@ -188,7 +195,7 @@ export default function ApplicationForm({
               className={inputClass}
             />
           </Field>
-          <Field label="Semester">
+          <Field label="Current Semester">
             <input
               type="text"
               value={semester}
@@ -202,118 +209,163 @@ export default function ApplicationForm({
               type="text"
               value={cgpa}
               onChange={(e) => setCgpa(e.target.value)}
-              placeholder="3.45"
+              placeholder="3.85"
               className={inputClass}
             />
           </Field>
         </div>
-      </section>
+      </div>
 
-      <section className="flex flex-col gap-4 border-t border-border pt-6">
-        <h2 className="font-display text-lg font-medium text-ink">
-          Professional Links
-        </h2>
-        <p className="text-sm text-muted">All optional.</p>
-
-        <Field label="LinkedIn">
-          <input
-            type="url"
-            value={linkedinUrl}
-            onChange={(e) => setLinkedinUrl(e.target.value)}
-            placeholder="https://linkedin.com/in/yourprofile"
-            className={inputClass}
-          />
-        </Field>
-
-        <Field label="GitHub">
-          <input
-            type="url"
-            value={githubUrl}
-            onChange={(e) => setGithubUrl(e.target.value)}
-            placeholder="https://github.com/yourusername"
-            className={inputClass}
-          />
-        </Field>
-
-        <Field label="Portfolio">
-          <input
-            type="url"
-            value={portfolioUrl}
-            onChange={(e) => setPortfolioUrl(e.target.value)}
-            placeholder="https://yourportfolio.com"
-            className={inputClass}
-          />
-        </Field>
-      </section>
-
-      <section className="flex flex-col gap-4 border-t border-border pt-6">
-        <h2 className="font-display text-lg font-medium text-ink">CV</h2>
-        <Field label="Upload PDF CV">
-          <input
-            type="file"
-            accept="application/pdf,.pdf"
-            onChange={(e) => setCvFile(e.target.files?.[0] ?? null)}
-            className="w-full text-sm text-text file:mr-3 file:rounded-md file:border file:border-border file:bg-paper file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-ink hover:file:border-ink"
-          />
-          <p className="mt-1.5 text-xs text-muted">
-            PDF only. File storage is wired in Day 7 — your application details
-            are saved now.
-          </p>
-        </Field>
-      </section>
-
-      {questions.length > 0 && (
-        <section className="flex flex-col gap-4 border-t border-border pt-6">
-          <h2 className="font-display text-lg font-medium text-ink">
-            Screening Questions
+      {/* SECTION 3: PROFESSIONAL LINKS */}
+      <div className="rounded-3xl border border-border bg-white p-6 sm:p-8 shadow-card space-y-5">
+        <div className="flex items-center gap-2 border-b border-border pb-3">
+          <Link2 className="h-5 w-5 text-emerald" />
+          <h2 className="font-display font-bold text-lg text-primary">
+            Professional Links (Optional)
           </h2>
+        </div>
 
-          {questions.map((question, index) => (
-            <div
-              key={question.id}
-              className="rounded-md border border-border bg-white p-4"
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <Field label="LinkedIn Profile">
+            <input
+              type="url"
+              value={linkedinUrl}
+              onChange={(e) => setLinkedinUrl(e.target.value)}
+              placeholder="https://linkedin.com/in/username"
+              className={inputClass}
+            />
+          </Field>
+          <Field label="GitHub Profile">
+            <input
+              type="url"
+              value={githubUrl}
+              onChange={(e) => setGithubUrl(e.target.value)}
+              placeholder="https://github.com/username"
+              className={inputClass}
+            />
+          </Field>
+          <Field label="Portfolio Website">
+            <input
+              type="url"
+              value={portfolioUrl}
+              onChange={(e) => setPortfolioUrl(e.target.value)}
+              placeholder="https://yourportfolio.com"
+              className={inputClass}
+            />
+          </Field>
+        </div>
+      </div>
+
+      {/* SECTION 4: RESUME / CV PDF UPLOADER */}
+      <div className="rounded-3xl border border-border bg-white p-6 sm:p-8 shadow-card space-y-4">
+        <div className="flex items-center gap-2 border-b border-border pb-3">
+          <UploadCloud className="h-5 w-5 text-teal" />
+          <h2 className="font-display font-bold text-lg text-primary">
+            Upload PDF Resume / CV
+          </h2>
+        </div>
+
+        <div className="rounded-2xl border-2 border-dashed border-border bg-slate-50/50 p-6 text-center space-y-3 hover:border-teal transition-all">
+          <FileText className="h-10 w-10 text-teal mx-auto" />
+          <div>
+            <input
+              type="file"
+              accept="application/pdf,.pdf"
+              onChange={(e) => setCvFile(e.target.files?.[0] ?? null)}
+              className="hidden"
+              id="cv-upload-input"
+            />
+            <label
+              htmlFor="cv-upload-input"
+              className="cursor-pointer inline-flex items-center gap-2 rounded-xl bg-primary text-white px-4 py-2.5 text-xs font-semibold shadow-subtle hover:bg-primary-light transition-all"
             >
-              <p className="text-sm font-medium text-text">
-                {index + 1}. {question.question}
-              </p>
+              <UploadCloud className="h-4 w-4" /> Choose PDF File
+            </label>
+          </div>
+          {cvFile ? (
+            <p className="font-mono text-xs font-bold text-teal-dark">
+              Selected: {cvFile.name} ({(cvFile.size / 1024 / 1024).toFixed(2)} MB)
+            </p>
+          ) : (
+            <p className="text-xs text-text-muted">
+              Only PDF format is supported. Maximum file size 10MB.
+            </p>
+          )}
+        </div>
+      </div>
 
-              {question.type === "yes_no" ? (
-                <div className="mt-3 flex gap-4">
-                  {(["Yes", "No"] as const).map((option) => (
-                    <label
-                      key={option}
-                      className="flex items-center gap-2 text-sm text-text"
-                    >
-                      <input
-                        type="radio"
-                        name={`question_${question.id}`}
-                        checked={answers[question.id] === option}
-                        onChange={() =>
-                          handleAnswerChange(question.id, option)
-                        }
-                      />
-                      {option}
-                    </label>
-                  ))}
-                </div>
-              ) : (
-                <textarea
-                  value={answers[question.id]}
-                  onChange={(e) =>
-                    handleAnswerChange(question.id, e.target.value)
-                  }
-                  rows={3}
-                  placeholder="Your answer"
-                  className={`${inputClass} mt-3`}
-                />
-              )}
-            </div>
-          ))}
-        </section>
+      {/* SECTION 5: SCREENING QUESTIONS */}
+      {questions.length > 0 && (
+        <div className="rounded-3xl border border-border bg-white p-6 sm:p-8 shadow-card space-y-5">
+          <div className="border-b border-border pb-3">
+            <h2 className="font-display font-bold text-lg text-primary">
+              Screening Questions ({questions.length})
+            </h2>
+            <p className="text-xs text-text-secondary">
+              Please answer the following role-specific questions.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            {questions.map((question, index) => (
+              <div
+                key={question.id}
+                className="rounded-2xl border border-border bg-slate-50 p-4 space-y-3 shadow-subtle"
+              >
+                <p className="font-display font-semibold text-sm text-primary">
+                  {index + 1}. {question.question}
+                </p>
+
+                {question.type === "YES_NO" ? (
+                  <div className="flex gap-3">
+                    {(["Yes", "No"] as const).map((option) => (
+                      <label
+                        key={option}
+                        className={`flex cursor-pointer items-center gap-2 rounded-xl border px-4 py-2 text-xs font-semibold transition-all ${
+                          answers[question.id] === option
+                            ? "border-teal bg-teal-light text-teal-dark shadow-subtle"
+                            : "border-border bg-white text-text-primary hover:border-slate-300"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name={`question_${question.id}`}
+                          checked={answers[question.id] === option}
+                          onChange={() =>
+                            handleAnswerChange(question.id, option)
+                          }
+                          className="mt-0.5"
+                        />
+                        {option}
+                      </label>
+                    ))}
+                  </div>
+                ) : (
+                  <textarea
+                    value={answers[question.id]}
+                    onChange={(e) =>
+                      handleAnswerChange(question.id, e.target.value)
+                    }
+                    rows={3}
+                    placeholder="Type your response here..."
+                    className={inputClass}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
       )}
 
-      <Button type="submit" disabled={status === "submitting"} className="mt-2">
-        {status === "submitting" ? "Submitting…" : "Submit Application"}
+      <Button
+        type="submit"
+        variant="gradient"
+        size="lg"
+        isLoading={status === "submitting"}
+        className="w-full py-3.5"
+        leftIcon={<Send className="h-4 w-4" />}
+      >
+        Submit Application
       </Button>
     </form>
   );
@@ -329,12 +381,12 @@ function Field({
   children: React.ReactNode;
 }) {
   return (
-    <label className="flex flex-col gap-1.5">
-      <span className="text-sm font-medium text-text">
+    <div className="space-y-1.5">
+      <label className="text-xs font-semibold text-text-primary">
         {label}
-        {required && <span className="text-rose"> *</span>}
-      </span>
+        {required && <span className="text-danger"> *</span>}
+      </label>
       {children}
-    </label>
+    </div>
   );
 }

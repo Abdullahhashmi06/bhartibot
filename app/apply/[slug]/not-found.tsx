@@ -16,7 +16,7 @@ export default function ApplyNotFound() {
           href="/"
           className="text-sm text-ink underline underline-offset-2 hover:no-underline"
         >
-          Go to BhartiBot home
+          Go to InternIQ home
         </Link>
       </div>
     </Shell>

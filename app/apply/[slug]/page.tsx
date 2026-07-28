@@ -8,6 +8,7 @@ import {
   getPublishedInternshipBySlug,
 } from "@/lib/queries/internships";
 import { getInternshipQuestions } from "@/lib/queries/questions";
+import { Sparkles, Briefcase, MapPin, Clock } from "lucide-react";
 
 export default async function ApplyPage({
   params,
@@ -31,56 +32,69 @@ export default async function ApplyPage({
 
   return (
     <Shell>
-      <div className="mx-auto flex max-w-2xl flex-col gap-8 py-4">
-        <header className="flex flex-col gap-3">
-          <Tag tone="teal">Open for applications</Tag>
-          <h1 className="font-display text-2xl font-medium text-ink">
+      <div className="mx-auto max-w-3xl space-y-8 py-8 px-4 sm:px-6">
+        {/* PUBLIC APPLICATION HEADER */}
+        <div className="rounded-3xl border border-border bg-white p-6 sm:p-8 shadow-card space-y-4">
+          <div className="flex items-center gap-2">
+            <Tag tone="teal">Open Internship Drive</Tag>
+            <span className="font-mono text-xs text-text-muted font-medium">
+              No account required
+            </span>
+          </div>
+
+          <h1 className="font-display font-extrabold text-3xl sm:text-4xl text-primary tracking-tight">
             {internship.title}
           </h1>
-          <p className="text-sm text-muted">
-            {[internship.field, internship.location, internship.work_mode, internship.duration]
-              .filter(Boolean)
-              .join(" · ")}
-          </p>
-        </header>
 
-        {internship.description && (
-          <section>
-            <h2 className="font-display text-sm font-medium text-ink">
-              About this internship
-            </h2>
-            <p className="mt-2 text-sm leading-relaxed text-text">
-              {internship.description}
-            </p>
-          </section>
-        )}
-
-        {(required.length > 0 || preferred.length > 0) && (
-          <section className="grid grid-cols-1 gap-6 border-t border-border pt-6 sm:grid-cols-2">
-            <RequirementColumn title="Required" tone="amber" items={required} />
-            <RequirementColumn
-              title="Preferred"
-              tone="teal"
-              items={preferred}
-            />
-          </section>
-        )}
-
-        <section className="border-t border-border pt-6">
-          <h2 className="font-display text-lg font-medium text-ink">
-            Apply
-          </h2>
-          <p className="mt-1 text-sm text-muted">
-            No account needed. Fill in your details and submit your application.
-          </p>
-          <div className="mt-6">
-            <ApplicationForm
-              internshipId={internship.id}
-              slug={params.slug}
-              questions={questions}
-            />
+          <div className="flex flex-wrap items-center gap-3 text-xs sm:text-sm font-semibold text-text-secondary">
+            {internship.field && (
+              <span className="flex items-center gap-1">
+                <Briefcase className="h-4 w-4 text-teal" /> {internship.field}
+              </span>
+            )}
+            {internship.location && (
+              <span className="flex items-center gap-1">
+                <MapPin className="h-4 w-4 text-purple-ai" /> {internship.location}
+              </span>
+            )}
+            {internship.work_mode && (
+              <span className="bg-slate-100 px-2.5 py-0.5 rounded-full font-mono text-xs uppercase">
+                {internship.work_mode}
+              </span>
+            )}
+            {internship.duration && (
+              <span className="flex items-center gap-1 font-mono text-xs text-text-muted">
+                <Clock className="h-3.5 w-3.5" /> {internship.duration}
+              </span>
+            )}
           </div>
-        </section>
+
+          {internship.description && (
+            <div className="pt-4 border-t border-border space-y-1.5">
+              <h2 className="font-display font-bold text-xs uppercase tracking-wider text-text-muted">
+                About this Role
+              </h2>
+              <p className="text-xs sm:text-sm leading-relaxed text-text-primary">
+                {internship.description}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* REQUIREMENTS */}
+        {(required.length > 0 || preferred.length > 0) && (
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <RequirementColumn title="Required Qualifications" tone="amber" items={required} />
+            <RequirementColumn title="Preferred Competencies" tone="teal" items={preferred} />
+          </div>
+        )}
+
+        {/* APPLICATION FORM */}
+        <ApplicationForm
+          internshipId={internship.id}
+          slug={params.slug}
+          questions={questions}
+        />
       </div>
     </Shell>
   );
@@ -96,9 +110,9 @@ function RequirementColumn({
   items: { id?: string; requirement: string }[];
 }) {
   return (
-    <div>
-      <h3 className="font-display text-sm font-medium text-ink">{title}</h3>
-      <div className="mt-2 flex flex-wrap gap-1.5">
+    <div className="rounded-3xl border border-border bg-white p-6 shadow-card space-y-3">
+      <h3 className="font-display font-bold text-sm text-primary">{title}</h3>
+      <div className="flex flex-wrap gap-1.5">
         {items.map((item) => (
           <Tag key={item.id ?? item.requirement} tone={tone}>
             {item.requirement}

@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
+import { Toaster } from "sonner";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "BhartiBot — Internship applications, organized",
+  title: "InternIQ — AI-Powered Internship Recruitment Platform",
   description:
-    "Collect and review internship applications with AI-assisted evidence mapping. Recruiters decide; BhartiBot organizes the evidence.",
+    "Discover Potential. Create Impact. Evaluate candidate CVs with evidence mapping, automated scoring, and comprehensive AI analytics.",
 };
 
 export default function RootLayout({
@@ -13,7 +14,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className="h-full">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
@@ -22,11 +23,14 @@ export default function RootLayout({
           crossOrigin="anonymous"
         />
         <link
-          href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,600&display=swap"
           rel="stylesheet"
         />
       </head>
-      <body className="font-sans antialiased">{children}</body>
+      <body className="h-full bg-background font-sans text-text-primary antialiased selection:bg-teal/20 selection:text-teal-dark">
+        {children}
+        <Toaster position="top-right" richColors />
+      </body>
     </html>
   );
 }

@@ -2,9 +2,10 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import { Search, SlidersHorizontal, ArrowRight } from "lucide-react";
+import { Search, SlidersHorizontal, ArrowRight, GraduationCap, Calendar, Sparkles } from "lucide-react";
 import Tag from "@/components/ui/Tag";
 import { Application } from "@/lib/types";
+import { getAvatarUrl } from "@/lib/utils";
 
 const STATUS_LABELS: Record<string, string> = {
   new: "New",
@@ -68,31 +69,31 @@ export default function ApplicantList({
   }, [applications, search, filterStatus, sort]);
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* Toolbar */}
-      <div className="flex flex-col gap-3 rounded-md border border-border bg-white p-4 sm:flex-row sm:items-center sm:gap-4">
-        {/* Search */}
+    <div className="space-y-4">
+      {/* Toolbar & Filters */}
+      <div className="flex flex-col gap-3 rounded-2xl border border-border bg-white p-4 sm:flex-row sm:items-center sm:gap-4 shadow-card">
+        {/* Search Input */}
         <div className="relative flex-1">
           <Search
-            size={14}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-muted"
+            size={16}
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted"
           />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by name, university, degree…"
-            className="w-full rounded-md border border-border bg-paper pl-8 pr-3 py-2 text-sm text-text placeholder:text-muted/60 focus:border-ink focus:outline-none"
+            placeholder="Search candidates by name, university, or degree..."
+            className="w-full rounded-xl border border-border bg-slate-50/50 pl-10 pr-4 py-2.5 text-xs sm:text-sm text-text-primary placeholder:text-text-muted focus:border-teal focus:bg-white focus:outline-none transition-all"
           />
         </div>
 
-        {/* Status filter */}
+        {/* Status Filter Pill Dropdown */}
         <div className="flex items-center gap-2 shrink-0">
-          <SlidersHorizontal size={14} className="text-muted" />
+          <SlidersHorizontal size={14} className="text-text-muted" />
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="rounded-md border border-border bg-paper px-3 py-2 text-sm text-text focus:border-ink focus:outline-none"
+            className="rounded-xl border border-border bg-slate-50/50 px-3 py-2.5 text-xs font-semibold text-text-primary focus:border-teal focus:outline-none"
           >
             <option value="all">All Statuses</option>
             <option value="new">New</option>
@@ -102,77 +103,94 @@ export default function ApplicantList({
           </select>
         </div>
 
-        {/* Sort */}
+        {/* Sort Order */}
         <select
           value={sort}
           onChange={(e) => setSort(e.target.value as "newest" | "oldest")}
-          className="rounded-md border border-border bg-paper px-3 py-2 text-sm text-text focus:border-ink focus:outline-none shrink-0"
+          className="rounded-xl border border-border bg-slate-50/50 px-3 py-2.5 text-xs font-semibold text-text-primary focus:border-teal focus:outline-none shrink-0"
         >
           <option value="newest">Newest First</option>
           <option value="oldest">Oldest First</option>
         </select>
       </div>
 
-      {/* Results count */}
-      <p className="text-xs text-muted font-mono">
-        {filtered.length} of {applications.length}{" "}
-        {applications.length === 1 ? "applicant" : "applicants"}
-      </p>
+      {/* Counter */}
+      <div className="flex items-center justify-between px-1">
+        <span className="font-mono text-xs text-text-muted font-medium">
+          Showing {filtered.length} of {applications.length}{" "}
+          {applications.length === 1 ? "candidate" : "candidates"}
+        </span>
+      </div>
 
-      {/* Cards */}
+      {/* Cards List */}
       {filtered.length === 0 ? (
-        <div className="flex items-center justify-center rounded-md border border-dashed border-border py-16 text-center">
-          <p className="text-sm text-muted">
-            No applicants match your current filters.
+        <div className="flex items-center justify-center rounded-2xl border border-dashed border-border bg-white py-16 text-center">
+          <p className="text-sm text-text-secondary">
+            No candidates match your search filters.
           </p>
         </div>
       ) : (
-        <div className="flex flex-col gap-3">
-          {filtered.map((app) => (
-            <Link
-              key={app.id}
-              href={`/dashboard/applications/${internshipId}/${app.id}`}
-              className="group flex items-start justify-between gap-4 rounded-md border border-border bg-white p-5 transition-all hover:border-ink hover:shadow-sm"
-            >
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="font-display text-base font-medium text-ink">
-                    {app.applicant_name}
-                  </h3>
-                  <Tag tone={STATUS_TONES[app.status] ?? "neutral"}>
-                    {STATUS_LABELS[app.status] ?? app.status}
-                  </Tag>
-                </div>
+        <div className="space-y-3">
+          {filtered.map((app) => {
+            const avatarUrl = getAvatarUrl(app.applicant_name);
 
-                <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-muted sm:flex sm:flex-wrap sm:items-center sm:gap-x-3 sm:gap-y-0">
-                  {app.university && (
-                    <span className="truncate">{app.university}</span>
-                  )}
-                  {app.degree && (
-                    <>
-                      <span className="hidden sm:inline text-border">·</span>
-                      <span className="truncate">{app.degree}</span>
-                    </>
-                  )}
-                  {app.cgpa && (
-                    <>
-                      <span className="hidden sm:inline text-border">·</span>
-                      <span className="font-medium text-text">
-                        {app.cgpa} CGPA
+            return (
+              <Link
+                key={app.id}
+                href={`/dashboard/applications/${internshipId}/${app.id}`}
+                className="group flex items-center justify-between gap-4 rounded-2xl border border-border bg-white p-5 shadow-card hover:shadow-hover hover:border-teal transition-all duration-200"
+              >
+                <div className="flex items-center gap-4 min-w-0 flex-1">
+                  {/* DiceBear Avatar */}
+                  <img
+                    src={avatarUrl}
+                    alt={app.applicant_name}
+                    className="h-12 w-12 rounded-full border border-border bg-slate-50 shrink-0 shadow-subtle"
+                  />
+
+                  <div className="space-y-1 min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="font-display font-bold text-base text-primary group-hover:text-teal-dark transition-colors truncate">
+                        {app.applicant_name}
+                      </h3>
+                      <Tag tone={STATUS_TONES[app.status] ?? "neutral"}>
+                        {STATUS_LABELS[app.status] ?? app.status}
+                      </Tag>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-text-secondary">
+                      {app.university && (
+                        <span className="flex items-center gap-1 truncate font-medium">
+                          <GraduationCap className="h-3.5 w-3.5 text-teal shrink-0" />
+                          {app.university}
+                        </span>
+                      )}
+                      {app.degree && (
+                        <span className="truncate font-medium text-text-muted">
+                          · {app.degree}
+                        </span>
+                      )}
+                      {app.cgpa && (
+                        <span className="font-mono text-xs font-bold text-teal-dark bg-teal-light px-2 py-0.5 rounded-md">
+                          {app.cgpa} CGPA
+                        </span>
+                      )}
+                      <span className="font-mono text-[11px] text-text-muted flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        {timeAgo(app.created_at)}
                       </span>
-                    </>
-                  )}
-                  <span className="hidden sm:inline text-border">·</span>
-                  <span>Applied {timeAgo(app.created_at)}</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
 
-              <ArrowRight
-                size={18}
-                className="mt-1 shrink-0 text-muted transition-transform group-hover:translate-x-1 group-hover:text-ink"
-              />
-            </Link>
-          ))}
+                <div className="flex items-center gap-2 shrink-0">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-50 text-text-muted border border-border group-hover:bg-gradient-primary group-hover:text-white transition-all">
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>

@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Copy, Link2 } from "lucide-react";
+import { Check, Copy, Link2, Globe, Lock, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import FormNotice from "@/components/ui/FormNotice";
 import Tag from "@/components/ui/Tag";
@@ -59,7 +59,7 @@ export default function PublishPanel({
     if (publishError || !internship) {
       setError(
         publishError ??
-          "Could not publish. Confirm internships UPDATE RLS is set (Developer B)."
+          "Could not publish. Confirm internships UPDATE RLS is set."
       );
       return;
     }
@@ -102,80 +102,90 @@ export default function PublishPanel({
   }
 
   return (
-    <section className="flex flex-col gap-4 border-t border-border pt-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2 className="font-display text-lg font-medium text-ink">
-            Publish
-          </h2>
-          <p className="mt-1 text-sm text-muted">
-            {isPublished
-              ? "This internship is live. Share the public link with applicants."
-              : "Still a draft — only you can see it. Publish when you’re ready to collect applications."}
-          </p>
+    <div className="rounded-3xl border border-border bg-white p-6 sm:p-8 shadow-card space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-teal-light text-teal-dark border border-teal/20">
+            {isPublished ? <Globe className="h-5 w-5" /> : <Lock className="h-5 w-5" />}
+          </div>
+          <div>
+            <h2 className="font-display font-bold text-lg text-primary">
+              Publication & Candidate Form Link
+            </h2>
+            <p className="text-xs text-text-secondary">
+              {isPublished
+                ? "This drive is published and live for candidate submissions."
+                : "Draft state — publish to generate a shareable public application link."}
+            </p>
+          </div>
         </div>
-        <Tag tone={isPublished ? "teal" : "neutral"}>
-          {isPublished ? "published" : "draft"}
+
+        <Tag tone={isPublished ? "teal" : "neutral"} className="px-3 py-1 text-xs">
+          {isPublished ? "Live & Published" : "Draft Status"}
         </Tag>
       </div>
 
       {error && <FormNotice tone="error">{error}</FormNotice>}
 
       {!isPublished ? (
-        <div className="flex flex-col gap-3 rounded-md border border-dashed border-border bg-white p-4">
-          <p className="text-sm text-muted">
-            Publishing creates a public application URL you can copy and share
-            outside BhartiBot (LinkedIn, email, WhatsApp, etc.).
+        <div className="rounded-2xl border border-dashed border-border bg-slate-50/50 p-6 space-y-4 text-center">
+          <p className="text-xs sm:text-sm text-text-secondary max-w-md mx-auto">
+            Publishing enables candidate PDF uploads, screening question responses, and automatic AI evidence scoring.
           </p>
           <Button
             type="button"
+            variant="gradient"
             onClick={handlePublish}
-            disabled={busy !== "idle"}
-            className="w-fit"
+            isLoading={busy === "publishing"}
+            leftIcon={<Link2 className="h-4 w-4" />}
           >
-            <Link2 size={14} />
-            {busy === "publishing" ? "Publishing…" : "Publish Internship"}
+            Publish Internship & Generate Public URL
           </Button>
         </div>
       ) : (
-        <div className="flex flex-col gap-3 rounded-md border border-border bg-white p-4">
-          <label className="flex flex-col gap-1.5">
-            <span className="text-sm font-medium text-text">
-              Public application link
-            </span>
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <div className="rounded-2xl border border-teal/30 bg-teal-light/30 p-6 space-y-4">
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-text-primary flex items-center justify-between">
+              <span>Shareable Public Application Link</span>
+              <Share2 className="h-3.5 w-3.5 text-teal" />
+            </label>
+            <div className="flex flex-col sm:flex-row items-center gap-2">
               <input
                 type="text"
                 readOnly
                 value={publicUrl ?? `/apply/${slug}`}
-                className="w-full rounded-md border border-border bg-paper px-3 py-2 font-mono text-xs text-text"
+                className="w-full rounded-xl border border-border bg-white px-4 py-2.5 font-mono text-xs text-primary shadow-subtle focus:outline-none select-all"
               />
               <Button
                 type="button"
-                variant="secondary"
+                variant="gradient"
+                size="sm"
                 onClick={handleCopy}
-                className="shrink-0"
+                className="shrink-0 w-full sm:w-auto"
+                leftIcon={copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
               >
-                {copied ? <Check size={14} /> : <Copy size={14} />}
-                {copied ? "Copied" : "Copy link"}
+                {copied ? "Copied to Clipboard" : "Copy Link"}
               </Button>
             </div>
-          </label>
-          <p className="text-xs text-muted">
-            Applicants open this link to fill in the application form and submit
-            their details.
-          </p>
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={handleUnpublish}
-            disabled={busy !== "idle"}
-            className="w-fit text-muted"
-          >
-            {busy === "unpublishing" ? "Updating…" : "Move back to draft"}
-          </Button>
+          </div>
+
+          <div className="flex items-center justify-between pt-2">
+            <span className="text-xs text-text-muted">
+              Share this link on LinkedIn, WhatsApp, or university job portals.
+            </span>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={handleUnpublish}
+              isLoading={busy === "unpublishing"}
+              className="text-text-muted hover:text-danger"
+            >
+              Revert to Draft
+            </Button>
+          </div>
         </div>
       )}
-    </section>
+    </div>
   );
 }

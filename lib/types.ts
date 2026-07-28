@@ -1,6 +1,6 @@
 export type RequirementType = "required" | "preferred";
 export type WorkMode = "on-site" | "hybrid" | "remote";
-export type QuestionType = "text" | "yes_no";
+export type QuestionType = "TEXT" | "YES_NO";
 export type InternshipStatus = "draft" | "published";
 export type ApplicationStatus =
   | "new"
@@ -89,6 +89,50 @@ export interface NewApplicationInput {
   cv_path?: string;
 
   answers: ApplicationAnswerInput[];
+}
+
+export interface ParsedResume {
+  candidate_name: string;
+  email: string;
+  phone: string;
+  education: string[];
+  experience: string[];
+  projects: string[];
+  skills: string[];
+  certifications: string[];
+  cgpa: string;
+  summary: string;
+}
+
+export type CandidateRecommendation = "Hire" | "Interview" | "Maybe" | "Reject";
+
+export interface CandidateScore {
+  match_score: number;
+  strengths: string[];
+  weaknesses: string[];
+  missing_skills: string[];
+  recommendation: CandidateRecommendation;
+  reasoning: string;
+}
+
+export interface CandidateScoreInput {
+  parsedResume: ParsedResume;
+  internship: Internship;
+  requirements: Requirement[];
+  screeningAnswers: { question: string; answer: string }[];
+}
+
+export interface CandidateAiAnalysis {
+  id: string;
+  application_id: string;
+  parsed_resume: ParsedResume;
+  match_score: number;
+  strengths: string[];
+  weaknesses: string[];
+  missing_skills: string[];
+  recommendation: CandidateRecommendation;
+  reasoning: string;
+  created_at: string;
 }
 
 export const FIELD_OPTIONS = [

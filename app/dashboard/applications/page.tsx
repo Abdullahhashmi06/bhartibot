@@ -1,8 +1,9 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ArrowRight, Users, Sparkles, XCircle, Clock } from "lucide-react";
+import { ArrowRight, Users, Sparkles, XCircle, Clock, PlusCircle, ArrowLeft, Briefcase } from "lucide-react";
 import Shell from "@/components/layout/Shell";
 import Tag from "@/components/ui/Tag";
+import MetricCard from "@/components/ai/MetricCard";
 import { ButtonLink } from "@/components/ui/Button";
 import { createClient } from "@/lib/supabase/server";
 import { getRecruiterInternships } from "@/lib/queries/internships";
@@ -19,10 +20,10 @@ export default async function ApplicationsDashboardPage() {
 
   if (!user) redirect("/login");
 
+  const fullName = (user.user_metadata?.full_name as string) || null;
   const internships = await getRecruiterInternships(supabase);
   const stats = await getOrgApplicationStats(supabase);
 
-  // Fetch counts for each internship in parallel
   const counts = await Promise.all(
     internships.map((i) => getApplicationsCountByInternship(supabase, i.id))
   );
@@ -33,105 +34,117 @@ export default async function ApplicationsDashboardPage() {
   }));
 
   return (
-    <Shell>
+    <Shell userEmail={user.email} userName={fullName || undefined}>
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-border pb-6">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-border pb-6">
         <div>
-          <p className="font-mono text-[11px] uppercase tracking-wider text-muted">
-            Recruiter Dashboard
-          </p>
-          <h1 className="mt-2 font-display text-2xl font-medium text-ink">
-            Applications
+          <div className="flex items-center gap-2">
+            <Tag tone="teal">Applications Hub</Tag>
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center gap-1 text-xs text-text-muted hover:text-primary transition-colors"
+            >
+              <ArrowLeft className="h-3 w-3" /> Back to Dashboard
+            </Link>
+          </div>
+          <h1 className="mt-2 font-display font-extrabold text-3xl sm:text-4xl tracking-tight text-primary">
+            All Applications Pool
           </h1>
-          <p className="mt-1 text-sm text-muted">
-            Manage applicants across all your internships.
+          <p className="mt-1 text-xs sm:text-sm text-text-secondary">
+            Select an internship drive to review candidate profiles, CV evidence, and AI recommendations.
           </p>
         </div>
-        <ButtonLink href="/dashboard" variant="secondary">
-          ← Dashboard
+
+        <ButtonLink href="/dashboard" variant="secondary" leftIcon={<ArrowLeft className="h-4 w-4" />}>
+          Dashboard Overview
         </ButtonLink>
       </div>
 
-      {/* Stats row */}
-      <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <StatCard
+      {/* STATS ROW */}
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <MetricCard
           label="Total Applications"
           value={stats.total}
-          color="ink"
-          icon={<Users size={16} />}
+          icon={<Users className="h-4 w-4" />}
+          tone="navy"
         />
-        <StatCard
-          label="New"
+        <MetricCard
+          label="New / Pending"
           value={stats.new}
-          color="amber"
-          icon={<Clock size={16} />}
+          icon={<Clock className="h-4 w-4" />}
+          tone="amber"
         />
-        <StatCard
-          label="Shortlisted"
+        <MetricCard
+          label="Shortlisted Candidates"
           value={stats.shortlisted}
-          color="teal"
-          icon={<Sparkles size={16} />}
+          icon={<Sparkles className="h-4 w-4" />}
+          tone="emerald"
         />
-        <StatCard
+        <MetricCard
           label="Rejected"
           value={stats.rejected}
-          color="rose"
-          icon={<XCircle size={16} />}
+          icon={<XCircle className="h-4 w-4" />}
+          tone="rose"
         />
       </div>
 
-      {/* Internship list */}
-      <div className="mt-10">
-        <h2 className="font-display text-lg font-medium text-ink">
-          My Internships
-        </h2>
-        <p className="mt-1 text-sm text-muted">
-          Click an internship to view all its applicants.
-        </p>
+      {/* INTERNSHIP SELECTION GRID */}
+      <div className="space-y-4 pt-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="font-display font-bold text-xl text-primary">
+              Filter Applications by Internship Role
+            </h2>
+            <p className="text-xs text-text-secondary">
+              Click any role to view the candidate table, AI match scores, and status pipelines.
+            </p>
+          </div>
+        </div>
 
         {internshipsWithCounts.length === 0 ? (
-          <div className="mt-8 flex flex-col items-center gap-3 rounded-md border border-dashed border-border py-20 text-center">
-            <p className="text-sm text-muted">No internships found.</p>
-            <ButtonLink href="/dashboard/create-internship" className="mt-2">
-              + Create Internship
+          <div className="flex flex-col items-center justify-center gap-3 rounded-3xl border border-dashed border-border bg-white py-20 px-6 text-center shadow-subtle">
+            <Briefcase className="h-12 w-12 text-text-muted" />
+            <p className="text-sm text-text-secondary font-medium">No internships found.</p>
+            <ButtonLink href="/dashboard/create-internship" variant="gradient" leftIcon={<PlusCircle className="h-4 w-4" />}>
+              Create Internship Drive
             </ButtonLink>
           </div>
         ) : (
-          <div className="mt-4 flex flex-col gap-3">
+          <div className="grid grid-cols-1 gap-4">
             {internshipsWithCounts.map((internship) => (
               <Link
                 key={internship.id}
                 href={`/dashboard/applications/${internship.id}`}
-                className="group flex items-center justify-between rounded-md border border-border bg-white p-5 transition-all hover:border-ink hover:shadow-sm"
+                className="group flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-border bg-white p-6 shadow-card hover:shadow-hover hover:border-teal transition-all duration-200"
               >
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="font-display text-base font-medium text-ink truncate">
+                <div className="space-y-1.5 min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="font-display font-bold text-xl text-primary group-hover:text-teal-dark transition-colors truncate">
                       {internship.title}
                     </h3>
                     <Tag tone={internship.status === "published" ? "teal" : "neutral"}>
                       {internship.status}
                     </Tag>
                   </div>
-                  <p className="mt-0.5 text-sm text-muted">
-                    {[internship.location, internship.work_mode]
+                  <p className="text-xs text-text-secondary font-medium truncate">
+                    {[internship.location, internship.work_mode, internship.duration]
                       .filter(Boolean)
                       .join(" · ")}
                   </p>
                 </div>
-                <div className="flex items-center gap-4 ml-4 shrink-0">
+
+                <div className="flex items-center gap-5 shrink-0 justify-between sm:justify-end border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-100">
                   <div className="text-right">
-                    <p className="text-2xl font-display font-medium text-ink">
+                    <span className="font-display font-extrabold text-3xl text-primary group-hover:text-teal-dark transition-colors">
                       {internship.count}
-                    </p>
-                    <p className="text-xs text-muted">
+                    </span>
+                    <p className="text-xs text-text-muted font-mono uppercase tracking-wider">
                       {internship.count === 1 ? "Application" : "Applications"}
                     </p>
                   </div>
-                  <ArrowRight
-                    size={18}
-                    className="text-muted transition-transform group-hover:translate-x-1 group-hover:text-ink"
-                  />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 text-text-muted border border-border group-hover:bg-primary group-hover:text-white transition-all">
+                    <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-0.5" />
+                  </div>
                 </div>
               </Link>
             ))}
@@ -139,46 +152,5 @@ export default async function ApplicationsDashboardPage() {
         )}
       </div>
     </Shell>
-  );
-}
-
-function StatCard({
-  label,
-  value,
-  color,
-  icon,
-}: {
-  label: string;
-  value: number;
-  color: "ink" | "amber" | "teal" | "rose";
-  icon: React.ReactNode;
-}) {
-  const colorMap = {
-    ink: "bg-white border-border",
-    amber: "bg-amber/5 border-amber/30",
-    teal: "bg-teal/5 border-teal/30",
-    rose: "bg-rose/5 border-rose/30",
-  };
-  const textMap = {
-    ink: "text-ink",
-    amber: "text-[#8A5A16]",
-    teal: "text-[#1D6E63]",
-    rose: "text-[#8A3A20]",
-  };
-
-  return (
-    <div
-      className={`flex flex-col gap-2 rounded-md border p-4 ${colorMap[color]}`}
-    >
-      <div className={`flex items-center gap-1.5 ${textMap[color]}`}>
-        {icon}
-        <span className="font-mono text-[11px] uppercase tracking-wider">
-          {label}
-        </span>
-      </div>
-      <p className={`font-display text-3xl font-medium ${textMap[color]}`}>
-        {value}
-      </p>
-    </div>
   );
 }

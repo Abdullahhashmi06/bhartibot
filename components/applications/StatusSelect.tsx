@@ -15,10 +15,10 @@ const STATUSES: { value: ApplicationStatus; label: string; tone: string }[] = [
 ];
 
 const toneClasses: Record<string, string> = {
-  neutral: "border-border bg-white text-muted",
-  amber: "border-amber/40 bg-amber/10 text-[#8A5A16]",
-  teal: "border-teal/40 bg-teal/10 text-[#1D6E63]",
-  rose: "border-rose/40 bg-rose/10 text-[#8A3A20]",
+  neutral: "border-border bg-slate-50 text-text-secondary",
+  amber: "border-amber-300 bg-amber-50 text-warning font-bold",
+  teal: "border-teal/40 bg-teal-light text-teal-dark font-bold",
+  rose: "border-red-300 bg-red-50 text-danger font-bold",
 };
 
 export default function StatusSelect({
@@ -55,7 +55,7 @@ export default function StatusSelect({
 
     if (updateError) {
       setError(updateError);
-      setStatus(initialStatus); // revert
+      setStatus(initialStatus);
     } else {
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
@@ -64,15 +64,25 @@ export default function StatusSelect({
   }
 
   return (
-    <div className="flex flex-col gap-1.5">
-      <label className="text-sm font-medium text-text">Application Status</label>
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <label className="text-xs font-bold font-mono uppercase text-text-secondary">
+          Application Recruitment Status
+        </label>
+        {saved && (
+          <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald">
+            <Check className="h-3.5 w-3.5" /> Updated
+          </span>
+        )}
+      </div>
+
       <div className="relative flex items-center gap-2">
         <div className="relative flex-1">
           <select
             value={status}
             onChange={handleChange}
             disabled={saving}
-            className={`w-full appearance-none rounded-md border px-3 py-2 pr-8 font-mono text-[11px] uppercase tracking-wider transition-colors ${toneClasses[currentTone]} disabled:opacity-60 cursor-pointer`}
+            className={`w-full appearance-none rounded-xl border px-4 py-2.5 pr-10 text-xs sm:text-sm uppercase tracking-wider transition-all ${toneClasses[currentTone]} disabled:opacity-60 cursor-pointer shadow-subtle`}
           >
             {STATUSES.map((s) => (
               <option key={s.value} value={s.value}>
@@ -81,47 +91,34 @@ export default function StatusSelect({
             ))}
           </select>
           <ChevronDown
-            size={14}
-            className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-muted"
+            size={16}
+            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-text-muted"
           />
-        </div>
-        <div className="flex h-8 w-8 items-center justify-center">
-          {saving && (
-            <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-border border-t-ink" />
-          )}
-          {saved && !saving && (
-            <Check size={16} className="text-teal" />
-          )}
         </div>
       </div>
 
-      {/* Visual workflow */}
-      <div className="mt-2 flex items-center gap-1">
+      {/* Visual Workflow Dots Bar */}
+      <div className="flex items-center gap-1.5 pt-1">
         {STATUSES.map((s, i) => (
-          <div key={s.value} className="flex items-center gap-1">
+          <div key={s.value} className="flex-1 flex flex-col items-center gap-1">
             <div
-              className={`h-1.5 w-6 rounded-full transition-colors ${
+              className={`h-2 w-full rounded-full transition-all ${
                 STATUSES.findIndex((x) => x.value === status) >= i
                   ? s.tone === "rose"
-                    ? "bg-rose"
+                    ? "bg-danger"
                     : s.tone === "teal"
                     ? "bg-teal"
                     : s.tone === "amber"
-                    ? "bg-amber"
-                    : "bg-ink"
-                  : "bg-border"
+                    ? "bg-warning"
+                    : "bg-primary"
+                  : "bg-slate-200"
               }`}
             />
           </div>
         ))}
-        <span className="ml-2 font-mono text-[10px] uppercase tracking-wider text-muted">
-          {STATUSES.find((s) => s.value === status)?.label ?? status}
-        </span>
       </div>
 
-      {error && (
-        <p className="mt-1 text-xs text-rose">{error}</p>
-      )}
+      {error && <p className="text-xs text-danger font-medium">{error}</p>}
     </div>
   );
 }

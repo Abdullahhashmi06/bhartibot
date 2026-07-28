@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import FormNotice from "@/components/ui/FormNotice";
 import Tag from "@/components/ui/Tag";
@@ -13,8 +13,8 @@ import {
 import { QuestionType, ScreeningQuestion } from "@/lib/types";
 
 const TYPE_OPTIONS: { value: QuestionType; label: string; hint: string }[] = [
-  { value: "text", label: "Text", hint: "Free-text answer" },
-  { value: "yes_no", label: "Yes / No", hint: "Binary choice" },
+  { value: "TEXT", label: "Free-Text Answer", hint: "Candidate writes open response" },
+  { value: "YES_NO", label: "Yes / No Binary", hint: "Quick binary pre-screen" },
 ];
 
 export default function ScreeningQuestions({
@@ -28,7 +28,7 @@ export default function ScreeningQuestions({
   const [questions, setQuestions] =
     useState<ScreeningQuestion[]>(initialQuestions);
   const [text, setText] = useState("");
-  const [type, setType] = useState<QuestionType>("text");
+  const [type, setType] = useState<QuestionType>("TEXT");
   const [status, setStatus] = useState<"idle" | "adding" | "deleting">("idle");
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -54,14 +54,14 @@ export default function ScreeningQuestions({
     if (createError || !question) {
       setError(
         createError ??
-          "Could not save the question. Confirm the questions table and RLS policies are set up (Developer B)."
+          "Could not save the question."
       );
       return;
     }
 
     setQuestions((prev) => [...prev, question]);
     setText("");
-    setType("text");
+    setType("TEXT");
   }
 
   async function handleDelete(questionId: string) {
@@ -83,53 +83,56 @@ export default function ScreeningQuestions({
   }
 
   return (
-    <section className="flex flex-col gap-4 border-t border-border pt-6">
-      <div>
-        <h2 className="font-display text-lg font-medium text-ink">
-          Screening Questions
-        </h2>
-        <p className="mt-1 text-sm text-muted">
-          Applicants will answer these when they apply. Use Text for open
-          answers, or Yes / No for a quick screen.
+    <div className="rounded-3xl border border-border bg-white p-6 sm:p-8 shadow-card space-y-6">
+      <div className="border-b border-border pb-4">
+        <div className="flex items-center gap-2">
+          <HelpCircle className="h-5 w-5 text-emerald" />
+          <h2 className="font-display font-bold text-lg text-primary">
+            Screening Questions Builder
+          </h2>
+        </div>
+        <p className="mt-1 text-xs text-text-secondary">
+          Candidates answer these custom questions on submission.
         </p>
       </div>
 
       {error && <FormNotice tone="error">{error}</FormNotice>}
 
       {questions.length === 0 ? (
-        <p className="rounded-md border border-dashed border-border px-4 py-6 text-center text-sm text-muted">
-          No screening questions yet. Add one below.
+        <p className="rounded-2xl border border-dashed border-border p-6 text-center text-xs text-text-muted">
+          No screening questions configured yet. Add your first question below.
         </p>
       ) : (
-        <ul className="flex flex-col gap-2">
+        <ul className="space-y-3">
           {questions.map((q, index) => (
             <li
               key={q.id}
-              className="flex items-start justify-between gap-3 rounded-md border border-border bg-white p-4"
+              className="flex items-start justify-between gap-4 rounded-2xl border border-border bg-slate-50/50 p-4 shadow-subtle"
             >
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-mono text-[11px] uppercase tracking-wider text-muted">
+              <div className="min-w-0 flex-1 space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-text-muted">
                     Q{index + 1}
                   </span>
-                  <Tag tone={q.type === "yes_no" ? "teal" : "neutral"}>
-                    {q.type === "yes_no" ? "Yes / No" : "Text"}
+                  <Tag tone={q.type === "YES_NO" ? "teal" : "neutral"}>
+                    {q.type === "YES_NO" ? "Yes / No" : "Free-Text"}
                   </Tag>
                 </div>
-                <p className="mt-2 text-sm text-text">{q.question}</p>
+                <p className="text-xs sm:text-sm font-semibold text-text-primary">
+                  {q.question}
+                </p>
               </div>
               <button
                 type="button"
                 onClick={() => handleDelete(q.id)}
                 disabled={status !== "idle"}
                 aria-label={`Delete question ${index + 1}`}
-                className="shrink-0 rounded-md p-2 text-muted transition-colors hover:bg-ink/5 hover:text-rose disabled:opacity-50"
+                className="rounded-xl p-2 text-text-muted transition-colors hover:bg-red-50 hover:text-danger disabled:opacity-50 shrink-0"
               >
                 <Trash2
-                  size={16}
-                  className={
-                    deletingId === q.id ? "animate-pulse text-rose" : undefined
-                  }
+                  className={`h-4 w-4 ${
+                    deletingId === q.id ? "animate-pulse text-danger" : ""
+                  }`}
                 />
               </button>
             </li>
@@ -137,31 +140,32 @@ export default function ScreeningQuestions({
         </ul>
       )}
 
+      {/* New Question Form */}
       <form
         onSubmit={handleAdd}
-        className="flex flex-col gap-4 rounded-md border border-border bg-white p-4"
+        className="rounded-2xl border border-border bg-slate-50 p-5 space-y-4"
       >
-        <label className="flex flex-col gap-1.5">
-          <span className="text-sm font-medium text-text">New question</span>
+        <div className="space-y-1.5">
+          <label className="text-xs font-semibold text-text-primary">New Screening Question</label>
           <input
             type="text"
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="Have you completed a course in financial accounting?"
-            className="w-full rounded-md border border-border bg-paper px-3 py-2 text-sm text-text placeholder:text-muted/70 focus:border-ink"
+            placeholder="e.g. Have you completed a course in financial accounting?"
+            className="w-full rounded-xl border border-border bg-white px-3.5 py-2.5 text-xs sm:text-sm text-text-primary focus:border-teal focus:outline-none"
           />
-        </label>
+        </div>
 
-        <fieldset className="flex flex-col gap-2">
-          <legend className="text-sm font-medium text-text">Answer type</legend>
+        <div className="space-y-2">
+          <label className="text-xs font-semibold text-text-primary">Answer Type</label>
           <div className="flex flex-wrap gap-3">
             {TYPE_OPTIONS.map((opt) => (
               <label
                 key={opt.value}
-                className={`flex cursor-pointer items-start gap-2 rounded-md border px-3 py-2 text-sm transition-colors ${
+                className={`flex cursor-pointer items-start gap-2 rounded-xl border px-3.5 py-2.5 text-xs transition-colors ${
                   type === opt.value
-                    ? "border-ink bg-ink/5 text-ink"
-                    : "border-border text-text hover:border-ink/40"
+                    ? "border-teal bg-teal-light/50 text-teal-dark font-semibold shadow-subtle"
+                    : "border-border bg-white text-text-primary hover:border-slate-300"
                 }`}
               >
                 <input
@@ -171,27 +175,27 @@ export default function ScreeningQuestions({
                   onChange={() => setType(opt.value)}
                   className="mt-0.5"
                 />
-                <span>
-                  <span className="font-medium">{opt.label}</span>
-                  <span className="mt-0.5 block text-xs text-muted">
+                <div>
+                  <span className="font-semibold">{opt.label}</span>
+                  <span className="block text-[10px] text-text-muted mt-0.5">
                     {opt.hint}
                   </span>
-                </span>
+                </div>
               </label>
             ))}
           </div>
-        </fieldset>
+        </div>
 
         <Button
           type="submit"
           variant="secondary"
-          disabled={status === "adding"}
-          className="w-fit"
+          size="sm"
+          isLoading={status === "adding"}
+          leftIcon={<Plus className="h-4 w-4" />}
         >
-          <Plus size={14} />
-          {status === "adding" ? "Adding…" : "Add question"}
+          Add Question
         </Button>
       </form>
-    </section>
+    </div>
   );
 }
