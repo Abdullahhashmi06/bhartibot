@@ -87,6 +87,22 @@ function LoginForm() {
     return sendLoginOtp(email.trim());
   }
 
+  async function handleGoogleLogin() {
+    setError(null);
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+
+    if (error) {
+      console.error(error);
+      setError(error.message);
+    }
+  }
+
   return (
     <Shell>
       <div className="mx-auto flex min-h-[calc(100vh-160px)] items-center justify-center py-12 px-4 sm:px-6">
@@ -124,9 +140,7 @@ function LoginForm() {
               <div className="space-y-4">
                 <button
                   type="button"
-                  onClick={() =>
-                    setError("Google Sign-In placeholder — backend integration ready.")
-                  }
+                  onClick={handleGoogleLogin}
                   className="flex w-full items-center justify-center gap-3 rounded-xl border border-border bg-slate-50 py-2.5 px-4 text-xs sm:text-sm font-semibold text-text-primary hover:bg-slate-100 transition-colors shadow-subtle"
                 >
                   <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24">
