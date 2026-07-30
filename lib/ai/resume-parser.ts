@@ -1,6 +1,6 @@
 import "server-only";
 
-import { generateJson } from "@/lib/ai/gemini";
+import { generateJson } from "@/lib/ai/provider-manager";
 import {
   buildResumeParsePrompt,
   normalizeParsedResume,

@@ -16,6 +16,13 @@ import {
   PieChart as PieIcon,
   Activity,
   ShieldCheck,
+  ChevronDown,
+  ChevronRight,
+  BookOpen,
+  UserCheck,
+  TrendingUp,
+  Lightbulb,
+  PenSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import Tag from "@/components/ui/Tag";
@@ -33,6 +40,7 @@ import {
 } from "@/components/ai/InfographicCharts";
 import type { AiFailureResult } from "@/lib/ai/errors";
 import type { CandidateAiAnalysis } from "@/lib/types";
+import InterviewQuestionGenerator from "@/components/applications/InterviewQuestionGenerator";
 import { reanalyzeApplicantCv } from "@/app/dashboard/applications/[internshipId]/[applicationId]/actions";
 
 type Props = {
@@ -42,6 +50,40 @@ type Props = {
   initialAnalysis: CandidateAiAnalysis | null;
   initialFailure: AiFailureResult | null;
 };
+
+function AccordionSection({
+  title,
+  icon,
+  defaultOpen = false,
+  children,
+}: {
+  title: string;
+  icon?: React.ReactNode;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div className="rounded-2xl border border-border bg-white overflow-hidden shadow-subtle">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="flex w-full items-center justify-between gap-3 px-5 py-3.5 text-left hover:bg-slate-50/80 transition-colors"
+      >
+        <div className="flex items-center gap-2.5">
+          {icon}
+          <span className="font-display font-bold text-sm text-primary">{title}</span>
+        </div>
+        {open ? (
+          <ChevronDown className="h-4 w-4 text-text-muted shrink-0" />
+        ) : (
+          <ChevronRight className="h-4 w-4 text-text-muted shrink-0" />
+        )}
+      </button>
+      {open && <div className="px-5 pb-4">{children}</div>}
+    </div>
+  );
+}
 
 export default function AiAnalysisPanel({
   internshipId,
@@ -54,9 +96,8 @@ export default function AiAnalysisPanel({
   const [failure, setFailure] = useState(initialFailure);
   const [isPending, startTransition] = useTransition();
 
-  // UI Placeholder states for interview tools
-  const [showInterviewModal, setShowInterviewModal] = useState(false);
-  const [notes, setNotes] = useState("");
+  // Recruiter notes state
+  const [notes, setNotes] = useState(initialAnalysis?.recruiter_notes ?? "");
   const [noteSaved, setNoteSaved] = useState(false);
 
   function handleReanalyze() {
@@ -69,6 +110,7 @@ export default function AiAnalysisPanel({
 
       if (result.success && result.analysis) {
         setAnalysis(result.analysis);
+        setNotes(result.analysis.recruiter_notes ?? "");
         setFailure(null);
         return;
       }
@@ -190,6 +232,59 @@ export default function AiAnalysisPanel({
             </div>
           </div>
 
+          {/* AI CANDIDATE SUMMARY CARD */}
+          {(analysis.candidate_summary || analysis.strength_summary || analysis.risk_summary) && (
+            <div className="rounded-3xl border border-border bg-white p-6 shadow-card space-y-5">
+              <div className="flex items-center justify-between border-b border-border pb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-primary/10 text-teal">
+                    <BookOpen className="h-4 w-4" />
+                  </div>
+                  <h3 className="font-display font-bold text-base text-primary">
+                    AI Candidate Summary
+                  </h3>
+                </div>
+                <Tag tone="teal">Recruiter Summary</Tag>
+              </div>
+
+              {analysis.candidate_summary && (
+                <div className="text-xs sm:text-sm text-text-secondary leading-relaxed bg-slate-50/70 rounded-2xl p-4 border border-slate-100">
+                  {analysis.candidate_summary}
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {analysis.strength_summary && (
+                  <div className="rounded-2xl border border-emerald-300/40 bg-emerald-50/50 p-4 space-y-2 shadow-subtle">
+                    <div className="flex items-center gap-1.5 text-emerald-700">
+                      <TrendingUp className="h-4 w-4" />
+                      <h4 className="font-display font-bold text-xs uppercase tracking-wider">
+                        Strength Summary
+                      </h4>
+                    </div>
+                    <p className="text-xs sm:text-sm text-text-primary leading-relaxed">
+                      {analysis.strength_summary}
+                    </p>
+                  </div>
+                )}
+
+                {analysis.risk_summary && (
+                  <div className="rounded-2xl border border-amber-300/40 bg-amber-50/50 p-4 space-y-2 shadow-subtle">
+                    <div className="flex items-center gap-1.5 text-warning">
+                      <AlertTriangle className="h-4 w-4" />
+                      <h4 className="font-display font-bold text-xs uppercase tracking-wider">
+                        Risk Summary
+                      </h4>
+                    </div>
+                    <p className="text-xs sm:text-sm text-text-primary leading-relaxed">
+                      {analysis.risk_summary}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* MULTI-SCORE BREAKDOWN GRID */}
           <div className="rounded-3xl border border-border bg-white p-6 shadow-card space-y-4">
             <div className="flex items-center justify-between border-b border-border pb-3">
@@ -211,6 +306,95 @@ export default function AiAnalysisPanel({
               <ProgressBar label="Culture & Values Fit" value={Math.min(score + 1, 92)} tone="emerald" />
             </div>
           </div>
+
+          {/* WHY THIS SCORE? — COLLAPSIBLE ACCORDION */}
+          {(analysis.overall_explanation ||
+            analysis.technical_reason ||
+            analysis.education_reason ||
+            analysis.experience_reason ||
+            analysis.communication_reason ||
+            analysis.culture_reason) && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <HelpCircle className="h-4 w-4 text-purple-ai" />
+                <h3 className="font-display font-bold text-base text-primary">
+                  Why This Score?
+                </h3>
+                <span className="font-mono text-[10px] uppercase text-text-muted tracking-wider">
+                  Per-dimension AI explanation
+                </span>
+              </div>
+
+              <div className="space-y-2">
+                {analysis.overall_explanation && (
+                  <AccordionSection
+                    title="Overall Assessment"
+                    icon={<ShieldCheck className="h-4 w-4 text-teal" />}
+                    defaultOpen={true}
+                  >
+                    <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
+                      {analysis.overall_explanation}
+                    </p>
+                  </AccordionSection>
+                )}
+
+                {analysis.technical_reason && (
+                  <AccordionSection
+                    title="Technical Score"
+                    icon={<Award className="h-4 w-4 text-teal" />}
+                  >
+                    <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
+                      {analysis.technical_reason}
+                    </p>
+                  </AccordionSection>
+                )}
+
+                {analysis.education_reason && (
+                  <AccordionSection
+                    title="Education Score"
+                    icon={<BookOpen className="h-4 w-4 text-purple-ai" />}
+                  >
+                    <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
+                      {analysis.education_reason}
+                    </p>
+                  </AccordionSection>
+                )}
+
+                {analysis.experience_reason && (
+                  <AccordionSection
+                    title="Experience Score"
+                    icon={<TrendingUp className="h-4 w-4 text-amber" />}
+                  >
+                    <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
+                      {analysis.experience_reason}
+                    </p>
+                  </AccordionSection>
+                )}
+
+                {analysis.communication_reason && (
+                  <AccordionSection
+                    title="Communication Score"
+                    icon={<MessageSquare className="h-4 w-4 text-emerald" />}
+                  >
+                    <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
+                      {analysis.communication_reason}
+                    </p>
+                  </AccordionSection>
+                )}
+
+                {analysis.culture_reason && (
+                  <AccordionSection
+                    title="Culture Fit Score"
+                    icon={<UserCheck className="h-4 w-4 text-info" />}
+                  >
+                    <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
+                      {analysis.culture_reason}
+                    </p>
+                  </AccordionSection>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* STRENGTHS, WEAKNESSES & MISSING SKILLS GRID */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -287,88 +471,52 @@ export default function AiAnalysisPanel({
             </div>
           </div>
 
-          {/* INTERVIEW FEATURES (UI PLACEHOLDERS) */}
-          <div className="rounded-3xl border border-border bg-white p-6 shadow-card space-y-6">
+          {/* FEATURE 5 — Interview Question Generator */}
+          <InterviewQuestionGenerator
+            applicationId={applicationId}
+            internshipId={internshipId}
+          />
+
+          {/* Notes Input Section — Pre-filled with AI generated recruiter notes */}
+          <div className="rounded-3xl border border-border bg-white p-6 shadow-card space-y-4">
             <div className="flex items-center justify-between border-b border-border pb-4">
               <div className="flex items-center gap-2">
-                <MessageSquare className="h-5 w-5 text-purple-ai" />
+                <PenSquare className="h-5 w-5 text-purple-ai" />
                 <h3 className="font-display font-bold text-lg text-primary">
-                  Recruiter Interview Suite & Notes
+                  Internal Recruiter Notes
                 </h3>
               </div>
-              <Tag tone="purple">UI Toolset</Tag>
+              <Tag tone="purple">Pre-filled by AI</Tag>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="flex gap-2">
+              <textarea
+                value={notes}
+                onChange={(e) => {
+                  setNotes(e.target.value);
+                  setNoteSaved(false);
+                }}
+                rows={3}
+                placeholder={
+                  analysis?.recruiter_notes
+                    ? "AI notes pre-filled — edit as needed..."
+                    : "Add interview notes or preliminary team evaluation comments..."
+                }
+                className="w-full rounded-xl border border-border bg-slate-50/50 p-3 text-xs text-text-primary focus:border-teal focus:outline-none"
+              />
               <Button
                 type="button"
-                variant="outline"
-                onClick={() => setShowInterviewModal(!showInterviewModal)}
-                leftIcon={<HelpCircle className="h-4 w-4 text-purple-ai" />}
+                variant="secondary"
+                size="sm"
+                onClick={() => setNoteSaved(true)}
+                className="shrink-0 self-end"
               >
-                Generate Interview Questions
-              </Button>
-
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => alert("Schedule Interview Modal — UI ready for calendar integration.")}
-                leftIcon={<Calendar className="h-4 w-4 text-teal" />}
-              >
-                Schedule Candidate Interview
-              </Button>
-
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => alert("Export Report PDF — Generates printable recruiter dossier.")}
-                leftIcon={<Download className="h-4 w-4 text-emerald" />}
-              >
-                Export Candidate Dossier
+                {noteSaved ? "Saved ✓" : "Save Note"}
               </Button>
             </div>
-
-            {/* Generated Questions Modal Preview */}
-            {showInterviewModal && (
-              <div className="rounded-2xl border border-purple-ai/30 bg-purple-light/40 p-5 space-y-3 text-xs text-text-primary">
-                <h4 className="font-display font-bold text-sm text-purple-ai flex items-center gap-1.5">
-                  <Sparkles className="h-4 w-4" /> AI Generated Interview Questions:
-                </h4>
-                <ol className="list-decimal pl-4 space-y-1.5 font-medium">
-                  <li>Can you describe a project where you applied your core technical stack under tight deadlines?</li>
-                  <li>How do you approach debugging complex software issues when working in a hybrid environment?</li>
-                  <li>What specific learning outcomes do you expect to achieve during this 8-12 week internship?</li>
-                </ol>
-              </div>
-            )}
-
-            {/* Notes Input Section */}
-            <div className="space-y-2 pt-2">
-              <label className="text-xs font-semibold text-text-primary">
-                Internal Recruiter Notes
-              </label>
-              <div className="flex gap-2">
-                <textarea
-                  value={notes}
-                  onChange={(e) => {
-                    setNotes(e.target.value);
-                    setNoteSaved(false);
-                  }}
-                  rows={2}
-                  placeholder="Add interview notes or preliminary team evaluation comments..."
-                  className="w-full rounded-xl border border-border bg-slate-50/50 p-3 text-xs text-text-primary focus:border-teal focus:outline-none"
-                />
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => setNoteSaved(true)}
-                  className="shrink-0 self-end"
-                >
-                  {noteSaved ? "Saved ✓" : "Save Note"}
-                </Button>
-              </div>
-            </div>
+            <p className="text-[10px] text-text-muted">
+              These notes are for internal use only. Edit, save, or replace the AI-generated content.
+            </p>
           </div>
         </div>
       )}

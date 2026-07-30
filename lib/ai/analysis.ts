@@ -4,6 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { extractTextFromPdf } from "@/lib/ai/pdf";
 import { parseResumeText } from "@/lib/ai/resume-parser";
 import { scoreCandidate } from "@/lib/ai/scoring";
+import { generateRecruiterNotes } from "@/lib/ai/recruiter-notes";
 import { runAiOperation } from "@/lib/ai/service";
 import { AiError, type AiFailureResult, type AiServiceResult } from "@/lib/ai/errors";
 import { downloadCvBuffer } from "@/lib/queries/storage";
@@ -157,7 +158,37 @@ export async function runCandidateAnalysis(
     }
 
     await clearAiAnalysisFailure(supabase, application.id);
-    return saved;
+
+    // Generate recruiter notes in the background — non-blocking.
+    let recruiter_notes = "";
+    try {
+      recruiter_notes = await generateRecruiterNotes({
+        parsedResume,
+        internship: input.internship,
+        requirements: input.requirements,
+        screeningAnswers: input.screeningAnswers,
+      });
+    } catch {
+      // Non-critical — UI will show an empty state.
+    }
+
+    // Attach enhanced AI output fields to the returned object.
+    // These are not persisted in the DB but are available for the UI.
+    return {
+      ...saved,
+      candidate_summary: score.candidate_summary,
+      strengths_summary: score.strengths_summary,
+      risks_summary: score.risks_summary,
+      strength_summary: score.strength_summary,
+      risk_summary: score.risk_summary,
+      overall_explanation: score.overall_explanation,
+      technical_reason: score.technical_reason,
+      education_reason: score.education_reason,
+      experience_reason: score.experience_reason,
+      communication_reason: score.communication_reason,
+      culture_reason: score.culture_reason,
+      recruiter_notes,
+    };
   });
 
   if (!result.success) {

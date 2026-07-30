@@ -108,9 +108,35 @@ export type CandidateRecommendation = "Hire" | "Interview" | "Maybe" | "Reject";
 
 export interface CandidateScore {
   match_score: number;
+
+  confidence_score: number;
+  resume_quality_score: number;
+  technical_score: number;
+  education_score: number;
+  experience_score: number;
+  communication_score: number;
+  culture_fit_score: number;
+
+  candidate_summary: string;
+  strengths_summary: string;
+  risks_summary: string;
+
+  /** Singular-form summary paragraphs for dedicated display cards. */
+  strength_summary: string;
+  risk_summary: string;
+
+  /** Per-score recruiter-facing explanations. */
+  overall_explanation: string;
+  technical_reason: string;
+  education_reason: string;
+  experience_reason: string;
+  communication_reason: string;
+  culture_reason: string;
+
   strengths: string[];
   weaknesses: string[];
   missing_skills: string[];
+
   recommendation: CandidateRecommendation;
   reasoning: string;
 }
@@ -133,6 +159,20 @@ export interface CandidateAiAnalysis {
   recommendation: CandidateRecommendation;
   reasoning: string;
   created_at: string;
+
+  // Enhanced AI output fields — optional so DB schema is unchanged.
+  candidate_summary?: string;
+  strengths_summary?: string;
+  risks_summary?: string;
+  strength_summary?: string;
+  risk_summary?: string;
+  overall_explanation?: string;
+  technical_reason?: string;
+  education_reason?: string;
+  experience_reason?: string;
+  communication_reason?: string;
+  culture_reason?: string;
+  recruiter_notes?: string;
 }
 
 export const FIELD_OPTIONS = [
