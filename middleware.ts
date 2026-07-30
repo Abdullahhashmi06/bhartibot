@@ -1,8 +1,8 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PROTECTED_PREFIXES = ["/dashboard", "/internships"];
-const AUTH_PAGES = ["/login", "/signup"];
+const PROTECTED_PREFIXES = ["/dashboard", "/internships", "/applicant"];
+const AUTH_PAGES = ["/login", "/signup", "/applicant-auth"];
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
@@ -35,23 +35,66 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  // Refresh the session if it's expired — required for Server Components,
-  // which cannot set cookies themselves.
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
-  const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p));
+  
+  const isApplicantPath = pathname.startsWith("/applicant") && pathname !== "/applicant-auth";
+  const isDashboardPath = pathname.startsWith("/dashboard") || pathname.startsWith("/internships") || pathname.startsWith("/talent-pool");
+  
+  const isProtected = isApplicantPath || isDashboardPath;
   const isAuthPage = AUTH_PAGES.includes(pathname);
 
   if (isProtected && !user) {
-    const redirectUrl = new URL("/login", request.url);
+    const redirectUrl = new URL(isApplicantPath ? "/applicant-auth" : "/login", request.url);
     redirectUrl.searchParams.set("next", pathname);
     return NextResponse.redirect(redirectUrl);
   }
 
+  if (isProtected && user) {
+    // Check if user has an applicant role
+    const { data: profile } = await supabase
+      .from("applicant_profiles")
+      .select("role")
+      .eq("id", user.id)
+      .maybeSingle();
+    
+    const hasProfile = !!profile;
+    const isApplicant = profile?.role === "applicant";
+
+    // If on recruiter pages but user is an applicant → redirect to applicant portal
+    if (isApplicant && isDashboardPath) {
+      return NextResponse.redirect(new URL("/applicant", request.url));
+    }
+    
+    // If on applicant pages
+    if (isApplicantPath) {
+      // User has a profile with non-applicant role → redirect to dashboard
+      if (hasProfile && !isApplicant) {
+        return NextResponse.redirect(new URL("/dashboard", request.url));
+      }
+      // If no profile exists yet (just signed up), let them through
+      // The layout will auto-create the profile
+      // This prevents a redirect loop during signup
+      if (!hasProfile) {
+        // Allow through - layout will create profile
+        return response;
+      }
+    }
+  }
+
   if (isAuthPage && user) {
+    const { data: profile } = await supabase
+      .from("applicant_profiles")
+      .select("role")
+      .eq("id", user.id)
+      .maybeSingle();
+    
+    if (profile?.role === "applicant") {
+      return NextResponse.redirect(new URL("/applicant", request.url));
+    }
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
@@ -60,9 +103,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Run on everything except static assets and image optimization files.
-     */
-    "/((?!_next/static|_next/image|favicon.ico).*)",
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

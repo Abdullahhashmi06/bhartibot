@@ -12,7 +12,7 @@ export default function Navbar() {
   if (inDashboard) return null; // Dashboard uses Sidebar + Topbar
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-white/80 backdrop-blur-md transition-all">
+    <header className="sticky top-0 z-40 border-b border-border dark:border-slate-800 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md transition-all">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 py-4">
         {/* Brand Logo & Tagline */}
         <Link href="/" className="flex items-center gap-3 group">
@@ -20,7 +20,7 @@ export default function Navbar() {
             <Sparkles className="h-5 w-5" />
           </div>
           <div className="flex flex-col">
-            <span className="font-display text-xl font-extrabold tracking-tight text-primary">
+            <span className="font-display text-xl font-extrabold tracking-tight text-primary dark:text-white">
               InternIQ
             </span>
             <span className="hidden sm:inline font-mono text-[10px] uppercase tracking-wider text-text-secondary">
@@ -31,6 +31,13 @@ export default function Navbar() {
 
         {/* Action Buttons */}
         <div className="flex items-center gap-3">
+          <ButtonLink
+            href="/applicant-auth"
+            variant="outline"
+            size="sm"
+          >
+            Applicant Portal
+          </ButtonLink>
           <ButtonLink
             href="/login"
             variant="ghost"

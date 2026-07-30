@@ -13,6 +13,8 @@ import {
 } from "@/lib/queries/internships";
 import { getInternshipQuestions } from "@/lib/queries/questions";
 
+export const dynamic = "force-dynamic";
+
 export default async function EditInternshipPage({
   params,
 }: {

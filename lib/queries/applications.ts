@@ -1,6 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { Application, ApplicationStatus, NewApplicationInput } from "@/lib/types";
 
+export interface ApplicationWithScore extends Application {
+  match_score: number | null;
+}
+
 /**
  * Submit a student application plus screening answers.
  * cv_path is left null until Day 7 storage upload is wired.
@@ -9,9 +13,12 @@ export async function createApplication(
   supabase: SupabaseClient,
   input: NewApplicationInput
 ): Promise<{ application: Application | null; error: string | null }> {
-  const { data: application, error: applicationError } = await supabase
+  const applicationId = crypto.randomUUID();
+
+  const { error: applicationError } = await supabase
     .from("applications")
     .insert({
+      id: applicationId,
       internship_id: input.internship_id,
       applicant_name: input.applicant_name.trim(),
       email: input.email.trim(),
@@ -27,16 +34,33 @@ export async function createApplication(
       cv_path: input.cv_path ?? null,
 
       status: "new",
-    })
-    .select()
-    .single();
+    });
 
-  if (applicationError || !application) {
+  if (applicationError) {
     return {
       application: null,
-      error: applicationError?.message ?? "Failed to submit application.",
+      error: applicationError.message ?? "Failed to submit application.",
     };
   }
+
+  // Create a minimal Application object to return (status is known)
+  const application: Application = {
+    id: applicationId,
+    internship_id: input.internship_id,
+    applicant_name: input.applicant_name.trim(),
+    email: input.email.trim(),
+    phone: input.phone?.trim() || null,
+    university: input.university?.trim() || null,
+    degree: input.degree?.trim() || null,
+    semester: input.semester?.trim() || null,
+    cgpa: input.cgpa?.trim() || null,
+    linkedin_url: input.linkedin_url?.trim() || null,
+    github_url: input.github_url?.trim() || null,
+    portfolio_url: input.portfolio_url?.trim() || null,
+    cv_path: input.cv_path ?? null,
+    status: "new",
+    created_at: new Date().toISOString(),
+  };
 
   if (input.answers.length > 0) {
     const answerRows = input.answers.map((a) => ({
@@ -162,4 +186,72 @@ export async function getOrgApplicationStats(
   const rejected = data.filter((a) => a.status === "rejected").length;
 
   return { total, new: newCount, shortlisted, rejected };
+}
+
+/** Bulk update statuses for multiple applications. */
+export async function bulkUpdateApplicationStatus(
+  supabase: SupabaseClient,
+  applicationIds: string[],
+  status: ApplicationStatus
+): Promise<{ error: string | null }> {
+  if (applicationIds.length === 0) return { error: null };
+  const { error } = await supabase
+    .from("applications")
+    .update({ status })
+    .in("id", applicationIds);
+  if (error) return { error: error.message };
+  return { error: null };
+}
+
+/** Bulk delete multiple applications. */
+export async function bulkDeleteApplications(
+  supabase: SupabaseClient,
+  applicationIds: string[]
+): Promise<{ error: string | null }> {
+  if (applicationIds.length === 0) return { error: null };
+  const { error } = await supabase
+    .from("applications")
+    .delete()
+    .in("id", applicationIds);
+  if (error) return { error: error.message };
+  return { error: null };
+}
+
+/** Fetch applications for an internship, joined with their AI match scores. */
+export async function getApplicationsWithScores(
+  supabase: SupabaseClient,
+  internshipId: string
+): Promise<ApplicationWithScore[]> {
+  const { data, error } = await supabase
+    .from("applications")
+    .select("*, candidate_ai_analysis(match_score)")
+    .eq("internship_id", internshipId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("getApplicationsWithScores failed:", error.message);
+    return [];
+  }
+
+  return (data ?? []).map((row: Application & { candidate_ai_analysis: { match_score: number }[] | null }) => ({
+    ...row,
+    match_score:
+      Array.isArray(row.candidate_ai_analysis) && row.candidate_ai_analysis.length > 0
+        ? row.candidate_ai_analysis[0].match_score
+        : null,
+  })) as ApplicationWithScore[];
+}
+
+/** Fetch multiple applications by their IDs (for comparison page). */
+export async function getApplicationsByIds(
+  supabase: SupabaseClient,
+  ids: string[]
+): Promise<Application[]> {
+  if (ids.length === 0) return [];
+  const { data, error } = await supabase
+    .from("applications")
+    .select("*")
+    .in("id", ids);
+  if (error || !data) return [];
+  return data as Application[];
 }

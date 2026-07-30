@@ -5,9 +5,12 @@ import Shell from "@/components/layout/Shell";
 import Tag from "@/components/ui/Tag";
 import MetricCard from "@/components/ai/MetricCard";
 import ApplicantList from "@/components/applications/ApplicantList";
+import ExportActions from "@/components/applications/ExportActions";
 import { createClient } from "@/lib/supabase/server";
-import { getApplicationsByInternship } from "@/lib/queries/applications";
+import { getApplicationsWithScores } from "@/lib/queries/applications";
 import { getRecruiterInternships } from "@/lib/queries/internships";
+
+export const dynamic = "force-dynamic";
 
 export default async function InternshipApplicantsPage({
   params,
@@ -24,7 +27,7 @@ export default async function InternshipApplicantsPage({
   const internship = internships.find((i) => i.id === params.internshipId);
   if (!internship) notFound();
 
-  const applications = await getApplicationsByInternship(
+  const applications = await getApplicationsWithScores(
     supabase,
     params.internshipId
   );
@@ -50,20 +53,27 @@ export default async function InternshipApplicantsPage({
             <ArrowLeft className="h-4 w-4" /> All Applications Hub
           </Link>
 
-          <Link
-            href={`/internships/${internship.public_slug}`}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-white px-3.5 py-2 text-xs font-semibold text-text-primary hover:border-teal hover:text-teal-dark shadow-subtle transition-all"
-          >
-            <Briefcase className="h-3.5 w-3.5 text-teal" />
-            Edit Internship Settings
-          </Link>
+          <div className="flex items-center gap-2">
+            <ExportActions
+              applications={applications as any}
+              internshipTitle={internship.title}
+              variant="bulk"
+            />
+            <Link
+              href={`/internships/${internship.public_slug}`}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-white dark:bg-slate-800 px-3.5 py-2 text-xs font-semibold text-text-primary dark:text-white hover:border-teal hover:text-teal-dark shadow-subtle transition-all"
+            >
+              <Briefcase className="h-3.5 w-3.5 text-teal" />
+              Edit Internship Settings
+            </Link>
+          </div>
         </div>
 
         {/* Role Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-primary tracking-tight">
+              <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-primary dark:text-white tracking-tight">
                 {internship.title}
               </h1>
               <Tag tone={internship.status === "published" ? "teal" : "neutral"}>
@@ -108,10 +118,10 @@ export default async function InternshipApplicantsPage({
 
         {/* APPLICANT LIST COMPONENT WITH SEARCH & FILTERS */}
         {applications.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-3 rounded-3xl border border-dashed border-border bg-white py-20 text-center shadow-subtle">
+          <div className="flex flex-col items-center justify-center gap-3 rounded-3xl border border-dashed border-border bg-white dark:bg-slate-800 py-20 text-center shadow-subtle">
             <Users className="h-12 w-12 text-text-muted" />
             <div className="space-y-1">
-              <p className="text-base font-bold text-primary">No Applications Received Yet</p>
+              <p className="text-base font-bold text-primary dark:text-white">No Applications Received Yet</p>
               <p className="text-xs text-text-secondary max-w-sm mx-auto">
                 {internship.status === "published"
                   ? "Share your public link to start collecting PDF resumes."

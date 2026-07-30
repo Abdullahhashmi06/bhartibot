@@ -1,6 +1,7 @@
 import "server-only";
 
-import pdf from "pdf-parse";
+// @ts-ignore
+import pdf from "pdf-parse/lib/pdf-parse.js";
 import { AiError, classifyAiError } from "@/lib/ai/errors";
 
 export const MAX_CV_BYTES = 5 * 1024 * 1024;

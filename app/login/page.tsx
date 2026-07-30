@@ -249,6 +249,12 @@ function LoginForm() {
                   Sign up
                 </Link>
               </p>
+              <p className="text-xs text-text-secondary pt-1">
+                Looking for internships instead?{" "}
+                <Link href="/applicant-auth" className="font-bold text-purple-ai hover:underline">
+                  Applicant Portal
+                </Link>
+              </p>
             </div>
           </div>
         </div>

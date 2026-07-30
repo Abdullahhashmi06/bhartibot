@@ -4,13 +4,13 @@ import { cn } from "@/lib/utils";
 type Tone = "teal" | "amber" | "rose" | "purple" | "emerald" | "neutral" | "info";
 
 const toneStyles: Record<Tone, string> = {
-  teal: "bg-teal-light text-teal-dark border-teal/20",
-  amber: "bg-amber-50 text-warning border-warning/20",
-  rose: "bg-rose-50 text-danger border-danger/20",
-  purple: "bg-purple-light text-purple-ai border-purple-ai/20",
-  emerald: "bg-emerald-light text-emerald border-emerald/20",
-  neutral: "bg-slate-100 text-text-secondary border-slate-200",
-  info: "bg-blue-50 text-info border-info/20",
+  teal: "bg-teal-light dark:bg-teal/20 text-teal-dark dark:text-teal border-teal/20",
+  amber: "bg-amber-50 dark:bg-amber/20 text-warning dark:text-amber-300 border-warning/20",
+  rose: "bg-rose-50 dark:bg-rose/20 text-danger dark:text-rose-300 border-danger/20",
+  purple: "bg-purple-light dark:bg-purple-ai/20 text-purple-ai dark:text-purple-300 border-purple-ai/20",
+  emerald: "bg-emerald-light dark:bg-emerald/20 text-emerald dark:text-emerald-300 border-emerald/20",
+  neutral: "bg-slate-100 dark:bg-slate-800 text-text-secondary dark:text-slate-400 border-slate-200 dark:border-slate-700",
+  info: "bg-blue-50 dark:bg-blue/20 text-info dark:text-blue-300 border-info/20",
 };
 
 export default function Tag({

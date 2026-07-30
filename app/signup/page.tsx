@@ -212,13 +212,21 @@ export default function SignupPage() {
               />
             )}
 
-            <div className="border-t border-border pt-4 text-center">
+            <div className="border-t border-border pt-4 text-center space-y-2">
               <p className="text-xs text-text-secondary">
                 Already have a workspace?{" "}
                 <Link href="/login" className="font-bold text-teal-dark hover:underline">
                   Log in
                 </Link>
               </p>
+              <div className="rounded-xl bg-purple-light/50 border border-purple-ai/20 p-3 text-center">
+                <p className="text-xs text-purple-ai font-medium">
+                  🎓 Looking for internships instead?{" "}
+                  <Link href="/applicant-auth" className="font-bold text-purple-ai hover:underline">
+                    Sign up as an Applicant
+                  </Link>
+                </p>
+              </div>
             </div>
           </div>
         </div>

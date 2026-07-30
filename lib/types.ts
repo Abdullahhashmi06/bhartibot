@@ -1,7 +1,7 @@
 export type RequirementType = "required" | "preferred";
 export type WorkMode = "on-site" | "hybrid" | "remote";
 export type QuestionType = "TEXT" | "YES_NO";
-export type InternshipStatus = "draft" | "published";
+export type InternshipStatus = "draft" | "published" | "archived" | "closed";
 export type ApplicationStatus =
   | "new"
   | "under_review"
@@ -186,3 +186,33 @@ export const FIELD_OPTIONS = [
   "Design",
   "Other",
 ];
+
+export interface DashboardStats {
+  totalInternships: number;
+  activeInternships: number;
+  archivedInternships: number;
+  totalApplications: number;
+  newApplications: number;
+  underReviewApplications: number;
+  shortlistedApplications: number;
+  rejectedApplications: number;
+  averageAiScore: number;
+  weeklyApplicationTrend: number | null; // percentage change vs previous week, null if no prior data
+  aiScoresByInternship: Record<string, number>; // internshipId -> average AI score
+  scoreDistribution: {
+    excellent: number;
+    good: number;
+    average: number;
+    weak: number;
+  };
+}
+
+export interface ActivityItem {
+  id: string;
+  type: "application" | "status_change" | "internship_published" | "ai_analysis" | "shortlisted";
+  title: string;
+  description: string;
+  timestamp: string;
+  icon?: string;
+  link?: string;
+}
