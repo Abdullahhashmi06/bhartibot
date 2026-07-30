@@ -23,15 +23,15 @@ export type ButtonProps = BaseButtonProps &
 
 const variantStyles: Record<Variant, string> = {
   primary:
-    "bg-primary text-white hover:bg-primary-light shadow-subtle border border-primary/20",
+    "bg-primary text-white hover:bg-primary-light shadow-subtle border border-primary/20 dark:border-primary/40",
   gradient:
     "bg-gradient-primary text-white shadow-teal hover:opacity-95 border-0 font-semibold",
   secondary:
-    "bg-white text-text-primary border border-border hover:bg-slate-50 hover:border-slate-300 shadow-subtle",
+    "bg-white dark:bg-slate-800 text-text-primary dark:text-slate-100 border border-border dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-300 shadow-subtle",
   outline:
-    "bg-transparent text-text-primary border border-border hover:bg-teal/5 hover:border-teal hover:text-teal-dark",
+    "bg-transparent text-text-primary dark:text-slate-100 border border-border dark:border-slate-700 hover:bg-teal/5 dark:hover:bg-teal/10 hover:border-teal hover:text-teal-dark",
   ghost:
-    "bg-transparent text-text-secondary hover:text-text-primary hover:bg-slate-100/70 border-0",
+    "bg-transparent text-text-secondary dark:text-slate-400 hover:text-text-primary dark:hover:text-white hover:bg-slate-100/70 dark:hover:bg-slate-800 border-0",
   danger:
     "bg-danger text-white hover:bg-red-600 shadow-subtle border border-red-600/20",
 };

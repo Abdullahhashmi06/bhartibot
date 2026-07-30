@@ -76,6 +76,9 @@ export default function LandingPage() {
             <ButtonLink href="/login" variant="secondary" size="lg">
               Log in to Dashboard
             </ButtonLink>
+            <ButtonLink href="/applicant-auth" variant="outline" size="lg">
+              For Applicants
+            </ButtonLink>
           </motion.div>
 
           {/* MOCKUP ILLUSTRATION AREA */}

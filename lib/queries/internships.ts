@@ -54,12 +54,19 @@ export async function getPublishedInternshipBySlug(
 
 /** All internships belonging to the current recruiter's organization. */
 export async function getRecruiterInternships(
-  supabase: SupabaseClient
+  supabase: SupabaseClient,
+  status?: string
 ): Promise<Internship[]> {
-  const { data, error } = await supabase
+  let query = supabase
     .from("internships")
     .select("*")
     .order("created_at", { ascending: false });
+
+  if (status) {
+    query = query.eq("status", status);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     console.error("getRecruiterInternships failed:", error.message);
@@ -280,4 +287,96 @@ export async function updateInternship(
     .single();
 
   return { internship: (fresh as Internship) ?? null, error: null };
+}
+
+export async function duplicateInternship(
+  supabase: SupabaseClient,
+  internshipId: string
+): Promise<{ internship: Internship | null; error: string | null }> {
+  const { data: original, error: fetchError } = await supabase
+    .from("internships")
+    .select("*")
+    .eq("id", internshipId)
+    .single();
+
+  if (fetchError || !original) {
+    return { internship: null, error: fetchError?.message ?? "Internship not found." };
+  }
+
+  const newTitle = `${original.title} (Copy)`;
+  const { data: copy, error: copyError } = await supabase
+    .from("internships")
+    .insert({
+      organization_id: original.organization_id,
+      title: newTitle,
+      field: original.field,
+      description: original.description,
+      location: original.location,
+      work_mode: original.work_mode,
+      duration: original.duration,
+      status: "draft",
+      public_slug: slugify(newTitle) + "-" + Date.now().toString().slice(-4), // ensure uniqueness
+    })
+    .select()
+    .single();
+
+  if (copyError || !copy) {
+    return { internship: null, error: copyError?.message ?? "Failed to duplicate internship." };
+  }
+
+  const { data: reqs } = await supabase
+    .from("requirements")
+    .select("requirement, type")
+    .eq("internship_id", internshipId);
+
+  if (reqs && reqs.length > 0) {
+    const newReqs = reqs.map(r => ({ ...r, internship_id: copy.id }));
+    await supabase.from("requirements").insert(newReqs);
+  }
+
+  const { data: qs } = await supabase
+    .from("questions")
+    .select("question, type")
+    .eq("internship_id", internshipId);
+
+  if (qs && qs.length > 0) {
+    const newQs = qs.map(q => ({ ...q, internship_id: copy.id }));
+    await supabase.from("questions").insert(newQs);
+  }
+
+  return { internship: copy as Internship, error: null };
+}
+
+export async function archiveInternship(
+  supabase: SupabaseClient,
+  internshipId: string
+): Promise<{ internship: Internship | null; error: string | null }> {
+  const { data, error } = await supabase
+    .from("internships")
+    .update({ status: "archived" })
+    .eq("id", internshipId)
+    .select()
+    .single();
+
+  if (error || !data) {
+    return { internship: null, error: error?.message ?? "Failed to archive internship." };
+  }
+  return { internship: data as Internship, error: null };
+}
+
+export async function restoreInternship(
+  supabase: SupabaseClient,
+  internshipId: string
+): Promise<{ internship: Internship | null; error: string | null }> {
+  const { data, error } = await supabase
+    .from("internships")
+    .update({ status: "draft" })
+    .eq("id", internshipId)
+    .select()
+    .single();
+
+  if (error || !data) {
+    return { internship: null, error: error?.message ?? "Failed to restore internship." };
+  }
+  return { internship: data as Internship, error: null };
 }

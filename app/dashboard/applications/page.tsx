@@ -12,6 +12,8 @@ import {
   getOrgApplicationStats,
 } from "@/lib/queries/applications";
 
+export const dynamic = "force-dynamic";
+
 export default async function ApplicationsDashboardPage() {
   const supabase = createClient();
   const {

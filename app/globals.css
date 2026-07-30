@@ -22,15 +22,24 @@
   }
 
   body {
-    background-color: #F7F9FC;
-    color: #16233B;
     font-family: var(--font-inter), sans-serif;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
-  .dark body {
-    background-color: #050C16;
-    color: #F8FAFC;
+  /* Smooth theme transitions - only on specific properties */
+  *,
+  *::before,
+  *::after {
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      transition: none !important;
+    }
   }
 }
 
@@ -49,6 +58,12 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #94A3B8;
 }
+.dark ::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #64748B;
+}
 
 /* Custom Focus States for Accessibility */
 a:focus-visible,
@@ -58,6 +73,15 @@ select:focus-visible,
 textarea:focus-visible {
   outline: 2px solid #17C6B5;
   outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Focus within for complex elements */
+[role="listbox"]:focus-visible,
+[role="menu"]:focus-visible {
+  outline: 2px solid #17C6B5;
+  outline-offset: -2px;
+  border-radius: 12px;
 }
 
 /* Glassmorphism utility */
@@ -78,6 +102,7 @@ textarea:focus-visible {
   background: linear-gradient(135deg, #17C6B5 0%, #6F52ED 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 /* Shimmer Animation for Loaders */
@@ -101,13 +126,117 @@ textarea:focus-visible {
   animation: shimmer 1.5s infinite;
 }
 
+.dark .animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(30, 41, 59, 0.6) 25%,
+    rgba(51, 65, 85, 0.9) 50%,
+    rgba(30, 41, 59, 0.6) 75%
+  );
+}
+
+/* Card shimmer for dark mode loaders */
+.dark .card-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(30, 41, 59, 0.4) 25%,
+    rgba(51, 65, 85, 0.6) 50%,
+    rgba(30, 41, 59, 0.4) 75%
+  );
+}
+
+/* Slide animations for page transitions */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-enter {
+  animation: slideUp 0.3s ease-out;
+}
+
+/* Skip to main content link for accessibility */
+.skip-to-content {
+  position: absolute;
+  top: -100%;
+  left: 0;
+  z-index: 9999;
+  padding: 12px 24px;
+  background: #17C6B5;
+  color: #0B1F3A;
+  font-weight: 700;
+  font-size: 14px;
+  transition: top 0.2s;
+}
+
+.skip-to-content:focus {
+  top: 0;
+}
+
+/* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
   }
-  * {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
+}
+
+/* Dark mode selection */
+.dark ::selection {
+  background: rgba(23, 198, 181, 0.3);
+  color: #F8FAFC;
+}
+
+/* Print styles */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* Animation for chart loading */
+@keyframes chartFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.chart-enter {
+  animation: chartFadeIn 0.4s ease-out;
+}
+
+/* Pulse animation for live indicators */
+@keyframes pulse-dot {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.live-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
 }

@@ -12,6 +12,8 @@ import {
 } from "@/lib/queries/internships";
 import { getInternshipQuestions } from "@/lib/queries/questions";
 
+export const dynamic = "force-dynamic";
+
 export default async function InternshipDetailPage({
   params,
 }: {
@@ -69,7 +71,7 @@ export default async function InternshipDetailPage({
         </div>
 
         {/* ROLE HEADER CARD */}
-        <div className="rounded-3xl border border-border bg-white p-6 sm:p-8 shadow-card space-y-4">
+        <div className="rounded-3xl border border-border dark:border-slate-700 bg-white dark:bg-slate-800 p-6 sm:p-8 shadow-card space-y-4">
           <div className="flex items-center gap-2">
             <Tag tone={isPublished ? "teal" : "neutral"}>
               {internship.status}
@@ -130,8 +132,8 @@ function RequirementColumn({
   items: { id?: string; requirement: string }[];
 }) {
   return (
-    <div className="rounded-3xl border border-border bg-white p-6 shadow-card space-y-3">
-      <h3 className="font-display font-bold text-sm text-primary">{title}</h3>
+    <div className="rounded-3xl border border-border dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-card space-y-3">
+      <h3 className="font-display font-bold text-sm text-primary dark:text-white">{title}</h3>
       <div className="flex flex-wrap gap-1.5">
         {items.length === 0 ? (
           <span className="text-xs text-text-muted italic">None specified</span>

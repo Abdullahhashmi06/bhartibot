@@ -3,6 +3,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import AnimatedCounter from "@/components/dashboard/AnimatedCounter";
 
 interface MetricCardProps {
   label: string;
@@ -11,6 +12,8 @@ interface MetricCardProps {
   trend?: string;
   trendPositive?: boolean;
   subtext?: string;
+  isPercentage?: boolean;
+  showProgress?: boolean;
   tone?: "teal" | "purple" | "emerald" | "amber" | "rose" | "blue" | "navy";
   className?: string;
   onClick?: () => void;
@@ -68,6 +71,8 @@ export default function MetricCard({
   trend,
   trendPositive = true,
   subtext,
+  isPercentage = false,
+  showProgress = false,
   tone = "navy",
   className,
   onClick,
@@ -89,14 +94,18 @@ export default function MetricCard({
         <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-text-secondary">
           {label}
         </span>
-        <div className={cn("flex h-9 w-9 items-center justify-center rounded-xl shadow-subtle shrink-0", styles.iconBg)}>
-          {icon}
+        <div className={cn("flex h-11 w-11 items-center justify-center rounded-xl shadow-subtle shrink-0", styles.iconBg)}>
+          {React.cloneElement(icon as React.ReactElement, { className: "h-5 w-5" })}
         </div>
       </div>
 
       <div className="mt-3 flex items-baseline gap-2">
         <span className={cn("font-display font-extrabold text-3xl tracking-tight", styles.valueText)}>
-          {value}
+          {typeof value === "number" ? (
+            <AnimatedCounter value={value} format={isPercentage ? "percentage" : "number"} />
+          ) : (
+            value
+          )}
         </span>
         {trend && (
           <span
@@ -116,6 +125,15 @@ export default function MetricCard({
         <p className="mt-1.5 text-xs text-text-muted font-sans truncate">
           {subtext}
         </p>
+      )}
+
+      {showProgress && typeof value === "number" && (
+        <div className="absolute right-5 bottom-5">
+          <svg className="h-10 w-10 transform -rotate-90">
+            <circle cx="20" cy="20" r="16" fill="transparent" stroke="currentColor" strokeWidth="4" className="text-slate-100" />
+            <circle cx="20" cy="20" r="16" fill="transparent" stroke="currentColor" strokeWidth="4" className={styles.valueText} strokeDasharray="100" strokeDashoffset={100 - value} strokeLinecap="round" />
+          </svg>
+        </div>
       )}
     </motion.div>
   );

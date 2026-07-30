@@ -13,10 +13,16 @@ import {
   X,
   LogOut,
   ChevronRight,
+  Star,
+  Search,
+  Command,
+  HelpCircle,
+  UserCheck,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import LogoutButton from "@/components/auth/LogoutButton";
+import ThemeToggle from "@/components/ui/ThemeToggle";
 
 const navItems = [
   {
@@ -24,16 +30,37 @@ const navItems = [
     label: "Dashboard",
     icon: LayoutDashboard,
     exact: true,
+    shortcut: "⌘D",
   },
   {
     href: "/dashboard/applications",
     label: "Applications",
     icon: Users,
+    shortcut: "⌘A",
+  },
+  {
+    href: "/dashboard/applications/shortlisted",
+    label: "Shortlisted",
+    icon: UserCheck,
+    shortcut: "⌘S",
+  },
+  {
+    href: "/talent-pool",
+    label: "Talent Pool",
+    icon: Star,
+    shortcut: "⌘T",
+  },
+  {
+    href: "/dashboard/search",
+    label: "Search",
+    icon: Search,
+    shortcut: "⌘/",
   },
   {
     href: "/dashboard/create-internship",
     label: "Create Role",
     icon: PlusCircle,
+    shortcut: "⌘N",
   },
 ];
 
@@ -51,25 +78,28 @@ export default function Sidebar({
   return (
     <>
       {/* Mobile Top Header */}
-      <header className="lg:hidden sticky top-0 z-40 flex items-center justify-between border-b border-border bg-white/90 px-4 py-3 backdrop-blur shadow-subtle">
+      <header className="lg:hidden sticky top-0 z-40 flex items-center justify-between border-b border-border dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 px-4 py-3 backdrop-blur shadow-subtle">
         <Link href="/dashboard" className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-primary text-white shadow-teal">
             <Sparkles className="h-4 w-4" />
           </div>
           <div>
-            <span className="font-display text-lg font-bold tracking-tight text-primary">
+            <span className="font-display text-lg font-bold tracking-tight text-primary dark:text-white">
               InternIQ
             </span>
           </div>
         </Link>
 
-        <button
-          onClick={() => setMobileOpen(!mobileOpen)}
-          className="rounded-xl border border-border p-2 text-text-secondary hover:bg-slate-100"
-          aria-label="Toggle Navigation"
-        >
-          {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <button
+            onClick={() => setMobileOpen(!mobileOpen)}
+            className="rounded-xl border border-border dark:border-slate-700 p-2 text-text-secondary dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+            aria-label="Toggle Navigation"
+          >
+            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
       </header>
 
       {/* Mobile Drawer Overlay */}
@@ -88,7 +118,7 @@ export default function Sidebar({
       {/* Desktop Sidebar & Mobile Sliding Drawer */}
       <aside
         className={cn(
-          "fixed top-0 bottom-0 left-0 z-50 flex flex-col bg-sidebar text-white transition-all duration-300 shadow-2xl",
+          "fixed top-0 bottom-0 left-0 z-50 flex flex-col bg-sidebar dark:bg-slate-950 text-white transition-all duration-300 shadow-2xl",
           // Mobile state
           mobileOpen ? "translate-x-0 w-72" : "-translate-x-full lg:translate-x-0",
           // Desktop collapsed state
@@ -96,7 +126,7 @@ export default function Sidebar({
         )}
       >
         {/* Brand Header */}
-        <div className="flex items-center justify-between px-6 py-6 border-b border-white/10">
+        <div className="flex items-center justify-between px-6 py-6 border-b border-white/10 dark:border-slate-800">
           <Link href="/dashboard" className="flex items-center gap-3 overflow-hidden">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-primary text-white shadow-teal shrink-0">
               <Sparkles className="h-5 w-5" />
@@ -126,7 +156,7 @@ export default function Sidebar({
         </div>
 
         {/* Navigation Items */}
-        <nav className="flex-1 space-y-1.5 px-3 py-6 overflow-y-auto">
+        <nav className="flex-1 space-y-1 px-3 py-6 overflow-y-auto" aria-label="Main navigation">
           {navItems.map((item) => {
             const isActive = item.exact
               ? pathname === item.href
@@ -147,7 +177,14 @@ export default function Sidebar({
                 )}
               >
                 <Icon className="h-5 w-5 shrink-0" />
-                {!collapsed && <span>{item.label}</span>}
+                {!collapsed && (
+                  <>
+                    <span className="flex-1">{item.label}</span>
+                    <span className="font-mono text-[9px] text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {item.shortcut}
+                    </span>
+                  </>
+                )}
                 {isActive && !collapsed && (
                   <span className="ml-auto h-2 w-2 rounded-full bg-white shadow-sm" />
                 )}
@@ -157,7 +194,17 @@ export default function Sidebar({
         </nav>
 
         {/* Recruiter Profile / Bottom Panel */}
-        <div className="border-t border-white/10 p-4 space-y-3">
+        <div className="border-t border-white/10 dark:border-slate-800 p-4 space-y-3">
+          {/* Theme Toggle + Help */}
+          {!collapsed && (
+            <div className="flex items-center justify-between px-2 mb-2">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500">
+                Display
+              </span>
+              <ThemeToggle />
+            </div>
+          )}
+
           {!collapsed && (userEmail || userName) && (
             <div className="flex items-center gap-3 px-2">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-teal/20 text-teal font-bold font-mono text-sm border border-teal/30 shrink-0">
@@ -174,9 +221,20 @@ export default function Sidebar({
             </div>
           )}
 
-          <div className={cn("flex", collapsed ? "justify-center" : "justify-between")}>
+          <div className={cn("flex", collapsed ? "flex-col items-center gap-2" : "justify-between")}>
             <LogoutButton collapsed={collapsed} />
           </div>
+
+          {/* Keyboard shortcut hint */}
+          {!collapsed && (
+            <div className="flex items-center justify-center gap-1.5 text-[10px] text-slate-600 pt-1">
+              <Command className="h-3 w-3" />
+              <span>K to search</span>
+              <span className="mx-1">·</span>
+              <HelpCircle className="h-3 w-3" />
+              <span>? shortcuts</span>
+            </div>
+          )}
         </div>
       </aside>
     </>
