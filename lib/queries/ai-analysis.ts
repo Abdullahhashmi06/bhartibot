@@ -21,6 +21,17 @@ type AnalysisInsert = {
   reasoning: string;
 };
 
+/**
+ * Data shape for saving a new candidate analysis (without application_id,
+ * which is passed separately to saveCandidateAnalysis).
+ */
+export type SaveCandidateAnalysisInput = Omit<AnalysisInsert, "application_id">;
+
+/**
+ * Data shape for updating an existing candidate analysis (all fields optional).
+ */
+export type UpdateCandidateAnalysisInput = Partial<SaveCandidateAnalysisInput>;
+
 export async function getCandidateAiAnalysis(
   supabase: SupabaseClient,
   applicationId: string
@@ -122,3 +133,55 @@ export async function deleteCandidateAiAnalysis(
     console.error("[InternIQ AI] deleteCandidateAiAnalysis:", error.message);
   }
 }
+
+/**
+ * Retrieves a candidate analysis by application ID from the database.
+ * Returns null if no analysis exists.
+ * Never calls the AI provider.
+ */
+export async function getCandidateAnalysis(
+  supabase: SupabaseClient,
+  applicationId: string
+): Promise<CandidateAiAnalysis | null> {
+  return getCandidateAiAnalysis(supabase, applicationId);
+}
+
+/**
+ * Saves a new candidate analysis to the database.
+ * Uses upsert semantics — if an analysis already exists for this
+ * application_id it will be replaced.
+ */
+export async function saveCandidateAnalysis(
+  supabase: SupabaseClient,
+  applicationId: string,
+  data: SaveCandidateAnalysisInput
+): Promise<CandidateAiAnalysis | null> {
+  return upsertCandidateAiAnalysis(supabase, {
+    application_id: applicationId,
+    ...data,
+  });
+}
+
+/**
+ * Updates specific fields of an existing candidate analysis.
+ * Only the provided fields are updated; the rest remain unchanged.
+ */
+// export async function updateCandidateAnalysis(
+//   supabase: SupabaseClient,
+//   applicationId: string,
+//   data: UpdateCandidateAnalysisInput
+// ): Promise<CandidateAiAnalysis | null> {
+//   const { data: result, error } = await supabase
+//     .from("candidate_ai_analysis")
+//     .update(data)
+//     .eq("application_id", applicationId)
+//     .select()
+//     .single();
+
+//   if (error) {
+//     console.error("[InternIQ AI] updateCandidateAnalysis:", error.message);
+//     return null;
+//   }
+
+//   return result as CandidateAiAnalysis;
+// }

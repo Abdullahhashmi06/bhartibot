@@ -11,9 +11,9 @@ import { downloadCvBuffer } from "@/lib/queries/storage";
 import {
   clearAiAnalysisFailure,
   getAiAnalysisFailure,
-  getCandidateAiAnalysis,
+  getCandidateAnalysis,
   saveAiAnalysisFailure,
-  upsertCandidateAiAnalysis,
+  saveCandidateAnalysis,
 } from "@/lib/queries/ai-analysis";
 import type {
   Application,
@@ -37,12 +37,14 @@ export type AnalysisViewState =
   | { kind: "failure"; failure: AiFailureResult }
   | { kind: "empty" };
 
-/** Load cached success or failure from the database only — no Gemini calls. */
+/**
+ * Load cached success or failure from the database only — no Gemini calls.
+ */
 export async function loadAnalysisViewState(
   supabase: SupabaseClient,
   applicationId: string
 ): Promise<AnalysisViewState> {
-  const existing = await getCandidateAiAnalysis(supabase, applicationId);
+  const existing = await getCandidateAnalysis(supabase, applicationId);
   if (existing) {
     return { kind: "success", analysis: existing };
   }
@@ -68,21 +70,45 @@ export type EnsureAnalysisInput = RunAnalysisInput;
 /**
  * Step 5 + 9: Load cached analysis from DB, or auto-run the pipeline once when
  * none exists. Never calls Gemini if a successful analysis is already stored.
+ *
+ * Caching flow:
+ *   cached = getCandidateAnalysis()
+ *   if (cached) return cached
+ *   analysis = runCandidateAnalysis()
+ *   saveCandidateAnalysis()
+ *   return analysis
  */
 export async function ensureCandidateAnalysis(
   input: EnsureAnalysisInput
 ): Promise<AnalysisViewState> {
   const { supabase, application } = input;
-  const cached = await loadAnalysisViewState(supabase, application.id);
 
-  if (cached.kind !== "empty") {
-    return cached;
+  // Step 1: Check cache — return immediately if analysis exists in DB.
+  // Never calls the AI provider.
+  const cached = await getCandidateAnalysis(supabase, application.id);
+  if (cached) {
+    return { kind: "success", analysis: cached };
+  }
+
+  // Step 2: Check for cached failure to avoid re-running a failing pipeline.
+  const failure = await getAiAnalysisFailure(supabase, application.id);
+  if (failure) {
+    return {
+      kind: "failure",
+      failure: {
+        success: false,
+        errorType: failure.error_type,
+        message: failure.message,
+        retryable: failure.retryable,
+      },
+    };
   }
 
   if (!application.cv_path) {
     return { kind: "empty" };
   }
 
+  // Step 3: Run the existing AI pipeline (generates analysis, saves to DB).
   const result = await runCandidateAnalysis({ ...input, force: false });
 
   if (result.success) {
@@ -103,7 +129,7 @@ export async function runCandidateAnalysis(
 ): Promise<AiServiceResult<CandidateAiAnalysis>> {
   const { supabase, application, force } = input;
 
-  const existing = await getCandidateAiAnalysis(supabase, application.id);
+  const existing = await getCandidateAnalysis(supabase, application.id);
   if (existing && !force) {
     return { success: true, data: existing };
   }
@@ -142,8 +168,7 @@ export async function runCandidateAnalysis(
       screeningAnswers: input.screeningAnswers,
     });
 
-    const saved = await upsertCandidateAiAnalysis(supabase, {
-      application_id: application.id,
+    const saved = await saveCandidateAnalysis(supabase, application.id, {
       parsed_resume: parsedResume,
       match_score: score.match_score,
       strengths: score.strengths,
@@ -159,7 +184,9 @@ export async function runCandidateAnalysis(
 
     await clearAiAnalysisFailure(supabase, application.id);
 
-    // Generate recruiter notes in the background — non-blocking.
+    // Generate recruiter notes after saving the analysis.
+    // This is non-critical; failures won't prevent the analysis from being returned.
+    
     let recruiter_notes = "";
     try {
       recruiter_notes = await generateRecruiterNotes({

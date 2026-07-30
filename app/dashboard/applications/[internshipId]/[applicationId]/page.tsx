@@ -233,11 +233,10 @@ export default async function ApplicantDetailPage({
             <h3 className="font-display font-bold text-base text-primary dark:text-white border-b border-border dark:border-slate-700 pb-3">
               Interview Pipeline
             </h3>
-            <InterviewStatusComponent
+           <InterviewStatusComponent
               interview={interview}
               applicationId={application.id}
               recruiterId={user.id}
-              onUpdate={() => {}}
             />
           </div>
         </div>
