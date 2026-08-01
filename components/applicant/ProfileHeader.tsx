@@ -4,16 +4,23 @@ import { useState } from "react";
 import { getAvatarUrl } from "@/lib/utils";
 import { MapPin, Mail, Phone, Link as LinkIcon, Github, Linkedin, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import ProfilePictureUpload from "./ProfilePictureUpload";
 
 export default function ProfileHeader({ profile }: { profile: any }) {
-  const avatarUrl = getAvatarUrl(profile?.full_name || "User");
+  const [avatarPath, setAvatarPath] = useState(profile?.avatar_path || null);
+  const emailSeed = profile?.email || "User";
   
   return (
     <div className="bg-white dark:bg-slate-800 rounded-3xl p-8 shadow-card border border-border dark:border-slate-700 relative overflow-hidden">
       <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-primary opacity-10"></div>
       
       <div className="relative flex flex-col md:flex-row gap-8 items-start md:items-center mt-8">
-        <img src={avatarUrl} alt="Avatar" className="w-24 h-24 rounded-2xl shadow-teal border-4 border-white bg-white" />
+        <ProfilePictureUpload
+          userId={profile?.id || ""}
+          currentAvatarPath={avatarPath}
+          email={emailSeed}
+          onAvatarUpdate={(path) => setAvatarPath(path)}
+        />
         
         <div className="flex-1">
           <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">

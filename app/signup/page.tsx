@@ -1,233 +1,107 @@
 "use client";
 
-import { useState, FormEvent } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import Link from "next/link";
-import { Sparkles, User, Building, Mail, Lock, ArrowLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Sparkles, Briefcase, GraduationCap, ArrowRight, ArrowLeft } from "lucide-react";
 import Shell from "@/components/layout/Shell";
-import { Button } from "@/components/ui/Button";
-import FormNotice from "@/components/ui/FormNotice";
-import OtpVerifyForm from "@/components/auth/OtpVerifyForm";
-import { createClient } from "@/lib/supabase/client";
 
-type Step = "details" | "otp";
-
-export default function SignupPage() {
+export default function SignupRolePage() {
   const router = useRouter();
-  const supabase = createClient();
-
-  const [step, setStep] = useState<Step>("details");
-  const [fullName, setFullName] = useState("");
-  const [orgName, setOrgName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [status, setStatus] = useState<"idle" | "loading">("idle");
-  const [error, setError] = useState<string | null>(null);
-
-  async function handleSignup(e: FormEvent) {
-    e.preventDefault();
-    setError(null);
-
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters long.");
-      return;
-    }
-
-    setStatus("loading");
-
-    const { data, error: signUpError } = await supabase.auth.signUp({
-      email: email.trim(),
-      password,
-      options: {
-        data: {
-          full_name: fullName.trim(),
-          organization_name: orgName.trim(),
-        },
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-
-    setStatus("idle");
-
-    if (signUpError) {
-      setError(signUpError.message);
-      return;
-    }
-
-    if (data.user && (data.user.identities?.length ?? 0) === 0) {
-      setError("An account with this email already exists. Log in instead.");
-      return;
-    }
-
-    if (data.session) {
-      router.push("/dashboard");
-      router.refresh();
-      return;
-    }
-
-    setStep("otp");
-  }
-
-  async function handleVerifyOtp(token: string): Promise<string | null> {
-    const { error: verifyError } = await supabase.auth.verifyOtp({
-      email: email.trim(),
-      token,
-      type: "signup",
-    });
-
-    if (verifyError) {
-      return verifyError.message;
-    }
-
-    router.push("/dashboard");
-    router.refresh();
-    return null;
-  }
-
-  async function handleResendOtp(): Promise<string | null> {
-    const { error: resendError } = await supabase.auth.resend({
-      type: "signup",
-      email: email.trim(),
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-
-    return resendError?.message ?? null;
-  }
+  const [hovered, setHovered] = useState<"recruiter" | "applicant" | null>(null);
 
   return (
     <Shell>
       <div className="mx-auto flex min-h-[calc(100vh-160px)] items-center justify-center py-12 px-4 sm:px-6">
-        <div className="w-full max-w-md overflow-hidden rounded-3xl border border-border bg-white shadow-2xl">
-          {/* Brand Banner Header */}
-          <div className="bg-primary p-6 text-white text-center relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-radial-ai opacity-30 pointer-events-none" />
-            <div className="relative z-10 flex flex-col items-center gap-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-primary text-white shadow-teal">
-                <Sparkles className="h-5 w-5" />
+        <div className="w-full max-w-lg">
+          {/* Header */}
+          <div className="text-center mb-10 space-y-3">
+            <div className="flex justify-center">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-primary text-white shadow-teal">
+                <Sparkles className="h-7 w-7" />
               </div>
-              <h1 className="font-display font-extrabold text-2xl tracking-tight">
-                Create Recruiter Account
-              </h1>
-              <p className="font-mono text-xs text-teal">
-                Discover Potential. Create Impact.
-              </p>
             </div>
+            <h1 className="font-display font-extrabold text-3xl sm:text-4xl text-primary tracking-tight">
+              Join InternIQ
+            </h1>
+            <p className="text-sm text-text-secondary max-w-sm mx-auto">
+              Tell us who you are so we can set up the right experience for you.
+            </p>
           </div>
 
-          <div className="p-6 sm:p-8 space-y-6">
-            <div>
-              <h2 className="font-display text-xl font-bold text-primary">
-                {step === "details" ? "Organization Workspace" : "Verify Email Address"}
-              </h2>
-              <p className="mt-1 text-xs sm:text-sm text-text-secondary">
-                {step === "details"
-                  ? "Set up your recruiter workspace in seconds."
-                  : "Enter the code we sent to your email inbox to activate."}
-              </p>
-            </div>
-
-            {step === "details" ? (
-              <form onSubmit={handleSignup} className="space-y-4">
-                {error && <FormNotice tone="error">{error}</FormNotice>}
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-text-primary flex items-center justify-between">
-                    <span>Full Name</span>
-                    <User className="h-3.5 w-3.5 text-text-muted" />
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Abdullah Khan"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    required
-                    className="w-full rounded-xl border border-border bg-slate-50/50 px-3.5 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-teal focus:bg-white focus:outline-none transition-all"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-text-primary flex items-center justify-between">
-                    <span>Organization Name</span>
-                    <Building className="h-3.5 w-3.5 text-text-muted" />
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="ABC Technologies"
-                    value={orgName}
-                    onChange={(e) => setOrgName(e.target.value)}
-                    required
-                    className="w-full rounded-xl border border-border bg-slate-50/50 px-3.5 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-teal focus:bg-white focus:outline-none transition-all"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-text-primary flex items-center justify-between">
-                    <span>Work Email</span>
-                    <Mail className="h-3.5 w-3.5 text-text-muted" />
-                  </label>
-                  <input
-                    type="email"
-                    placeholder="you@organization.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    className="w-full rounded-xl border border-border bg-slate-50/50 px-3.5 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-teal focus:bg-white focus:outline-none transition-all"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-text-primary flex items-center justify-between">
-                    <span>Password</span>
-                    <Lock className="h-3.5 w-3.5 text-text-muted" />
-                  </label>
-                  <input
-                    type="password"
-                    placeholder="At least 8 characters"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    minLength={8}
-                    className="w-full rounded-xl border border-border bg-slate-50/50 px-3.5 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-teal focus:bg-white focus:outline-none transition-all"
-                  />
-                </div>
-
-                <Button
-                  type="submit"
-                  variant="gradient"
-                  className="w-full py-3 mt-2"
-                  isLoading={status === "loading"}
-                >
-                  Create Recruiter Workspace
-                </Button>
-              </form>
-            ) : (
-              <OtpVerifyForm
-                email={email.trim()}
-                onVerify={handleVerifyOtp}
-                onResend={handleResendOtp}
-                verifyLabel="Verify & Create Workspace"
-                hint="We sent a 6-digit verification code to"
-              />
-            )}
-
-            <div className="border-t border-border pt-4 text-center space-y-2">
-              <p className="text-xs text-text-secondary">
-                Already have a workspace?{" "}
-                <Link href="/login" className="font-bold text-teal-dark hover:underline">
-                  Log in
-                </Link>
-              </p>
-              <div className="rounded-xl bg-purple-light/50 border border-purple-ai/20 p-3 text-center">
-                <p className="text-xs text-purple-ai font-medium">
-                  🎓 Looking for internships instead?{" "}
-                  <Link href="/applicant-auth" className="font-bold text-purple-ai hover:underline">
-                    Sign up as an Applicant
-                  </Link>
+          {/* Role Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Recruiter Card */}
+            <button
+              onClick={() => router.push("/signup/recruiter")}
+              onMouseEnter={() => setHovered("recruiter")}
+              onMouseLeave={() => setHovered(null)}
+              className={`group relative flex flex-col items-center gap-4 rounded-3xl border-2 p-8 text-center transition-all duration-200 cursor-pointer ${
+                hovered === "recruiter"
+                  ? "border-teal bg-teal-light shadow-hover scale-[1.02]"
+                  : "border-border bg-white shadow-card hover:border-teal hover:shadow-hover"
+              }`}
+            >
+              <div className={`flex h-16 w-16 items-center justify-center rounded-2xl transition-all ${
+                hovered === "recruiter" ? "bg-teal text-white shadow-teal" : "bg-slate-50 border border-border text-teal"
+              }`}>
+                <Briefcase className="h-8 w-8" />
+              </div>
+              <div className="space-y-1.5">
+                <h2 className="font-display font-extrabold text-xl text-primary">
+                  I&apos;m a Recruiter
+                </h2>
+                <p className="text-xs text-text-secondary leading-relaxed">
+                  Post internships, review AI-scored CVs, shortlist candidates, and manage your hiring pipeline.
                 </p>
               </div>
-            </div>
+              <div className={`flex items-center gap-1.5 text-xs font-bold transition-all ${
+                hovered === "recruiter" ? "text-teal-dark" : "text-text-muted"
+              }`}>
+                Create Workspace <ArrowRight className="h-3.5 w-3.5" />
+              </div>
+            </button>
+
+            {/* Applicant Card */}
+            <button
+              onClick={() => router.push("/applicant-auth")}
+              onMouseEnter={() => setHovered("applicant")}
+              onMouseLeave={() => setHovered(null)}
+              className={`group relative flex flex-col items-center gap-4 rounded-3xl border-2 p-8 text-center transition-all duration-200 cursor-pointer ${
+                hovered === "applicant"
+                  ? "border-purple-ai bg-purple-light shadow-hover scale-[1.02]"
+                  : "border-border bg-white shadow-card hover:border-purple-ai hover:shadow-hover"
+              }`}
+            >
+              <div className={`flex h-16 w-16 items-center justify-center rounded-2xl transition-all ${
+                hovered === "applicant" ? "bg-purple-ai text-white" : "bg-slate-50 border border-border text-purple-ai"
+              }`}>
+                <GraduationCap className="h-8 w-8" />
+              </div>
+              <div className="space-y-1.5">
+                <h2 className="font-display font-extrabold text-xl text-primary">
+                  I&apos;m an Applicant
+                </h2>
+                <p className="text-xs text-text-secondary leading-relaxed">
+                  Browse open internships, apply with your CV, and track your application statuses all in one place.
+                </p>
+              </div>
+              <div className={`flex items-center gap-1.5 text-xs font-bold transition-all ${
+                hovered === "applicant" ? "text-purple-ai" : "text-text-muted"
+              }`}>
+                Browse Internships <ArrowRight className="h-3.5 w-3.5" />
+              </div>
+            </button>
+          </div>
+
+          {/* Login Link */}
+          <div className="mt-8 text-center">
+            <p className="text-xs text-text-secondary">
+              Already have an account?{" "}
+              <Link href="/login" className="font-bold text-teal-dark hover:underline">
+                Log in here
+              </Link>
+            </p>
           </div>
         </div>
       </div>

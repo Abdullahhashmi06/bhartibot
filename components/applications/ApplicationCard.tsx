@@ -79,7 +79,7 @@ export default function ApplicationCard({
   onQuickReject,
   compareCount,
 }: ApplicationCardProps) {
-  const avatarUrl = getAvatarUrl(app.applicant_name);
+  const avatarUrl = getAvatarUrl(app.email);
   const borderClass = STATUS_BORDER[app.status] ?? "border-l-slate-200";
   const scoreColorClass = SCORE_COLOR(app.match_score);
   const canAddCompare = compareCount < 4 || isCompareSelected;
@@ -117,6 +117,7 @@ export default function ApplicationCard({
         src={avatarUrl}
         alt={app.applicant_name}
         className="h-11 w-11 rounded-xl border border-border bg-slate-50 shrink-0 shadow-subtle mt-0.5"
+        onError={(e) => { (e.target as HTMLImageElement).src = getAvatarUrl(app.email); }}
       />
 
       {/* Main Content */}

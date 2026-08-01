@@ -12,6 +12,26 @@ interface PdfViewerProps {
 export default function PdfViewer({ url, filename }: PdfViewerProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
 
+  const handleDownload = async (downloadUrl: string, downloadFilename: string) => {
+    try {
+      const response = await fetch(downloadUrl);
+      const blob = await response.blob();
+      const pdfBlob = new Blob([blob], { type: "application/pdf" });
+      const blobUrl = URL.createObjectURL(pdfBlob);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = downloadFilename || "resume.pdf";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      console.error("Download failed:", err);
+      // Fallback: open in new tab
+      window.open(downloadUrl, "_blank");
+    }
+  };
+
   if (isFullscreen) {
     return (
       <motion.div
@@ -30,13 +50,12 @@ export default function PdfViewer({ url, filename }: PdfViewerProps) {
             </span>
           </div>
           <div className="flex items-center gap-3">
-            <a
-              href={url}
-              download={filename}
+            <button
+              onClick={() => handleDownload(url, filename)}
               className="inline-flex items-center gap-1.5 rounded-xl bg-white/10 px-3 py-1.5 text-xs font-bold text-white hover:bg-white/20 transition-colors"
             >
               <Download className="h-3.5 w-3.5" /> Download
-            </a>
+            </button>
             <button
               onClick={() => setIsFullscreen(false)}
               className="inline-flex items-center gap-1.5 rounded-xl bg-teal px-3 py-1.5 text-xs font-bold text-white hover:bg-teal-dark transition-colors"
@@ -65,14 +84,13 @@ export default function PdfViewer({ url, filename }: PdfViewerProps) {
           {filename}
         </span>
         <div className="flex items-center gap-2">
-          <a
-            href={url}
-            download={filename}
+          <button
+            onClick={() => handleDownload(url, filename)}
             className="rounded-lg p-1.5 text-text-muted hover:text-teal hover:bg-teal-light transition-colors"
             title="Download PDF"
           >
             <Download className="h-4 w-4" />
-          </a>
+          </button>
           <button
             onClick={() => setIsFullscreen(true)}
             className="rounded-lg p-1.5 text-text-muted hover:text-primary hover:bg-slate-100 transition-colors"

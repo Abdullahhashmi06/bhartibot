@@ -97,6 +97,8 @@ export default async function ApplyPage({
           internshipId={internship.id}
           slug={params.slug}
           questions={questions}
+          githubRequired={internship.github_required ?? false}
+          linkedinRequired={internship.linkedin_required ?? false}
         />
       </div>
     </Shell>

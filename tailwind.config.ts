@@ -12,31 +12,31 @@ const config: Config = {
       colors: {
         // Brand Color System
         primary: {
-          DEFAULT: "#0B1F3A",
-          dark: "#081426",
-          light: "#16233B",
+          DEFAULT: "#0F172A",
+          dark: "#020617",
+          light: "#1E293B",
         },
         teal: {
-          DEFAULT: "#17C6B5",
-          light: "#E8FAF8",
-          dark: "#0F9B8E",
+          DEFAULT: "#0D9488",
+          light: "#F0FDFA",
+          dark: "#0B7A70",
         },
         emerald: {
-          DEFAULT: "#29D391",
-          light: "#EAFBF4",
+          DEFAULT: "#10B981",
+          light: "#ECFDF5",
         },
         purple: {
           ai: "#6F52ED",
           light: "#F0EEFE",
         },
-        sidebar: "#081426",
-        background: "#F7F9FC",
+        sidebar: "#020617",
+        background: "#F8FAFC",
         card: "#FFFFFF",
         // Typography Colors
         text: {
-          primary: "#16233B",
-          secondary: "#6D7A92",
-          muted: "#A4B0C2",
+          primary: "#0F172A",
+          secondary: "#64748B",
+          muted: "#94A3B8",
         },
         // Status Colors
         success: "#22C55E",
@@ -56,16 +56,16 @@ const config: Config = {
         "3xl": "24px",
       },
       boxShadow: {
-        subtle: "0 1px 3px 0 rgba(11, 31, 58, 0.05), 0 1px 2px -1px rgba(11, 31, 58, 0.05)",
-        card: "0 4px 20px -2px rgba(11, 31, 58, 0.05)",
-        hover: "0 10px 30px -4px rgba(11, 31, 58, 0.12)",
+        subtle: "0 1px 3px 0 rgba(15, 23, 42, 0.05), 0 1px 2px -1px rgba(15, 23, 42, 0.05)",
+        card: "0 4px 20px -2px rgba(15, 23, 42, 0.05)",
+        hover: "0 10px 30px -4px rgba(15, 23, 42, 0.12)",
         ai: "0 10px 35px -5px rgba(111, 82, 237, 0.25)",
-        teal: "0 10px 35px -5px rgba(23, 198, 181, 0.25)",
+        teal: "0 10px 35px -5px rgba(13, 148, 136, 0.3)",
       },
       backgroundImage: {
-        "gradient-primary": "linear-gradient(135deg, #17C6B5 0%, #6F52ED 100%)",
+        "gradient-primary": "linear-gradient(135deg, #0D9488 0%, #10B981 50%, #6F52ED 100%)",
         "gradient-radial-ai": "radial-gradient(circle at top right, rgba(111, 82, 237, 0.15), transparent 50%)",
-        "gradient-card-glow": "linear-gradient(180deg, rgba(23, 198, 181, 0.03) 0%, rgba(255, 255, 255, 1) 100%)",
+        "gradient-card-glow": "linear-gradient(180deg, rgba(13, 148, 136, 0.04) 0%, rgba(255, 255, 255, 1) 100%)",
       },
     },
   },

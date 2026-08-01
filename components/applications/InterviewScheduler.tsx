@@ -13,9 +13,11 @@ import {
   FileText,
   X,
   CalendarPlus,
+  Globe,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { upsertInterviewSchedule, InterviewType } from "@/lib/queries/interview";
+import { sendInterviewEmailAction } from "@/app/dashboard/applications/actions";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
@@ -26,6 +28,11 @@ interface InterviewSchedulerProps {
   applicationId: string;
   recruiterId: string;
   onScheduled: () => void;
+  /** Pre-fetched applicant details to avoid DB queries when sending email */
+  applicantName?: string;
+  applicantEmail?: string;
+  internshipTitle?: string;
+  organizationName?: string;
 }
 
 const interviewTypes: { value: InterviewType; label: string; icon: typeof Video }[] = [
@@ -40,13 +47,19 @@ export default function InterviewScheduler({
   applicationId,
   recruiterId,
   onScheduled,
+  applicantName,
+  applicantEmail,
+  internshipTitle,
+  organizationName,
 }: InterviewSchedulerProps) {
   const supabase = createClient();
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
+  const [timezone, setTimezone] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone);
   const [type, setType] = useState<InterviewType>("online");
   const [interviewerName, setInterviewerName] = useState("");
   const [meetingLink, setMeetingLink] = useState("");
+  const [venue, setVenue] = useState("");
   const [notes, setNotes] = useState("");
   const [isPending, setIsPending] = useState(false);
 
@@ -55,6 +68,8 @@ export default function InterviewScheduler({
       toast.error("Please fill in date, time, and interviewer name");
       return;
     }
+
+    // No hard meeting link validation - allows scheduling first and providing link later
 
     setIsPending(true);
     const { error } = await upsertInterviewSchedule(supabase, applicationId, recruiterId, {
@@ -65,6 +80,36 @@ export default function InterviewScheduler({
       meeting_link: meetingLink.trim() || undefined,
       notes: notes.trim() || undefined,
     });
+
+    // Fire-and-forget email notification (do not block on failure)
+    if (!error) {
+      sendInterviewEmailAction({
+        applicationId,
+        interviewDate: date,
+        interviewTime: time,
+        timezone,
+        interviewType: type,
+        meetingLink: meetingLink.trim() || null,
+        venue: venue.trim() || null,
+        notes: notes.trim() || null,
+        // Pass pre-fetched details to avoid DB queries (makes email resilient to DB outages)
+        applicantName: applicantName,
+        applicantEmail: applicantEmail,
+        internshipTitle: internshipTitle,
+        organizationName: organizationName,
+      }).then((result) => {
+        if (result?.skipped) {
+          console.warn("[InterviewScheduler] Email skipped (RESEND_API_KEY not configured)");
+          toast.warning(
+            "Interview scheduled — email notification not sent because RESEND_API_KEY isn't configured.",
+            { duration: 6000 }
+          );
+        } else if (!result?.success) {
+          console.error("[InterviewScheduler] Email notification failed but interview was scheduled");
+        }
+      });
+    }
+
     setIsPending(false);
 
     if (error) {
@@ -181,7 +226,7 @@ export default function InterviewScheduler({
 
                 <div className="space-y-1.5">
                   <label htmlFor="interviewer-name" className="font-mono text-[10px] font-bold uppercase tracking-wider text-text-muted">
-                    Interviewer Name
+                    Interviewer Name <span className="text-danger">*</span>
                   </label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted" />
@@ -191,6 +236,24 @@ export default function InterviewScheduler({
                       value={interviewerName}
                       onChange={(e) => setInterviewerName(e.target.value)}
                       placeholder="e.g., Sarah Ahmed"
+                      className="w-full pl-9 pr-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-border dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal/20 focus:border-teal dark:text-white"
+                    />
+                  </div>
+                </div>
+
+                {/* Timezone */}
+                <div className="space-y-1.5">
+                  <label htmlFor="timezone" className="font-mono text-[10px] font-bold uppercase tracking-wider text-text-muted">
+                    Timezone <span className="text-danger">*</span>
+                  </label>
+                  <div className="relative">
+                    <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted" />
+                    <input
+                      id="timezone"
+                      type="text"
+                      value={timezone}
+                      onChange={(e) => setTimezone(e.target.value)}
+                      placeholder="e.g., America/New_York"
                       className="w-full pl-9 pr-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-border dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal/20 focus:border-teal dark:text-white"
                     />
                   </div>
@@ -212,6 +275,26 @@ export default function InterviewScheduler({
                     />
                   </div>
                 </div>
+
+                {/* Venue (shown when on-site) */}
+                {type === "on_site" && (
+                  <div className="space-y-1.5">
+                    <label htmlFor="venue" className="font-mono text-[10px] font-bold uppercase tracking-wider text-text-muted">
+                      Venue / Location <span className="text-text-muted/50">(optional)</span>
+                    </label>
+                    <div className="relative">
+                      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted" />
+                      <input
+                        id="venue"
+                        type="text"
+                        value={venue}
+                        onChange={(e) => setVenue(e.target.value)}
+                        placeholder="e.g., Room 401, Main Office"
+                        className="w-full pl-9 pr-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-border dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal/20 focus:border-teal dark:text-white"
+                      />
+                    </div>
+                  </div>
+                )}
 
                 <div className="space-y-1.5">
                   <label htmlFor="interview-notes" className="font-mono text-[10px] font-bold uppercase tracking-wider text-text-muted">

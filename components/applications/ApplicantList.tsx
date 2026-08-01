@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Search, ChevronLeft, ChevronRight, Inbox } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { ApplicationWithScore } from "@/lib/queries/applications";
-import { createClient } from "@/lib/supabase/client";
-import { updateApplicationStatus } from "@/lib/queries/applications";
+import { updateStatusServerAction } from "@/app/dashboard/applications/statusActions";
+import { ApplicationStatus } from "@/lib/types";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import ApplicationCard from "./ApplicationCard";
@@ -13,14 +13,20 @@ import ApplicantFilters, { defaultFilters, FilterState } from "./ApplicantFilter
 import BulkToolbar from "./BulkToolbar";
 
 export default function ApplicantList({
-  applications,
+  applications: initialApplications,
   internshipId,
 }: {
   applications: ApplicationWithScore[];
   internshipId: string;
 }) {
   const router = useRouter();
-  const supabase = createClient();
+
+  const [applications, setApplications] = useState(initialApplications);
+
+  // Sync state when server data changes via router.refresh()
+  useEffect(() => {
+    setApplications(initialApplications);
+  }, [initialApplications]);
 
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
@@ -153,8 +159,26 @@ export default function ApplicantList({
   }
 
   async function handleQuickAction(id: string, status: "shortlisted" | "rejected") {
-    const { error } = await updateApplicationStatus(supabase, id, status);
+    const prevStatus = applications.find((a) => a.id === id)?.status as ApplicationStatus | string;
+
+    // Optimistic local update
+    setApplications((prev) =>
+      prev.map((app) =>
+        app.id === id ? { ...app, status } : app
+      )
+    );
+
+    const { error } = await updateStatusServerAction(id, status, prevStatus, {
+      internshipId,
+    });
+
     if (error) {
+      // Revert on error
+      setApplications((prev) =>
+        prev.map((app) =>
+          app.id === id ? { ...app, status: prevStatus || app.status } : app
+        )
+      );
       toast.error(`Failed to update status: ${error}`);
     } else {
       toast.success(`Candidate ${status.replace("_", " ")}`);

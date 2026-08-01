@@ -176,6 +176,13 @@ export async function runCandidateAnalysis(
       missing_skills: score.missing_skills,
       recommendation: score.recommendation,
       reasoning: score.reasoning,
+      technical_score: score.technical_score,
+      education_score: score.education_score,
+      experience_score: score.experience_score,
+      communication_score: score.communication_score,
+      culture_fit_score: score.culture_fit_score,
+      confidence_score: score.confidence_score,
+      resume_quality_score: score.resume_quality_score,
     });
 
     if (!saved) {

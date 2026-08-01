@@ -6,7 +6,9 @@ export type ApplicationStatus =
   | "new"
   | "under_review"
   | "shortlisted"
-  | "rejected";
+  | "rejected"
+  | "archived"
+  | "pending";
 
 export interface Requirement {
   id?: string;
@@ -34,6 +36,8 @@ export interface Internship {
   status: InternshipStatus | string;
   public_slug: string | null;
   created_at: string;
+  github_required?: boolean;
+  linkedin_required?: boolean;
 }
 
 export interface NewInternshipInput {
@@ -44,6 +48,8 @@ export interface NewInternshipInput {
   work_mode: WorkMode;
   duration: string;
   requirements: Requirement[];
+  github_required?: boolean;
+  linkedin_required?: boolean;
   questions?: {
     question: string;
     type: QuestionType;
@@ -166,6 +172,17 @@ export interface CandidateAiAnalysis {
   risks_summary?: string;
   strength_summary?: string;
   risk_summary?: string;
+
+  // Sub-scores from AI analysis
+  technical_score?: number;
+  education_score?: number;
+  experience_score?: number;
+  communication_score?: number;
+  culture_fit_score?: number;
+  confidence_score?: number;
+  resume_quality_score?: number;
+
+  // Per-score recruiter-facing explanations
   overall_explanation?: string;
   technical_reason?: string;
   education_reason?: string;
@@ -196,6 +213,7 @@ export interface DashboardStats {
   underReviewApplications: number;
   shortlistedApplications: number;
   rejectedApplications: number;
+  scheduledInterviews: number;
   averageAiScore: number;
   weeklyApplicationTrend: number | null; // percentage change vs previous week, null if no prior data
   aiScoresByInternship: Record<string, number>; // internshipId -> average AI score

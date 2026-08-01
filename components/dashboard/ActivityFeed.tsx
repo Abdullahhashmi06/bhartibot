@@ -54,7 +54,7 @@ export default function ActivityFeed({ activities }: ActivityFeedProps) {
         </p>
       </div>
 
-      <div className="relative pt-2">
+      <div className="relative pt-2 max-h-[400px] overflow-y-auto custom-scrollbar">
         <div className="absolute left-4 top-2 bottom-2 w-px bg-slate-200" />
         
         {activities.length === 0 ? (
@@ -66,7 +66,7 @@ export default function ActivityFeed({ activities }: ActivityFeedProps) {
             variants={container}
             initial="hidden"
             animate="show"
-            className="space-y-4 relative z-10"
+            className="space-y-4 relative z-10 pr-2"
           >
             {activities.map((activity) => (
               <motion.div key={activity.id} variants={item} className="flex gap-4 group">

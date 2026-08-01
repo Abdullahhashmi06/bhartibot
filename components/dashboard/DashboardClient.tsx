@@ -14,6 +14,7 @@ import InternshipCard from "./InternshipCard";
 import EmptyState from "./EmptyState";
 import { motion, AnimatePresence } from "framer-motion";
 import { Briefcase, Users, Sparkles, CheckCircle2, XCircle, Clock } from "lucide-react";
+import Reveal from "@/components/ui/Reveal";
 
 interface DashboardClientProps {
   stats: DashboardStats;
@@ -83,10 +84,10 @@ export default function DashboardClient({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       
       {/* TOP 6 METRICS SUMMARY GRID */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+      <Reveal variant="fade-up" className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         <MetricCard
           label="Total Roles"
           value={stats.activeInternships}
@@ -130,24 +131,24 @@ export default function DashboardClient({
           tone="amber"
           subtext={`${stats.newApplications} New`}
         />
-      </div>
+      </Reveal>
 
       {/* HIRING FUNNEL */}
       <RecruitmentFunnel data={{
         total: stats.totalApplications,
-        aiReviewed: stats.totalApplications - stats.newApplications, // roughly
+        aiReviewed: stats.totalApplications - stats.newApplications,
         shortlisted: stats.shortlistedApplications,
-        interview: Math.floor(stats.shortlistedApplications * 0.8), // mock
-        offer: Math.floor(stats.shortlistedApplications * 0.4), // mock
-        hired: Math.floor(stats.shortlistedApplications * 0.2) // mock
+        interview: stats.scheduledInterviews,
+        offer: 0,
+        hired: 0
       }} />
 
       {/* DASHBOARD GRID */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         
         {/* Left Column (Charts) */}
-        <div className="lg:col-span-2 space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div className="lg:col-span-2 space-y-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <WeeklyApplicationsChart />
             <AiDistributionChart distribution={stats.scoreDistribution} />
           </div>
@@ -156,17 +157,17 @@ export default function DashboardClient({
         </div>
 
         {/* Right Column (Leaderboard & Activity) */}
-        <div className="space-y-6">
+        <div className="space-y-5">
           <TopUniversities universities={topUniversities} />
           <ActivityFeed activities={recentActivity} />
         </div>
       </div>
 
       {/* INTERNSHIP ROLES LIST */}
-      <div className="space-y-4 pt-4 border-t border-border mt-8">
+      <div className="space-y-3 pt-3 border-t border-border mt-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="font-display font-bold text-xl text-primary">
+            <h2 className="font-display font-bold text-lg text-primary">
               Your Internship Drives
             </h2>
             <p className="text-xs text-text-secondary">

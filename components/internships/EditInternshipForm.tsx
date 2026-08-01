@@ -2,7 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
-import { PlusCircle, Trash2, Save, FileText } from "lucide-react";
+import { PlusCircle, Trash2, Save, FileText, Github, Linkedin } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import FormNotice from "@/components/ui/FormNotice";
 import { createClient } from "@/lib/supabase/client";
@@ -24,6 +24,12 @@ export default function EditInternshipForm({
 
   const [title, setTitle] = useState(internship.title);
   const [description, setDescription] = useState(internship.description ?? "");
+  const [githubRequired, setGithubRequired] = useState(
+    internship.github_required ?? false
+  );
+  const [linkedinRequired, setLinkedinRequired] = useState(
+    internship.linkedin_required ?? false
+  );
   const [requirements, setRequirements] =
     useState<Requirement[]>(initialRequirements);
 
@@ -64,6 +70,8 @@ export default function EditInternshipForm({
         title: title.trim(),
         description: description.trim(),
         requirements,
+        github_required: githubRequired,
+        linkedin_required: linkedinRequired,
       }
     );
 
@@ -118,6 +126,48 @@ export default function EditInternshipForm({
           className={inputClass}
           placeholder="Describe the role, responsibilities, and what the intern will learn…"
         />
+      </div>
+
+      {/* GitHub & LinkedIn Required Toggles */}
+      <div className="space-y-3 border-t border-border pt-6">
+        <p className="text-xs font-bold text-text-primary uppercase tracking-wider font-mono">Required Profile Links from Applicants</p>
+        <p className="text-xs text-text-secondary">If marked compulsory, applicants must provide the link or enter <span className="font-mono font-bold text-teal-dark">N/A</span> if they don&apos;t have one.</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <button
+            type="button"
+            onClick={() => setGithubRequired(!githubRequired)}
+            className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-semibold transition-all ${
+              githubRequired
+                ? "border-teal bg-teal-light text-teal-dark shadow-subtle"
+                : "border-border bg-slate-50 text-text-secondary hover:border-slate-300 dark:bg-slate-800 dark:hover:border-slate-600"
+            }`}
+          >
+            <Github className="h-4 w-4 shrink-0" />
+            <span className="flex-1 text-left">GitHub Link</span>
+            <span className={`text-xs font-mono px-2 py-0.5 rounded-full ${
+              githubRequired ? "bg-teal/20 text-teal-dark" : "bg-slate-200 text-text-muted dark:bg-slate-700"
+            }`}>
+              {githubRequired ? "Compulsory" : "Optional"}
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setLinkedinRequired(!linkedinRequired)}
+            className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-semibold transition-all ${
+              linkedinRequired
+                ? "border-purple-ai bg-purple-light text-purple-ai shadow-subtle"
+                : "border-border bg-slate-50 text-text-secondary hover:border-slate-300 dark:bg-slate-800 dark:hover:border-slate-600"
+            }`}
+          >
+            <Linkedin className="h-4 w-4 shrink-0" />
+            <span className="flex-1 text-left">LinkedIn Link</span>
+            <span className={`text-xs font-mono px-2 py-0.5 rounded-full ${
+              linkedinRequired ? "bg-purple-ai/20 text-purple-ai" : "bg-slate-200 text-text-muted dark:bg-slate-700"
+            }`}>
+              {linkedinRequired ? "Compulsory" : "Optional"}
+            </span>
+          </button>
+        </div>
       </div>
 
       {/* Requirements */}

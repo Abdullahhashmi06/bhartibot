@@ -64,7 +64,28 @@ export default async function ShortlistedCandidatesPage() {
       .eq("status", "shortlisted")
       .order("created_at", { ascending: false });
 
-    if (!error && data) {
+    // If the AI-analysis join fails (e.g. candidate_ai_analysis table missing
+    // because a migration wasn't applied), never hide shortlisted candidates —
+    // fall back to a plain query without the AI join.
+    if (error) {
+      console.warn(
+        "[ShortlistedPage] AI join failed, falling back:",
+        error.message
+      );
+      const { data: plain, error: plainError } = await supabase
+        .from("applications")
+        .select("*, internships!inner(*)")
+        .in("internship_id", internshipIds)
+        .eq("status", "shortlisted")
+        .order("created_at", { ascending: false });
+      if (!plainError && plain) {
+        shortlistedCandidates = plain.map((row: any) => ({
+          ...row,
+          match_score: null,
+          recommendation: null,
+        }));
+      }
+    } else if (data) {
       shortlistedCandidates = data.map((row: any) => {
         const analysis = row.candidate_ai_analysis?.[0];
         return {

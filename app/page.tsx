@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import Shell from "@/components/layout/Shell";
 import { ButtonLink } from "@/components/ui/Button";
+import Reveal from "@/components/ui/Reveal";
 
 export default function LandingPage() {
   const [faqOpen, setFaqOpen] = useState<number | null>(null);
@@ -37,7 +38,7 @@ export default function LandingPage() {
             className="inline-flex items-center gap-2 rounded-full border border-teal/30 bg-teal-light/50 px-4 py-1.5 text-xs font-mono font-semibold text-teal-dark shadow-subtle mb-6"
           >
             <Sparkles className="h-3.5 w-3.5 text-teal" />
-            <span>InternIQ 2.0 — Next-Gen AI Recruitment SaaS</span>
+            <span>InternIQ — Next-Gen AI Recruitment SaaS</span>
           </motion.div>
 
           <motion.h1
@@ -71,13 +72,10 @@ export default function LandingPage() {
               size="lg"
               rightIcon={<ArrowRight className="h-5 w-5" />}
             >
-              Start Recruiter Workspace
+              Get Started Now
             </ButtonLink>
             <ButtonLink href="/login" variant="secondary" size="lg">
               Log in to Dashboard
-            </ButtonLink>
-            <ButtonLink href="/applicant-auth" variant="outline" size="lg">
-              For Applicants
             </ButtonLink>
           </motion.div>
 
@@ -157,38 +155,23 @@ export default function LandingPage() {
       <section className="border-y border-border bg-white py-12">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 gap-8 md:grid-cols-4 text-center">
-            <div>
-              <div className="font-display font-extrabold text-3xl sm:text-4xl text-primary">
-                10x
-              </div>
-              <p className="mt-1 text-xs sm:text-sm text-text-secondary font-medium">
-                Faster Candidate Screening
-              </p>
-            </div>
-            <div>
-              <div className="font-display font-extrabold text-3xl sm:text-4xl text-teal-dark">
-                99.4%
-              </div>
-              <p className="mt-1 text-xs sm:text-sm text-text-secondary font-medium">
-                CV Evidence Accuracy
-              </p>
-            </div>
-            <div>
-              <div className="font-display font-extrabold text-3xl sm:text-4xl text-purple-ai">
-                0h
-              </div>
-              <p className="mt-1 text-xs sm:text-sm text-text-secondary font-medium">
-                Manual Parsing Time
-              </p>
-            </div>
-            <div>
-              <div className="font-display font-extrabold text-3xl sm:text-4xl text-emerald">
-                100%
-              </div>
-              <p className="mt-1 text-xs sm:text-sm text-text-secondary font-medium">
-                Recruiter Control Preserved
-              </p>
-            </div>
+            {[
+              { value: "10x", label: "Faster Candidate Screening", className: "text-primary" },
+              { value: "99.4%", label: "CV Evidence Accuracy", className: "text-teal-dark" },
+              { value: "0 Hours", label: "Manual Parsing Required", className: "text-purple-ai" },
+              { value: "100%", label: "Recruiter Control Preserved", className: "text-emerald" },
+            ].map((stat, idx) => (
+              <Reveal key={stat.label} variant="fade-up" delay={idx * 0.08}>
+                <div>
+                  <div className={`font-display font-extrabold text-3xl sm:text-4xl ${stat.className}`}>
+                    {stat.value}
+                  </div>
+                  <p className="mt-1 text-xs sm:text-sm text-text-secondary font-medium">
+                    {stat.label}
+                  </p>
+                </div>
+              </Reveal>
+            ))}
           </div>
         </div>
       </section>
@@ -206,24 +189,30 @@ export default function LandingPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <FeatureCard
-              icon={<Target className="h-6 w-6 text-teal" />}
-              eyebrow="01 · Define Requirements"
-              title="Tailored Screening Criteria"
-              description="Specify required & preferred technical skills, academic qualifications, and custom screening questions for each role."
-            />
-            <FeatureCard
-              icon={<Zap className="h-6 w-6 text-purple-ai" />}
-              eyebrow="02 · Instant AI Analysis"
-              title="Evidence Mapping Engine"
-              description="InternIQ automatically extracts candidate evidence from PDF resumes, mapping projects and achievements directly to your specifications."
-            />
-            <FeatureCard
-              icon={<BarChart3 className="h-6 w-6 text-emerald" />}
-              eyebrow="03 · Modern Dashboard"
-              title="Actionable Analytics Report"
-              description="Review visual radial gauges, strength/weakness matrices, interview probability, and missing skills chips with one click."
-            />
+            <Reveal variant="fade-up" delay={0.05}>
+              <FeatureCard
+                icon={<Target className="h-6 w-6 text-teal" />}
+                eyebrow="01 · Define Requirements"
+                title="Tailored Screening Criteria"
+                description="Specify required & preferred technical skills, academic qualifications, and custom screening questions for each role."
+              />
+            </Reveal>
+            <Reveal variant="fade-up" delay={0.15}>
+              <FeatureCard
+                icon={<Zap className="h-6 w-6 text-purple-ai" />}
+                eyebrow="02 · Instant AI Analysis"
+                title="Evidence Mapping Engine"
+                description="InternIQ automatically extracts candidate evidence from PDF resumes, mapping projects and achievements directly to your specifications."
+              />
+            </Reveal>
+            <Reveal variant="fade-up" delay={0.25}>
+              <FeatureCard
+                icon={<BarChart3 className="h-6 w-6 text-emerald" />}
+                eyebrow="03 · Modern Dashboard"
+                title="Actionable Analytics Report"
+                description="Review visual radial gauges, strength/weakness matrices, interview probability, and missing skills chips with one click."
+              />
+            </Reveal>
           </div>
         </div>
       </section>
@@ -241,21 +230,27 @@ export default function LandingPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <StepItem
-              step="1"
-              title="Create Internship Wizard"
-              description="Define role titles, work mode (Remote/On-site), duration, and screening requirements in seconds."
-            />
-            <StepItem
-              step="2"
-              title="Share One Public Link"
-              description="Applicants apply effortlessly without needing an account — uploading PDF CVs and answering screening questions."
-            />
-            <StepItem
-              step="3"
-              title="Review AI Evidence Report"
-              description="Get instant candidate rankings, AI match scores, strength breakdowns, and shortlist applicants with confidence."
-            />
+            <Reveal variant="slide-right" delay={0.05}>
+              <StepItem
+                step="1"
+                title="Create Internship Wizard"
+                description="Define role titles, work mode (Remote/On-site), duration, and screening requirements in seconds."
+              />
+            </Reveal>
+            <Reveal variant="fade-up" delay={0.15}>
+              <StepItem
+                step="2"
+                title="Share One Public Link"
+                description="Applicants apply effortlessly without needing an account — uploading PDF CVs and answering screening questions."
+              />
+            </Reveal>
+            <Reveal variant="slide-left" delay={0.25}>
+              <StepItem
+                step="3"
+                title="Review AI Evidence Report"
+                description="Get instant candidate rankings, AI match scores, strength breakdowns, and shortlist applicants with confidence."
+              />
+            </Reveal>
           </div>
         </div>
       </section>
@@ -270,24 +265,32 @@ export default function LandingPage() {
           </div>
 
           <div className="space-y-4">
+            <Reveal variant="fade-down" delay={0.05}>
             <FaqItem
               question="Does InternIQ replace recruiter decisions?"
-              answer="No. InternIQ is an evidence organizer. It parses resumes and evaluates qualifications against your requirements, providing transparent evidence mapping so recruiters can make informed decisions faster."
+              answer={
+                <div><p><strong>No.</strong> InternIQ is an evidence organizer, not a decision maker.</p><ul className="list-disc pl-5 space-y-1 mt-2"><li>It parses resumes and evaluates qualifications against your specific requirements</li><li>Provides transparent evidence mapping with source citations</li><li>Generates match scores based on objective criteria</li></ul><p className="mt-2">Recruiters always retain full control over hiring decisions — InternIQ delivers the evidence to make those decisions faster and more informed.</p></div>
+              }
               isOpen={faqOpen === 0}
               onToggle={() => setFaqOpen(faqOpen === 0 ? null : 0)}
             />
             <FaqItem
               question="Do applicants need an account to apply?"
-              answer="No account is required for applicants. Recruiters simply share the generated public application URL."
+              answer={
+                <div><p><strong>No account is required</strong> for applicants applying through public links.</p><p className="mt-2">Recruiters generate a unique application URL for each internship posting. Applicants can apply directly by uploading their CV and answering screening questions — no sign-up needed.</p><p className="mt-2">However, applicants who <em>choose</em> to create an account gain access to application tracking, AI-powered job recommendations, and profile management.</p></div>
+              }
               isOpen={faqOpen === 1}
               onToggle={() => setFaqOpen(faqOpen === 1 ? null : 1)}
             />
             <FaqItem
               question="What file formats are supported for CV analysis?"
-              answer="InternIQ parses standard PDF CV uploads to extract education, technical skills, and project experience."
+              answer={
+                <div><p>InternIQ currently supports <strong>PDF format</strong> for CV analysis.</p><ul className="list-disc pl-5 space-y-1 mt-2"><li>Standard PDF documents up to 10 MB</li><li>Text-based PDFs are parsed for education, skills, projects, and experience</li><li>Scanned image PDFs may have limited extraction accuracy</li></ul><p className="mt-2">We recommend applicants upload text-based PDF resumes for the most accurate AI evidence mapping.</p></div>
+              }
               isOpen={faqOpen === 2}
               onToggle={() => setFaqOpen(faqOpen === 2 ? null : 2)}
             />
+            </Reveal>
           </div>
         </div>
       </section>
@@ -308,7 +311,7 @@ export default function LandingPage() {
             size="lg"
             rightIcon={<ArrowRight className="h-5 w-5" />}
           >
-            Create Your Free Account
+            Create Your Account
           </ButtonLink>
         </div>
       </section>
@@ -369,7 +372,7 @@ function FaqItem({
   onToggle,
 }: {
   question: string;
-  answer: string;
+  answer: React.ReactNode;
   isOpen: boolean;
   onToggle: () => void;
 }) {
@@ -387,7 +390,7 @@ function FaqItem({
         />
       </button>
       {isOpen && (
-        <div className="p-5 pt-0 text-xs sm:text-sm text-text-secondary leading-relaxed border-t border-slate-100">
+        <div className="px-5 pb-5 pt-4 text-sm text-text-secondary leading-7 border-t border-slate-100 space-y-3">
           {answer}
         </div>
       )}

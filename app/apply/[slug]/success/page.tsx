@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CheckCircle2, ArrowRight } from "lucide-react";
+import { CheckCircle2, ArrowRight, AlertTriangle } from "lucide-react";
 import Shell from "@/components/layout/Shell";
 import { ButtonLink } from "@/components/ui/Button";
 import { createClient } from "@/lib/supabase/server";
@@ -8,8 +8,10 @@ import { notFound } from "next/navigation";
 
 export default async function ApplySuccessPage({
   params,
+  searchParams,
 }: {
   params: { slug: string };
+  searchParams: { cv?: string };
 }) {
   const supabase = createClient();
   const internship = await getPublishedInternshipBySlug(supabase, params.slug);
@@ -17,6 +19,8 @@ export default async function ApplySuccessPage({
   if (!internship) {
     notFound();
   }
+
+  const cvUploadFailed = searchParams.cv === "upload-failed";
 
   return (
     <Shell>
@@ -35,6 +39,16 @@ export default async function ApplySuccessPage({
             The recruiting team will evaluate your application and PDF CV evidence with InternIQ AI.
           </p>
         </div>
+
+        {cvUploadFailed && (
+          <div className="flex items-start gap-2.5 rounded-2xl border border-amber-300/60 bg-amber-50 dark:bg-amber-500/10 px-4 py-3 text-left">
+            <AlertTriangle className="h-4 w-4 text-warning shrink-0 mt-0.5" />
+            <p className="text-xs text-amber-800 dark:text-amber-300 leading-relaxed">
+              Your application was saved, but the CV file could not be attached.
+              Please contact the recruiting team to submit your resume, or try again later.
+            </p>
+          </div>
+        )}
 
         <div className="pt-2 flex flex-col sm:flex-row gap-3">
           <ButtonLink href="/" variant="gradient" rightIcon={<ArrowRight className="h-4 w-4" />}>

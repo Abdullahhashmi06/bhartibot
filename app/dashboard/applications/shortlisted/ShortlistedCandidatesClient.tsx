@@ -34,10 +34,25 @@ interface ShortlistedCandidatesClientProps {
 }
 
 export default function ShortlistedCandidatesClient({
-  candidates,
+  candidates: initialCandidates,
 }: ShortlistedCandidatesClientProps) {
   const router = useRouter();
   const [search, setSearch] = useState("");
+  // Track local statuses so when a candidate is moved out of "shortlisted"
+  // they disappear immediately without waiting for a server-side refresh.
+  const [localStatuses, setLocalStatuses] = useState<Record<string, string>>(
+    () => Object.fromEntries(initialCandidates.map((c) => [c.id, c.status]))
+  );
+
+  // Merge initial list with local status overrides,
+  // then filter out anyone no longer shortlisted.
+  const candidates = useMemo(
+    () =>
+      initialCandidates.filter(
+        (c) => (localStatuses[c.id] ?? c.status) === "shortlisted"
+      ),
+    [initialCandidates, localStatuses]
+  );
 
   const filtered = useMemo(() => {
     if (!search.trim()) return candidates;
@@ -58,7 +73,7 @@ export default function ShortlistedCandidatesClient({
     );
   };
 
-  if (candidates.length === 0 && !search) {
+  if (initialCandidates.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 rounded-3xl border border-dashed border-border bg-white dark:bg-slate-800 py-20 px-6 text-center shadow-subtle">
         <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-teal-light text-teal border border-teal/20">
@@ -89,7 +104,21 @@ export default function ShortlistedCandidatesClient({
         />
       </div>
 
-      {filtered.length === 0 ? (
+      {candidates.length === 0 ? (
+        <div className="flex flex-col items-center justify-center gap-4 rounded-3xl border border-dashed border-border bg-white dark:bg-slate-800 py-20 px-6 text-center shadow-subtle">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-teal-light text-teal border border-teal/20">
+            <UserCheck className="h-8 w-8" />
+          </div>
+          <div className="space-y-1">
+            <h3 className="font-display font-bold text-lg text-primary dark:text-white">
+              No shortlisted candidates
+            </h3>
+            <p className="text-sm text-text-secondary dark:text-slate-400 max-w-sm">
+              All shortlisted candidates have been moved to another status.
+            </p>
+          </div>
+        </div>
+      ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center gap-4 rounded-3xl border border-dashed border-border bg-white dark:bg-slate-800 py-20 px-6 text-center shadow-subtle">
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-teal-light text-teal border border-teal/20">
             <UserCheck className="h-8 w-8" />
@@ -113,7 +142,7 @@ export default function ShortlistedCandidatesClient({
         <div className="space-y-4">
           <AnimatePresence mode="popLayout">
             {filtered.map((candidate) => {
-              const avatarUrl = getAvatarUrl(candidate.applicant_name);
+              const avatarUrl = getAvatarUrl(candidate.email);
               const score = candidate.match_score;
               const internship = candidate.internships;
 
@@ -123,7 +152,7 @@ export default function ShortlistedCandidatesClient({
                   layout
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
+                  exit={{ opacity: 0, scale: 0.95, y: -10 }}
                   className="group relative rounded-2xl border border-border dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-card hover:shadow-hover transition-all"
                 >
                   <div className="flex flex-col md:flex-row md:items-center gap-4">
@@ -170,14 +199,14 @@ export default function ShortlistedCandidatesClient({
                       <div className="flex items-center gap-2 text-xs text-text-secondary dark:text-slate-400">
                         <Briefcase className="h-3.5 w-3.5 text-teal shrink-0" />
                         <span className="truncate">{internship.title}</span>
-                        <span className="text-text-muted"> / {internship.company_name}</span>
+                        <span className="text-text-muted">/ {internship.company_name}</span>
                       </div>
                     )}
                     {candidate.university && (
                       <div className="flex items-center gap-2 text-xs text-text-secondary dark:text-slate-400">
                         <GraduationCap className="h-3.5 w-3.5 text-teal shrink-0" />
                         <span className="truncate">{candidate.university}</span>
-                        {candidate.degree && <span> / {candidate.degree}</span>}
+                        {candidate.degree && <span>/ {candidate.degree}</span>}
                       </div>
                     )}
                     {candidate.cgpa && (
@@ -211,6 +240,13 @@ export default function ShortlistedCandidatesClient({
                       <StatusSelect
                         applicationId={candidate.id}
                         initialStatus={candidate.status}
+                        applicantEmail={candidate.email}
+                        applicantName={candidate.applicant_name}
+                        internshipTitle={candidate.internships?.title}
+                        internshipId={candidate.internship_id}
+                        onStatusChange={(newStatus) => {
+                          setLocalStatuses((prev) => ({ ...prev, [candidate.id]: newStatus }));
+                        }}
                       />
                     </div>
                     <div className="flex items-center gap-2">

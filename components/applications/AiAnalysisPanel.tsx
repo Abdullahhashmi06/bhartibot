@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import {
   AlertTriangle,
   Sparkles,
@@ -13,12 +14,11 @@ import {
   MessageSquare,
   HelpCircle,
   BarChart2,
-  PieChart as PieIcon,
   Activity,
-  ShieldCheck,
   ChevronDown,
   ChevronRight,
   BookOpen,
+  ShieldCheck,
   UserCheck,
   TrendingUp,
   Lightbulb,
@@ -35,13 +35,12 @@ import { ProgressBar } from "@/components/ai/ProgressBar";
 import { RecommendationCard } from "@/components/ai/RecommendationCard";
 import {
   RadarChartWidget,
-  RequirementBarChart,
-  DistributionPieChart,
 } from "@/components/ai/InfographicCharts";
 import type { AiFailureResult } from "@/lib/ai/errors";
 import type { CandidateAiAnalysis } from "@/lib/types";
 import InterviewQuestionGenerator from "@/components/applications/InterviewQuestionGenerator";
 import { reanalyzeApplicantCv } from "@/app/dashboard/applications/[internshipId]/[applicationId]/actions";
+import { downloadAiReportPdf } from "@/lib/export/ai-report-pdf";
 
 type Props = {
   internshipId: string;
@@ -49,6 +48,8 @@ type Props = {
   hasCv: boolean;
   initialAnalysis: CandidateAiAnalysis | null;
   initialFailure: AiFailureResult | null;
+  applicantName?: string;
+  internshipTitle?: string;
 };
 
 function AccordionSection({
@@ -91,10 +92,13 @@ export default function AiAnalysisPanel({
   hasCv,
   initialAnalysis,
   initialFailure,
+  applicantName,
+  internshipTitle,
 }: Props) {
   const [analysis, setAnalysis] = useState(initialAnalysis);
   const [failure, setFailure] = useState(initialFailure);
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
   // Recruiter notes state
   const [notes, setNotes] = useState(initialAnalysis?.recruiter_notes ?? "");
@@ -148,14 +152,12 @@ export default function AiAnalysisPanel({
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => {
-                const element = document.createElement("a");
-                const file = new Blob([JSON.stringify(analysis, null, 2)], { type: 'text/plain' });
-                element.href = URL.createObjectURL(file);
-                element.download = `Candidate-AI-Report-${applicationId}.json`;
-                document.body.appendChild(element);
-                element.click();
-              }}
+              onClick={() =>
+                downloadAiReportPdf(analysis, {
+                  applicantName: applicantName || "Candidate",
+                  internshipTitle: internshipTitle || undefined,
+                })
+              }
               leftIcon={<Download className="h-3.5 w-3.5" />}
             >
               Export AI Report PDF
@@ -298,12 +300,12 @@ export default function AiAnalysisPanel({
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pt-2">
-              <ProgressBar label="Technical Skills Match" value={Math.min(score + 4, 96)} tone="teal" />
-              <ProgressBar label="Project & Applied Work" value={Math.min(score + 2, 94)} tone="purple" />
-              <ProgressBar label="Academic & Education Fit" value={Math.min(score - 2, 90)} tone="emerald" />
-              <ProgressBar label="Experience Level" value={Math.min(score - 5, 85)} tone="amber" />
-              <ProgressBar label="Communication Clarity" value={Math.min(score + 6, 98)} tone="teal" />
-              <ProgressBar label="Culture & Values Fit" value={Math.min(score + 1, 92)} tone="emerald" />
+              <ProgressBar label="Technical Skills Match" value={analysis.technical_score ?? 0} tone="teal" />
+              <ProgressBar label="Education & Academic Fit" value={analysis.education_score ?? 0} tone="emerald" />
+              <ProgressBar label="Experience Level" value={analysis.experience_score ?? 0} tone="amber" />
+              <ProgressBar label="Communication Clarity" value={analysis.communication_score ?? 0} tone="purple" />
+              <ProgressBar label="Culture & Values Fit" value={analysis.culture_fit_score ?? 0} tone="teal" />
+              <ProgressBar label="Overall AI Score" value={analysis.match_score ?? 0} tone="purple" />
             </div>
           </div>
 
@@ -415,10 +417,16 @@ export default function AiAnalysisPanel({
                 </h4>
                 <span className="font-mono text-[10px] uppercase text-text-muted">Dimension Fit</span>
               </div>
-              <RadarChartWidget />
+              <RadarChartWidget data={[
+                { subject: "Technical", score: analysis.technical_score ?? 0 },
+                { subject: "Education", score: analysis.education_score ?? 0 },
+                { subject: "Experience", score: analysis.experience_score ?? 0 },
+                { subject: "Communication", score: analysis.communication_score ?? 0 },
+                { subject: "Culture Fit", score: analysis.culture_fit_score ?? 0 },
+              ]} />
             </div>
 
-            {/* REQUIREMENT BAR CHART */}
+            {/* REQUIREMENT BAR CHART — Match Breakdown with actual AI scores */}
             <div className="rounded-3xl border border-border bg-white p-6 shadow-card space-y-3">
               <div className="flex items-center justify-between">
                 <h4 className="font-display font-bold text-base text-primary flex items-center gap-2">
@@ -426,7 +434,13 @@ export default function AiAnalysisPanel({
                 </h4>
                 <span className="font-mono text-[10px] uppercase text-text-muted">Scores</span>
               </div>
-              <RequirementBarChart />
+              <div className="space-y-3">
+                <ScoreRow label="Technical Score" score={analysis.technical_score ?? 0} color="bg-teal" />
+                <ScoreRow label="Education Score" score={analysis.education_score ?? 0} color="bg-purple-ai" />
+                <ScoreRow label="Experience Score" score={analysis.experience_score ?? 0} color="bg-amber-500" />
+                <ScoreRow label="Communication Score" score={analysis.communication_score ?? 0} color="bg-emerald" />
+                <ScoreRow label="Culture Fit Score" score={analysis.culture_fit_score ?? 0} color="bg-blue-500" />
+              </div>
             </div>
           </div>
 
@@ -531,5 +545,23 @@ export default function AiAnalysisPanel({
         </div>
       )}
     </section>
+  );
+}
+
+function ScoreRow({ label, score, color }: { label: string; score: number; color: string }) {
+  const percentage = Math.min(100, Math.max(0, score));
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-medium text-text-secondary">{label}</span>
+        <span className="font-mono text-xs font-bold text-primary">{percentage}%</span>
+      </div>
+      <div className="h-2 w-full rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden">
+        <div
+          className={`h-full rounded-full transition-all duration-500 ${color}`}
+          style={{ width: `${percentage}%` }}
+        />
+      </div>
+    </div>
   );
 }

@@ -19,6 +19,13 @@ type AnalysisInsert = {
   missing_skills: string[];
   recommendation: CandidateRecommendation;
   reasoning: string;
+  technical_score?: number;
+  education_score?: number;
+  experience_score?: number;
+  communication_score?: number;
+  culture_fit_score?: number;
+  confidence_score?: number;
+  resume_quality_score?: number;
 };
 
 /**

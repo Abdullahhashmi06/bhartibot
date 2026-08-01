@@ -28,7 +28,7 @@ import {
 import { getRecruiterInternships, getInternshipRequirements } from "@/lib/queries/internships";
 import { ensureCandidateAnalysis } from "@/lib/ai/analysis";
 import AiAnalysisPanel from "@/components/applications/AiAnalysisPanel";
-import { getAvatarUrl } from "@/lib/utils";
+import { getAvatarUrl, extractOriginalFilename } from "@/lib/utils";
 import Timeline from "@/components/applications/Timeline";
 import RecruiterNotes from "@/components/applications/RecruiterNotes";
 import PdfViewer from "@/components/applications/PdfViewer";
@@ -157,6 +157,10 @@ export default async function ApplicantDetailPage({
               <StatusSelect
                 applicationId={application.id}
                 initialStatus={application.status}
+                applicantEmail={application.email}
+                applicantName={application.applicant_name}
+                internshipTitle={internship.title}
+                internshipId={params.internshipId}
               />
             </div>
           </div>
@@ -237,6 +241,9 @@ export default async function ApplicantDetailPage({
               interview={interview}
               applicationId={application.id}
               recruiterId={user.id}
+              applicantName={application.applicant_name}
+              applicantEmail={application.email}
+              internshipTitle={internship.title}
             />
           </div>
         </div>
@@ -260,7 +267,7 @@ export default async function ApplicantDetailPage({
           </div>
 
           {application.cv_path && cvUrl ? (
-            <PdfViewer url={cvUrl} filename={application.cv_path.split("/").pop() || "Resume.pdf"} />
+            <PdfViewer url={cvUrl} filename={extractOriginalFilename(application.cv_path)} />
           ) : (
             <p className="text-xs text-text-muted italic">
               No CV uploaded — the applicant submitted without attaching a PDF.
@@ -311,6 +318,8 @@ export default async function ApplicantDetailPage({
           hasCv={Boolean(application.cv_path)}
           initialAnalysis={initialAnalysis}
           initialFailure={initialFailure}
+          applicantName={application.applicant_name}
+          internshipTitle={internship.title}
         />
       </div>
     </Shell>

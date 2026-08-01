@@ -12,6 +12,7 @@ import {
   RecruiterNote,
 } from "@/lib/queries/recruiter-notes";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 
 interface RecruiterNotesProps {
@@ -26,6 +27,7 @@ export default function RecruiterNotes({
   recruiterEmail,
 }: RecruiterNotesProps) {
   const supabase = createClient();
+  const router = useRouter();
   const [notes, setNotes] = useState<RecruiterNote[]>([]);
   const [loading, setLoading] = useState(true);
   const [newNote, setNewNote] = useState("");
@@ -59,6 +61,7 @@ export default function RecruiterNotes({
       setNotes([added, ...notes]);
       setNewNote("");
       toast.success("Note added successfully");
+      router.refresh();
     } else {
       toast.error("Failed to add note");
     }
@@ -77,6 +80,7 @@ export default function RecruiterNotes({
       );
       setEditingId(null);
       toast.success("Note updated");
+      router.refresh();
     }
   }
 
@@ -87,6 +91,7 @@ export default function RecruiterNotes({
     } else {
       setNotes((prev) => prev.filter((n) => n.id !== id));
       toast.success("Note deleted");
+      router.refresh();
     }
   }
 

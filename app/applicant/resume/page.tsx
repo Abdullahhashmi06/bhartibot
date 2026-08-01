@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import ResumeUploader from "@/components/applicant/ResumeUploader";
 import ResumeHealth from "@/components/applicant/ResumeHealth";
+import ResumeAnalyzer from "@/components/applicant/ResumeAnalyzer";
 import { getApplicantProfile, getApplicantSkills, getApplicantProjects, getApplicantExperience } from "@/lib/queries/applicant";
 
 export const dynamic = "force-dynamic";
@@ -27,6 +28,7 @@ export default async function ResumePage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
           <ResumeUploader currentCvPath={profile?.cv_path} userId={user.id} />
+          <ResumeAnalyzer hasCv={Boolean(profile?.cv_path)} />
         </div>
         
         <div className="space-y-8">
