@@ -207,7 +207,7 @@ export default function HomepageRecommendations({
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
             {top.slice(0, 3).map((job, idx) => (
               <OpportunityCard
                 key={job.id}
@@ -245,8 +245,8 @@ export default function HomepageRecommendations({
             </span>
           </div>
 
-          {/* Grid — 1 mobile → 2 tablet → 3 laptop → 4 desktop. Vertical only. */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-5">
+          {/* Grid — 1 mobile → 2 tablet/medium desktop → 3 desktop. Vertical only. */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
             {section.jobs.slice(0, 6).map((job, idx) => (
               <OpportunityCard
                 key={job.id}

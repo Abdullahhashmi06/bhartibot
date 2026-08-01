@@ -341,7 +341,7 @@ export default function InternshipExplorer({
               {filteredRecommended.length !== 1 ? "es" : ""}
             </span>
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
             <AnimatePresence mode="popLayout">
               {filteredRecommended.map((job, idx) => (
                 <OpportunityCard
@@ -377,7 +377,7 @@ export default function InternshipExplorer({
               {filteredOthers.length} more open roles
             </span>
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
             <AnimatePresence mode="popLayout">
               {filteredOthers.map((job, idx) => (
                 <OpportunityCard

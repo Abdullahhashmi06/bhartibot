@@ -175,7 +175,7 @@ export default function CircularGauge({
           normal flow, so it may be wider than the ring; centering keeps it
           balanced and it wraps naturally if extremely long. */}
       {label && !hideLabel && (
-        <span className="mt-1.5 font-mono text-[9px] font-semibold uppercase tracking-wider text-text-muted dark:text-slate-400 leading-snug text-center max-w-[10rem]">
+        <span className="mt-2 font-mono text-[10px] font-semibold uppercase tracking-wide text-text-muted dark:text-slate-400 leading-snug text-center max-w-[10rem]">
           {label}
         </span>
       )}
