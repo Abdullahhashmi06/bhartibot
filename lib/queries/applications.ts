@@ -13,6 +13,24 @@ export async function createApplication(
   supabase: SupabaseClient,
   input: NewApplicationInput
 ): Promise<{ application: Application | null; error: string | null }> {
+  // ── Duplicate guard ────────────────────────────────────────────────────────
+  // Prevent the same email from submitting more than once per internship.
+  const { data: existingApp } = await supabase
+    .from("applications")
+    .select("id")
+    .eq("internship_id", input.internship_id)
+    .eq("email", input.email.toLowerCase().trim())
+    .limit(1)
+    .maybeSingle();
+
+  if (existingApp) {
+    return {
+      application: null,
+      error: "You have already applied for this internship. Only one application per email is allowed.",
+    };
+  }
+  // ──────────────────────────────────────────────────────────────────────────
+
   const applicationId = crypto.randomUUID();
 
   const { error: applicationError } = await supabase
@@ -170,13 +188,28 @@ export async function getApplicationsCountByInternship(
   return count ?? 0;
 }
 
-/** Aggregate stats for all applications across the recruiter's internships. */
+/** Aggregate stats for all applications across the recruiter's internships.
+ * @param internshipIds - Optional array of internship IDs to scope the query.
+ *   If provided, only applications for those internships are counted.
+ *   If empty, returns zeroed stats immediately (no DB query needed).
+ */
 export async function getOrgApplicationStats(
-  supabase: SupabaseClient
+  supabase: SupabaseClient,
+  internshipIds?: string[]
 ): Promise<{ total: number; new: number; shortlisted: number; rejected: number }> {
-  const { data, error } = await supabase
-    .from("applications")
-    .select("status");
+  // If explicitly passed an empty array, there's nothing to count
+  if (internshipIds !== undefined && internshipIds.length === 0) {
+    return { total: 0, new: 0, shortlisted: 0, rejected: 0 };
+  }
+
+  let query = supabase.from("applications").select("status");
+
+  // Scope to recruiter's internships when IDs are provided
+  if (internshipIds && internshipIds.length > 0) {
+    query = query.in("internship_id", internshipIds);
+  }
+
+  const { data, error } = await query;
 
   if (error || !data) return { total: 0, new: 0, shortlisted: 0, rejected: 0 };
 
@@ -186,6 +219,27 @@ export async function getOrgApplicationStats(
   const rejected = data.filter((a) => a.status === "rejected").length;
 
   return { total, new: newCount, shortlisted, rejected };
+}
+
+/** Check if an application already exists for the given email + internship combo. */
+export async function checkDuplicateApplication(
+  supabase: SupabaseClient,
+  internshipId: string,
+  email: string
+): Promise<boolean> {
+  const { data, error } = await supabase
+    .from("applications")
+    .select("id")
+    .eq("internship_id", internshipId)
+    .eq("email", email.toLowerCase().trim())
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    console.error("checkDuplicateApplication error:", error.message);
+    return false; // err on the side of allowing submission
+  }
+  return data !== null;
 }
 
 /** Bulk update statuses for multiple applications. */
@@ -228,9 +282,27 @@ export async function getApplicationsWithScores(
     .eq("internship_id", internshipId)
     .order("created_at", { ascending: false });
 
+  // If the AI-analysis join fails (e.g. candidate_ai_analysis table missing
+  // because a migration wasn't applied), NEVER hide applications from the
+  // recruiter — fall back to a plain query and leave match_score null.
   if (error) {
-    console.error("getApplicationsWithScores failed:", error.message);
-    return [];
+    console.warn(
+      "[getApplicationsWithScores] Join failed, falling back:",
+      error.message
+    );
+    const { data: plain, error: plainError } = await supabase
+      .from("applications")
+      .select("*")
+      .eq("internship_id", internshipId)
+      .order("created_at", { ascending: false });
+    if (plainError) {
+      console.error(
+        "[getApplicationsWithScores] Plain fallback failed:",
+        plainError.message
+      );
+      return [];
+    }
+    return (plain ?? []).map((row) => ({ ...row, match_score: null }));
   }
 
   return (data ?? []).map((row: Application & { candidate_ai_analysis: { match_score: number }[] | null }) => ({

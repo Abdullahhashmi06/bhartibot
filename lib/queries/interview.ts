@@ -36,7 +36,7 @@ export async function getInterview(
     .eq("application_id", applicationId)
     .order("created_at", { ascending: false })
     .limit(1)
-    .single();
+    .maybeSingle();
 
   if (error || !data) return null;
   return data as Interview;

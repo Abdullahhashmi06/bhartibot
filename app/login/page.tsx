@@ -30,6 +30,7 @@ function LoginForm() {
   const [status, setStatus] = useState<"idle" | "loading">("idle");
   const [error, setError] = useState<string | null>(null);
   const [showHelp, setShowHelp] = useState(false);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
 
   async function sendLoginOtp(targetEmail: string): Promise<string | null> {
     const { error: otpError } = await supabase.auth.signInWithOtp({
@@ -103,6 +104,29 @@ function LoginForm() {
     }
   }
 
+  async function handleForgotPassword(e: FormEvent) {
+    e.preventDefault();
+    setError(null);
+    const trimmed = email.trim();
+    if (!trimmed) {
+      setError("Enter your email address to reset your password.");
+      return;
+    }
+
+    setStatus("loading");
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(trimmed, {
+      redirectTo: `${window.location.origin}/auth/reset-password`,
+    });
+    setStatus("idle");
+
+    if (resetError) {
+      setError(resetError.message);
+    } else {
+      setError("Password reset link sent! Check your email.");
+      // Optional: you could use a success state or toast here if available.
+    }
+  }
+
   return (
     <Shell>
       <div className="mx-auto flex min-h-[calc(100vh-160px)] items-center justify-center py-12 px-4 sm:px-6">
@@ -126,17 +150,23 @@ function LoginForm() {
           <div className="p-6 sm:p-8 space-y-6">
             <div>
               <h2 className="font-display text-xl font-bold text-primary">
-                {step === "email" ? "Recruiter Sign In" : "Verify Authentication Code"}
+                {isForgotPassword 
+                  ? "Reset Password" 
+                  : step === "email" 
+                    ? "Recruiter Sign In" 
+                    : "Verify Authentication Code"}
               </h2>
               <p className="mt-1 text-xs sm:text-sm text-text-secondary">
-                {step === "email"
-                  ? "Enter your work email to receive a secure one-time passcode."
-                  : "We sent a 6-digit passcode to your email inbox."}
+                {isForgotPassword
+                  ? "Enter your email to receive a password reset link."
+                  : step === "email"
+                    ? "Enter your work email to receive a secure one-time passcode."
+                    : "We sent a 6-digit passcode to your email inbox."}
               </p>
             </div>
 
             {/* GOOGLE SIGN-IN PLACEHOLDER BUTTON */}
-            {step === "email" && (
+            {step === "email" && !isForgotPassword && (
               <div className="space-y-4">
                 <button
                   type="button"
@@ -173,7 +203,48 @@ function LoginForm() {
               </div>
             )}
 
-            {step === "email" ? (
+            {isForgotPassword ? (
+              <form onSubmit={handleForgotPassword} className="space-y-4">
+                {error && <FormNotice tone={error.includes("sent") ? "success" : "error"}>{error}</FormNotice>}
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-text-primary flex items-center justify-between">
+                    <span>Work Email Address</span>
+                    <Mail className="h-3.5 w-3.5 text-text-muted" />
+                  </label>
+                  <input
+                    type="email"
+                    placeholder="recruiter@organization.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="w-full rounded-xl border border-border bg-slate-50/50 px-3.5 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-teal focus:bg-white focus:outline-none transition-all"
+                  />
+                </div>
+
+                <Button
+                  type="submit"
+                  variant="gradient"
+                  className="w-full py-3"
+                  isLoading={status === "loading"}
+                >
+                  Send Reset Link
+                </Button>
+                
+                <div className="text-center mt-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsForgotPassword(false);
+                      setError(null);
+                    }}
+                    className="text-xs text-text-secondary hover:text-primary transition-colors inline-flex items-center gap-1.5 font-medium"
+                  >
+                    <ArrowLeft className="h-3.5 w-3.5" /> Back to sign in
+                  </button>
+                </div>
+              </form>
+            ) : step === "email" ? (
               <form onSubmit={handleSendCode} className="space-y-4">
                 {error && <FormNotice tone="error">{error}</FormNotice>}
 
@@ -200,6 +271,19 @@ function LoginForm() {
                 >
                   Send One-Time Passcode
                 </Button>
+
+                <div className="text-center pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsForgotPassword(true);
+                      setError(null);
+                    }}
+                    className="text-xs text-teal font-medium hover:underline"
+                  >
+                    Forgot your password?
+                  </button>
+                </div>
               </form>
             ) : (
               <div className="space-y-4">

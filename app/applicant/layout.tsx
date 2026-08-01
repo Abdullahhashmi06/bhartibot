@@ -64,7 +64,7 @@ export default async function ApplicantLayout({
       return (
         <div className="min-h-screen bg-background dark:bg-slate-950 flex">
           <ApplicantSidebar userEmail={user.email} userName={user.user_metadata?.full_name as string || "Applicant"} />
-          <main className="flex-1 lg:pl-64 overflow-x-hidden p-6 lg:p-8">
+          <main className="flex-1 lg:pl-64 overflow-y-auto overflow-x-hidden p-6 lg:p-8">
             <div className="max-w-7xl mx-auto">
               <div className="rounded-3xl border border-border bg-white dark:bg-slate-800 p-8 text-center shadow-card">
                 <h2 className="text-xl font-display font-bold text-primary dark:text-white mb-2">
@@ -87,7 +87,7 @@ export default async function ApplicantLayout({
     return (
       <div className="min-h-screen bg-background dark:bg-slate-950 flex">
         <ApplicantSidebar userEmail={user.email} userName={newProfile.full_name} />
-        <main className="flex-1 lg:pl-64 overflow-x-hidden p-6 lg:p-8">
+        <main className="flex-1 lg:pl-64 overflow-y-auto overflow-x-hidden p-6 lg:p-8">
           <div className="max-w-7xl mx-auto">{children}</div>
         </main>
       </div>
@@ -110,7 +110,7 @@ export default async function ApplicantLayout({
   return (
     <div className="min-h-screen bg-background dark:bg-slate-950 flex">
       <ApplicantSidebar userEmail={user.email} userName={profile.full_name} />
-      <main className="flex-1 lg:pl-64 overflow-x-hidden p-6 lg:p-8">
+      <main className="flex-1 lg:pl-64 overflow-y-auto overflow-x-hidden p-6 lg:p-8">
         <div className="max-w-7xl mx-auto">{children}</div>
       </main>
     </div>

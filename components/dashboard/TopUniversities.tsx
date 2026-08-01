@@ -1,7 +1,6 @@
 "use client";
 
-import { getAvatarUrl } from "@/lib/utils";
-import Image from "next/image";
+
 import AnimatedCounter from "./AnimatedCounter";
 
 interface TopUniversitiesProps {
@@ -35,13 +34,11 @@ export default function TopUniversities({ universities }: TopUniversitiesProps) 
 
       <div className="space-y-4 pt-2">
         {displayData.map((uni, idx) => (
-          <div key={idx} className="flex items-center gap-4">
+          <div key={idx} className="flex items-center gap-3">
             <div className="font-mono text-xs font-bold text-text-muted w-4 text-center">
               {idx + 1}
             </div>
-            <div className="relative h-8 w-8 rounded-full overflow-hidden shrink-0 border border-slate-200">
-              <Image src={getAvatarUrl(uni.university)} alt={uni.university} fill className="object-cover" />
-            </div>
+
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between mb-1">
                 <span className="font-medium text-sm text-primary truncate pr-2">

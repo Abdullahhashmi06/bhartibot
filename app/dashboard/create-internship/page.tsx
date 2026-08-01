@@ -2,7 +2,7 @@
 
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, CheckCircle2, Plus, Sparkles, Trash2, ListChecks, HelpCircle, Briefcase, Lightbulb } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, Plus, Sparkles, Trash2, ListChecks, HelpCircle, Briefcase, Lightbulb, Github, Linkedin } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Shell from "@/components/layout/Shell";
 import { Button } from "@/components/ui/Button";
@@ -55,6 +55,8 @@ export default function CreateInternshipPage() {
   const [status, setStatus] = useState<"idle" | "loading">("idle");
   const [error, setError] = useState<string | null>(null);
   const [showTips, setShowTips] = useState(false);
+  const [githubRequired, setGithubRequired] = useState(false);
+  const [linkedinRequired, setLinkedinRequired] = useState(false);
 
   function validateStep1() {
     if (!title.trim() || !location.trim() || !duration.trim()) {
@@ -114,6 +116,8 @@ export default function CreateInternshipPage() {
       internship_type: internshipType,
       requirements,
       questions,
+      github_required: githubRequired,
+      linkedin_required: linkedinRequired,
     });
 
     setStatus("idle");
@@ -349,6 +353,48 @@ export default function CreateInternshipPage() {
                       existingDescription={description}
                       onAcceptDescription={(desc) => setDescription(desc)}
                     />
+                  </div>
+
+                  {/* GitHub & LinkedIn Required Toggles */}
+                  <div className="border-t border-border pt-4 space-y-3">
+                    <p className="text-xs font-bold text-text-primary uppercase tracking-wider font-mono">Required Profile Links from Applicants</p>
+                    <p className="text-xs text-text-secondary">If marked compulsory, applicants must provide the link or enter <span className="font-mono font-bold text-teal-dark">N/A</span> if they don&apos;t have one.</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setGithubRequired(!githubRequired)}
+                        className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-semibold transition-all ${
+                          githubRequired
+                            ? "border-teal bg-teal-light text-teal-dark shadow-subtle"
+                            : "border-border bg-slate-50 text-text-secondary hover:border-slate-300"
+                        }`}
+                      >
+                        <Github className="h-4 w-4 shrink-0" />
+                        <span className="flex-1 text-left">GitHub Link</span>
+                        <span className={`text-xs font-mono px-2 py-0.5 rounded-full ${
+                          githubRequired ? "bg-teal/20 text-teal-dark" : "bg-slate-200 text-text-muted"
+                        }`}>
+                          {githubRequired ? "Compulsory" : "Optional"}
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setLinkedinRequired(!linkedinRequired)}
+                        className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-semibold transition-all ${
+                          linkedinRequired
+                            ? "border-purple-ai bg-purple-light text-purple-ai shadow-subtle"
+                            : "border-border bg-slate-50 text-text-secondary hover:border-slate-300"
+                        }`}
+                      >
+                        <Linkedin className="h-4 w-4 shrink-0" />
+                        <span className="flex-1 text-left">LinkedIn Link</span>
+                        <span className={`text-xs font-mono px-2 py-0.5 rounded-full ${
+                          linkedinRequired ? "bg-purple-ai/20 text-purple-ai" : "bg-slate-200 text-text-muted"
+                        }`}>
+                          {linkedinRequired ? "Compulsory" : "Optional"}
+                        </span>
+                      </button>
+                    </div>
                   </div>
                 </div>
 

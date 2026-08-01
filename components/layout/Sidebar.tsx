@@ -80,12 +80,21 @@ export default function Sidebar({
       {/* Mobile Top Header */}
       <header className="lg:hidden sticky top-0 z-40 flex items-center justify-between border-b border-border dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 px-4 py-3 backdrop-blur shadow-subtle">
         <Link href="/dashboard" className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-primary text-white shadow-teal">
-            <Sparkles className="h-4 w-4" />
-          </div>
-          <div>
-            <span className="font-display text-lg font-bold tracking-tight text-primary dark:text-white">
-              InternIQ
+          <div className="flex items-center gap-2">
+            <div className="relative flex items-center justify-center h-8 w-8 rounded-xl bg-gradient-to-br from-teal to-emerald shadow-teal/20 shadow-lg">
+              <svg viewBox="0 0 24 24" className="h-4 w-4 text-white" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="5" r="3" />
+                <path d="M12 8v8" />
+                <path d="M8 20l4-4 4 4" />
+              </svg>
+              <div className="absolute -top-1 -right-1 h-2 w-2">
+                <svg viewBox="0 0 12 12" className="h-full w-full text-teal" fill="currentColor">
+                  <path d="M6 0l1.5 4.5L12 6l-4.5 1.5L6 12l-1.5-4.5L0 6l4.5-1.5z" />
+                </svg>
+              </div>
+            </div>
+            <span className="font-display font-bold text-lg tracking-tight text-primary dark:text-white">
+              Intern<span className="text-gradient">IQ</span>
             </span>
           </div>
         </Link>
@@ -128,13 +137,22 @@ export default function Sidebar({
         {/* Brand Header */}
         <div className="flex items-center justify-between px-6 py-6 border-b border-white/10 dark:border-slate-800">
           <Link href="/dashboard" className="flex items-center gap-3 overflow-hidden">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-primary text-white shadow-teal shrink-0">
-              <Sparkles className="h-5 w-5" />
+            <div className="relative flex items-center justify-center h-9 w-9 rounded-xl bg-gradient-to-br from-teal to-emerald shadow-teal/20 shadow-lg shrink-0">
+              <svg viewBox="0 0 24 24" className="h-5 w-5 text-white" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="5" r="3" />
+                <path d="M12 8v8" />
+                <path d="M8 20l4-4 4 4" />
+              </svg>
+              <div className="absolute -top-1 -right-1 h-2.5 w-2.5">
+                <svg viewBox="0 0 12 12" className="h-full w-full text-teal" fill="currentColor">
+                  <path d="M6 0l1.5 4.5L12 6l-4.5 1.5L6 12l-1.5-4.5L0 6l4.5-1.5z" />
+                </svg>
+              </div>
             </div>
             {!collapsed && (
               <div className="flex flex-col">
                 <span className="font-display text-xl font-extrabold tracking-tight text-white">
-                  InternIQ
+                  Intern<span className="text-gradient">IQ</span>
                 </span>
                 <span className="font-mono text-[9px] uppercase tracking-wider text-teal">
                   Discover & Impact

@@ -22,19 +22,28 @@ interface RadarChartProps {
 }
 
 export function RadarChartWidget({
-  data = [
-    { subject: "Technical", score: 85 },
-    { subject: "Projects", score: 90 },
-    { subject: "Experience", score: 70 },
-    { subject: "Education", score: 80 },
-    { subject: "Communication", score: 75 },
-    { subject: "Domain Fit", score: 88 },
-  ],
+  data,
 }: RadarChartProps) {
+  // Use provided data or show empty state
+  const chartData = data && data.length > 0 ? data : [
+    { subject: "Technical", score: 0 },
+    { subject: "Education", score: 0 },
+    { subject: "Experience", score: 0 },
+    { subject: "Communication", score: 0 },
+    { subject: "Culture Fit", score: 0 },
+  ];
+
+  const hasData = data && data.length > 0 && data.some(d => d.score > 0);
+
   return (
-    <div className="h-64 w-full">
+    <div className="h-64 w-full relative">
+      {!hasData && (
+        <div className="absolute inset-0 flex items-center justify-center z-10">
+          <p className="text-xs text-text-muted">No AI scores available</p>
+        </div>
+      )}
       <ResponsiveContainer width="100%" height="100%">
-        <RadarChart cx="50%" cy="50%" outerRadius="75%" data={data}>
+        <RadarChart cx="50%" cy="50%" outerRadius="75%" data={chartData}>
           <PolarGrid stroke="#CBD5E1" strokeDasharray="3 3" />
           <PolarAngleAxis
             dataKey="subject"
@@ -46,7 +55,7 @@ export function RadarChartWidget({
             dataKey="score"
             stroke="#17C6B5"
             fill="#17C6B5"
-            fillOpacity={0.4}
+            fillOpacity={hasData ? 0.4 : 0.1}
           />
         </RadarChart>
       </ResponsiveContainer>

@@ -15,22 +15,45 @@ export async function getCurrentOrganizationId(
     .from("profiles")
     .select("organization_id")
     .eq("id", user.id)
-    .single();
+    .maybeSingle();
 
-  if (error || !data) return null;
+  if (error || !data) {
+    console.warn(
+      "[getCurrentOrganizationId] Could not resolve org for user:",
+      error?.message ?? "no profile row"
+    );
+    return null;
+  }
   return data.organization_id as string;
 }
 
-/** Fetch one internship by its public slug (used on the detail page). */
+/**
+ * Fetch one internship by its public slug — scoped to the current recruiter's
+ * organization so a recruiter can never view/edit another org's internship.
+ * (The public apply page uses getPublishedInternshipBySlug instead.)
+ */
 export async function getInternshipBySlug(
   supabase: SupabaseClient,
   slug: string
 ): Promise<Internship | null> {
-  const { data, error } = await supabase
+  const organizationId = await getCurrentOrganizationId(supabase);
+
+  let query = supabase
     .from("internships")
     .select("*")
-    .eq("public_slug", slug)
-    .single();
+    .eq("public_slug", slug);
+
+  // Defense-in-depth: prefer the org filter. If the org can't be resolved
+  // (e.g. profile row missing before the backfill migration runs), fall back
+  // to an RLS-enforced query so pages never 404 for the owner. The RLS policy
+  // internships_select_own_org restricts reads to the caller's own org.
+  if (organizationId) {
+    query = query.eq("organization_id", organizationId);
+  } else {
+    console.warn("[getInternshipBySlug] Org unresolved — relying on RLS.");
+  }
+
+  const { data, error } = await query.single();
 
   if (error || !data) return null;
   return data as Internship;
@@ -52,15 +75,33 @@ export async function getPublishedInternshipBySlug(
   return data as Internship;
 }
 
-/** All internships belonging to the current recruiter's organization. */
+/**
+ * All internships belonging to the current recruiter's organization.
+ *
+ * IMPORTANT: scoped by organization_id. Without this, a recruiter would see
+ * (and be able to edit) every internship in the database — a data-isolation
+ * violation. RLS policies double-check the same rule server-side.
+ */
 export async function getRecruiterInternships(
   supabase: SupabaseClient,
   status?: string
 ): Promise<Internship[]> {
+  const organizationId = await getCurrentOrganizationId(supabase);
+
   let query = supabase
     .from("internships")
     .select("*")
     .order("created_at", { ascending: false });
+
+  // Defense-in-depth: prefer the org filter. If the org can't be resolved
+  // (e.g. profile row missing before the backfill migration runs), fall back
+  // to an RLS-enforced query so the dashboard never goes empty. RLS policies
+  // (internships_select_own_org) restrict reads to the caller's own org.
+  if (organizationId) {
+    query = query.eq("organization_id", organizationId);
+  } else {
+    console.warn("[getRecruiterInternships] Org unresolved — relying on RLS.");
+  }
 
   if (status) {
     query = query.eq("status", status);
@@ -73,6 +114,27 @@ export async function getRecruiterInternships(
     return [];
   }
   return (data as Internship[]) ?? [];
+}
+
+/**
+ * True when the logged-in recruiter's organization owns the given internship.
+ * Used as a code-level guard on every mutation (defense in depth over RLS).
+ */
+export async function canAccessInternship(
+  supabase: SupabaseClient,
+  internshipId: string
+): Promise<boolean> {
+  const organizationId = await getCurrentOrganizationId(supabase);
+  if (!organizationId) return false;
+
+  const { data, error } = await supabase
+    .from("internships")
+    .select("organization_id")
+    .eq("id", internshipId)
+    .single();
+
+  if (error || !data) return false;
+  return data.organization_id === organizationId;
 }
 
 /** Required + preferred requirement rows for one internship. */
@@ -121,6 +183,8 @@ export async function createInternship(
       internship_type: input.internship_type || "full_time",
       status: "draft",
       public_slug: slugify(input.title),
+      github_required: input.github_required ?? false,
+      linkedin_required: input.linkedin_required ?? false,
     })
     .select()
     .single();
@@ -181,6 +245,10 @@ export async function publishInternship(
   internshipId: string,
   fallbackTitle: string
 ): Promise<{ internship: Internship | null; error: string | null }> {
+  if (!(await canAccessInternship(supabase, internshipId))) {
+    return { internship: null, error: "You do not have permission to modify this internship." };
+  }
+
   const { data: existing, error: fetchError } = await supabase
     .from("internships")
     .select("*")
@@ -223,6 +291,10 @@ export async function unpublishInternship(
   supabase: SupabaseClient,
   internshipId: string
 ): Promise<{ internship: Internship | null; error: string | null }> {
+  if (!(await canAccessInternship(supabase, internshipId))) {
+    return { internship: null, error: "You do not have permission to modify this internship." };
+  }
+
   const { data, error } = await supabase
     .from("internships")
     .update({ status: "draft" })
@@ -240,7 +312,7 @@ export async function unpublishInternship(
   return { internship: data as Internship, error: null };
 }
 
-/** Update editable fields on an existing internship (title, description, requirements). */
+/** Update editable fields on an existing internship (title, description, requirements, stipend, deadline, internship_type, profile-link requirements). */
 export async function updateInternship(
   supabase: SupabaseClient,
   internshipId: string,
@@ -251,9 +323,15 @@ export async function updateInternship(
     stipend?: string | null;
     deadline?: string | null;
     internship_type?: string | null;
+    github_required?: boolean;
+    linkedin_required?: boolean;
   }
 ): Promise<{ internship: Internship | null; error: string | null }> {
-  const updates: Record<string, string | null> = {};
+  if (!(await canAccessInternship(supabase, internshipId))) {
+    return { internship: null, error: "You do not have permission to modify this internship." };
+  }
+
+  const updates: Record<string, string | boolean | null> = {};
   if (patch.title !== undefined) {
     updates.title = patch.title;
     updates.public_slug = slugify(patch.title);
@@ -262,6 +340,8 @@ export async function updateInternship(
   if (patch.stipend !== undefined) updates.stipend = patch.stipend ?? "";
   if (patch.deadline !== undefined) updates.deadline = patch.deadline ?? null;
   if (patch.internship_type !== undefined) updates.internship_type = patch.internship_type ?? "full_time";
+  if (patch.github_required !== undefined) updates.github_required = patch.github_required;
+  if (patch.linkedin_required !== undefined) updates.linkedin_required = patch.linkedin_required;
 
   if (Object.keys(updates).length > 0) {
     const { error } = await supabase
@@ -302,6 +382,10 @@ export async function duplicateInternship(
   supabase: SupabaseClient,
   internshipId: string
 ): Promise<{ internship: Internship | null; error: string | null }> {
+  if (!(await canAccessInternship(supabase, internshipId))) {
+    return { internship: null, error: "You do not have permission to duplicate this internship." };
+  }
+
   const { data: original, error: fetchError } = await supabase
     .from("internships")
     .select("*")
@@ -360,6 +444,10 @@ export async function archiveInternship(
   supabase: SupabaseClient,
   internshipId: string
 ): Promise<{ internship: Internship | null; error: string | null }> {
+  if (!(await canAccessInternship(supabase, internshipId))) {
+    return { internship: null, error: "You do not have permission to modify this internship." };
+  }
+
   const { data, error } = await supabase
     .from("internships")
     .update({ status: "archived" })
@@ -377,6 +465,10 @@ export async function restoreInternship(
   supabase: SupabaseClient,
   internshipId: string
 ): Promise<{ internship: Internship | null; error: string | null }> {
+  if (!(await canAccessInternship(supabase, internshipId))) {
+    return { internship: null, error: "You do not have permission to modify this internship." };
+  }
+
   const { data, error } = await supabase
     .from("internships")
     .update({ status: "draft" })

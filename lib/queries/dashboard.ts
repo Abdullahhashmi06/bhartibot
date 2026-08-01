@@ -11,8 +11,32 @@ export async function getDashboardAnalytics(supabase: SupabaseClient): Promise<{
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
 
-  const { data: profile } = await supabase.from("profiles").select("organization_id").eq("id", user.id).single();
-  if (!profile) throw new Error("Profile not found");
+  const { data: profile } = await supabase.from("profiles").select("organization_id").eq("id", user.id).maybeSingle();
+  // If the profile row is missing (e.g. migration not applied / pre-backfill
+  // account), never crash the dashboard — return empty stats instead.
+  if (!profile) {
+    console.warn("[getDashboardAnalytics] No profile row for user — returning empty stats.");
+    return {
+      stats: {
+        totalInternships: 0,
+        activeInternships: 0,
+        archivedInternships: 0,
+        totalApplications: 0,
+        newApplications: 0,
+        underReviewApplications: 0,
+        shortlistedApplications: 0,
+        rejectedApplications: 0,
+        scheduledInterviews: 0,
+        averageAiScore: 0,
+        weeklyApplicationTrend: null,
+        aiScoresByInternship: {},
+        scoreDistribution: { excellent: 0, good: 0, average: 0, weak: 0 },
+      },
+      recentActivity: [],
+      topUniversities: [],
+      topSkills: [],
+    };
+  }
 
   const orgId = profile.organization_id;
 
@@ -56,6 +80,17 @@ export async function getDashboardAnalytics(supabase: SupabaseClient): Promise<{
       .select("*")
       .in("internship_id", internshipIds);
     if (reqs) requirements = reqs as Requirement[];
+  }
+
+  // 4.5 Get actual interviews for these apps
+  let scheduledInterviews = 0;
+  if (appIds.length > 0) {
+    const { count } = await supabase
+      .from("interviews")
+      .select("*", { count: "exact", head: true })
+      .in("application_id", appIds)
+      .in("status", ["scheduled", "completed", "offer_sent"]);
+    if (count) scheduledInterviews = count;
   }
 
   // Calculate Stats
@@ -106,6 +141,7 @@ export async function getDashboardAnalytics(supabase: SupabaseClient): Promise<{
     underReviewApplications: applications.filter(a => a.status === "under_review").length,
     shortlistedApplications: applications.filter(a => a.status === "shortlisted").length,
     rejectedApplications: applications.filter(a => a.status === "rejected").length,
+    scheduledInterviews,
     averageAiScore: avgAiScore,
     weeklyApplicationTrend,
     aiScoresByInternship,

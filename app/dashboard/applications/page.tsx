@@ -24,11 +24,11 @@ export default async function ApplicationsDashboardPage() {
 
   const fullName = (user.user_metadata?.full_name as string) || null;
   const internships = await getRecruiterInternships(supabase);
-  const stats = await getOrgApplicationStats(supabase);
-
-  const counts = await Promise.all(
-    internships.map((i) => getApplicationsCountByInternship(supabase, i.id))
-  );
+  const internshipIds = internships.map((i) => i.id);
+  const [stats, counts] = await Promise.all([
+    getOrgApplicationStats(supabase, internshipIds),
+    Promise.all(internships.map((i) => getApplicationsCountByInternship(supabase, i.id))),
+  ]);
 
   const internshipsWithCounts = internships.map((internship, idx) => ({
     ...internship,

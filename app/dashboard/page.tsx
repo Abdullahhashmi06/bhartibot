@@ -43,23 +43,20 @@ export default async function DashboardPage() {
   return (
     <Shell userEmail={user.email} userName={fullName || orgName || undefined}>
       {/* Header Banner */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 border-b border-border pb-8">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-border pb-6">
         <div>
           <div className="flex items-center gap-2">
             <Tag tone="teal">Recruiter Workspace</Tag>
-            <span className="font-mono text-xs text-text-muted">
-              Press <kbd className="px-1.5 py-0.5 rounded border border-border bg-slate-100 font-mono text-[10px] text-text-secondary">Ctrl+K</kbd> for quick actions
-            </span>
           </div>
-          <h1 className="mt-3 font-display font-extrabold text-3xl sm:text-4xl tracking-tight text-primary">
+          <h1 className="mt-2 font-display font-extrabold text-2xl sm:text-3xl tracking-tight text-primary">
             Welcome back{fullName ? `, ${fullName}` : ""}
           </h1>
-          <p className="mt-1 text-sm text-text-secondary">
+          <p className="mt-0.5 text-sm text-text-secondary">
             {orgName || user.email} · Managing {stats.activeInternships} active internship recruitment drives.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           <ButtonLink
             href="/dashboard/applications"
             variant="secondary"
@@ -77,7 +74,7 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      <div className="mt-8">
+      <div className="mt-4">
         <DashboardClient 
           stats={stats}
           internships={internshipsWithData}

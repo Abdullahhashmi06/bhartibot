@@ -24,6 +24,11 @@ interface InterviewStatusProps {
   interview?: Interview | null;
   applicationId: string;
   recruiterId: string;
+  /** Pre-fetched applicant details to avoid DB queries when sending email */
+  applicantName?: string;
+  applicantEmail?: string;
+  internshipTitle?: string;
+  organizationName?: string;
 }
 
 export const INTERVIEW_STATUS_CONFIG: Record<
@@ -77,6 +82,10 @@ export default function InterviewStatusComponent({
   interview,
   applicationId,
   recruiterId,
+  applicantName,
+  applicantEmail,
+  internshipTitle,
+  organizationName,
 }: InterviewStatusProps) {
   const router = useRouter();
 
@@ -238,6 +247,10 @@ export default function InterviewStatusComponent({
         applicationId={applicationId}
         recruiterId={recruiterId}
         onScheduled={handleUpdate}
+        applicantName={applicantName}
+        applicantEmail={applicantEmail}
+        internshipTitle={internshipTitle}
+        organizationName={organizationName}
       />
 
       <InterviewFeedback

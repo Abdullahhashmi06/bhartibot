@@ -3,11 +3,12 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/Button";
-import { GraduationCap, Edit2, Check, X } from "lucide-react";
+import { GraduationCap, Edit2, Check, X, AlertTriangle } from "lucide-react";
+import { isValidCgpa } from "@/lib/utils";
 
 export default function EducationEditor({ profile }: { profile: any }) {
   const [isEditing, setIsEditing] = useState(false);
+  const [cgpaError, setCgpaError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     university: profile?.university || "",
     degree: profile?.degree || "",
@@ -16,14 +17,33 @@ export default function EducationEditor({ profile }: { profile: any }) {
   });
   const supabase = createClient();
 
+  function handleCgpaChange(value: string) {
+    setFormData((prev) => ({ ...prev, cgpa: value }));
+    if (value.trim() === "") {
+      setCgpaError(null);
+    } else if (!isValidCgpa(value)) {
+      setCgpaError("Enter CGPA from 0–4, or N/A if not applicable.");
+    } else {
+      setCgpaError(null);
+    }
+  }
+
   const handleSave = async () => {
+    if (cgpaError) {
+      toast.error(cgpaError);
+      return;
+    }
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
       
-      const { error } = await supabase.from("applicant_profiles").update(formData).eq("id", user.id);
+      const { error } = await supabase.from("applicant_profiles").update({
+        ...formData,
+        cgpa: formData.cgpa.trim().toUpperCase() === "N/A" ? "N/A" : formData.cgpa.trim(),
+      }).eq("id", user.id);
       if (error) throw error;
       toast.success("Education updated!");
+      setCgpaError(null);
       setIsEditing(false);
     } catch (e: any) {
       toast.error(e.message || "Failed to update");
@@ -64,11 +84,25 @@ export default function EducationEditor({ profile }: { profile: any }) {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-xs font-medium text-text-secondary">Current Semester/Year</label>
-              <input type="text" value={formData.semester} onChange={e => setFormData({...formData, semester: e.target.value})} className="w-full mt-1 p-2 border border-border rounded-lg text-sm" placeholder="e.g. 6th Semester" />
+              <input type="text" value={formData.semester} onChange={e => setFormData({...formData, semester: e.target.value})} className="w-full mt-1 p-2 border border-border rounded-lg text-sm" placeholder="e.g. 6th Semester or N/A" />
+              <p className="text-[10px] text-text-muted mt-1">Enter N/A if not applicable.</p>
             </div>
             <div>
               <label className="text-xs font-medium text-text-secondary">CGPA</label>
-              <input type="text" value={formData.cgpa} onChange={e => setFormData({...formData, cgpa: e.target.value})} className="w-full mt-1 p-2 border border-border rounded-lg text-sm" placeholder="e.g. 3.8/4.0" />
+              <input
+                type="text"
+                value={formData.cgpa}
+                onChange={e => handleCgpaChange(e.target.value)}
+                className={`w-full mt-1 p-2 border rounded-lg text-sm ${cgpaError ? "border-danger" : "border-border"}`}
+                placeholder="3.8 or N/A"
+              />
+              {cgpaError ? (
+                <p className="flex items-center gap-1 text-[10px] text-danger font-medium mt-1">
+                  <AlertTriangle className="h-3 w-3 shrink-0" /> {cgpaError}
+                </p>
+              ) : (
+                <p className="text-[10px] text-text-muted mt-1">Enter CGPA from 0–4, or N/A.</p>
+              )}
             </div>
           </div>
         </div>

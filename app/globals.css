@@ -16,6 +16,229 @@
     --foreground: 210 40% 98%;
   }
 
+  .dark body {
+    background-color: #0F1729;
+    color: #E2E8F0;
+  }
+
+  /* Better card backgrounds in dark mode */
+  .dark .bg-white {
+    background-color: #1A2438;
+  }
+
+  .dark .bg-background {
+    background-color: #0F1729;
+  }
+
+  .dark .bg-slate-50,
+  .dark .bg-slate-50\/50,
+  .dark .bg-slate-50\/80 {
+    background-color: #1E293B;
+  }
+
+  .dark .bg-slate-100 {
+    background-color: #1E293B;
+  }
+
+  .dark .bg-slate-200 {
+    background-color: #334155;
+  }
+
+  .dark .bg-slate-300 {
+    background-color: #475569;
+  }
+
+  .dark .bg-slate-400 {
+    background-color: #64748B;
+  }
+
+  .dark .bg-slate-700\/50 {
+    background-color: rgba(51, 65, 85, 0.5);
+  }
+
+  /* Better borders in dark mode */
+  .dark .border-border {
+    border-color: #2D3A4F;
+  }
+
+  .dark .border-slate-200 {
+    border-color: #2D3A4F;
+  }
+
+  .dark .border-slate-100 {
+    border-color: #2D3A4F;
+  }
+
+  .dark .border-slate-300 {
+    border-color: #3E4C63;
+  }
+
+  /* Soft tinted panels (amber/blue/emerald tips) — darken instead of glare */
+  .dark .bg-amber-50 {
+    background-color: rgba(245, 158, 11, 0.12);
+  }
+
+  .dark .bg-blue-50,
+  .dark .bg-indigo-50 {
+    background-color: rgba(59, 130, 246, 0.12);
+  }
+
+  .dark .bg-emerald-50 {
+    background-color: rgba(16, 185, 129, 0.12);
+  }
+
+  .dark .bg-rose-50 {
+    background-color: rgba(239, 68, 68, 0.12);
+  }
+
+  /* Better text contrast in dark mode */
+  .dark .text-primary {
+    color: #F1F5F9;
+  }
+
+  .dark .text-text-primary {
+    color: #F1F5F9;
+  }
+
+  .dark .text-text-secondary {
+    color: #94A3B8;
+  }
+
+  .dark .text-text-muted {
+    color: #64748B;
+  }
+
+  /* Slate gray text used across many components — ensure it is never
+     dark-on-dark (the root cause of invisible text in dark mode). */
+  .dark .text-slate-300 {
+    color: #CBD5E1;
+  }
+
+  .dark .text-slate-400 {
+    color: #94A3B8;
+  }
+
+  .dark .text-slate-500 {
+    color: #94A3B8;
+  }
+
+  .dark .text-slate-600 {
+    color: #CBD5E1;
+  }
+
+  .dark .text-slate-700 {
+    color: #E2E8F0;
+  }
+
+  .dark .text-slate-800 {
+    color: #F1F5F9;
+  }
+
+  .dark .text-slate-900 {
+    color: #F8FAFC;
+  }
+
+  .dark .text-gray-400,
+  .dark .text-gray-500 {
+    color: #94A3B8;
+  }
+
+  .dark .text-gray-600,
+  .dark .text-gray-700,
+  .dark .text-gray-800,
+  .dark .text-gray-900 {
+    color: #E2E8F0;
+  }
+
+  /* Amber/blue/green soft text used for tips — keep readable on dark cards */
+  .dark .text-amber-600,
+  .dark .text-amber-700,
+  .dark .text-amber-800 {
+    color: #FBBF24;
+  }
+
+  .dark .text-blue-600,
+  .dark .text-blue-700,
+  .dark .text-blue-800 {
+    color: #60A5FA;
+  }
+
+  .dark .text-emerald-700,
+  .dark .text-emerald-800,
+  .dark .text-emerald-900 {
+    color: #6EE7B7;
+  }
+
+  .dark .text-rose-700,
+  .dark .text-rose-800 {
+    color: #FDA4AF;
+  }
+
+  /* Better input styling in dark mode */
+  .dark input,
+  .dark textarea,
+  .dark select {
+    background-color: #1E293B;
+    border-color: #334155;
+    color: #F1F5F9;
+  }
+
+  .dark input::placeholder,
+  .dark textarea::placeholder {
+    color: #64748B;
+  }
+
+  .dark input:focus,
+  .dark textarea:focus,
+  .dark select:focus {
+    border-color: #14B8A6;
+    box-shadow: 0 0 0 2px rgba(20, 184, 166, 0.15);
+  }
+
+  /* Better table row visibility in dark mode */
+  .dark tr:hover {
+    background-color: rgba(255, 255, 255, 0.03);
+  }
+
+  .dark tr:nth-child(even) {
+    background-color: rgba(255, 255, 255, 0.02);
+  }
+
+  /* Better shadow in dark mode */
+  .dark .shadow-card,
+  .dark .shadow-subtle,
+  .dark .shadow-hover {
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Better button hover states in dark mode */
+  .dark button:hover {
+    filter: brightness(1.15);
+  }
+
+  .dark button:active {
+    filter: brightness(0.95);
+  }
+
+  /* Better chart colors in dark mode */
+  .dark .recharts-polar-grid-angle line,
+  .dark .recharts-polar-grid-concentric circle {
+    stroke: #334155 !important;
+  }
+
+  .dark .recharts-text {
+    fill: #94A3B8 !important;
+  }
+
+  .dark .recharts-cartesian-axis-line {
+    stroke: #334155 !important;
+  }
+
+  .dark .recharts-default-tooltip {
+    background-color: #1A2438 !important;
+    border-color: #2D3A4F !important;
+  }
+
   html {
     scroll-behavior: smooth;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
@@ -84,13 +307,34 @@
   background: #64748B;
 }
 
+/* Custom scrollbar utility class for specific containers */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 9999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #64748B;
+}
+
 /* Custom Focus States for Accessibility */
 a:focus-visible,
 button:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-  outline: 2px solid #17C6B5;
+  outline: 2px solid #0D9488;
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -98,7 +342,7 @@ textarea:focus-visible {
 /* Focus within for complex elements */
 [role="listbox"]:focus-visible,
 [role="menu"]:focus-visible {
-  outline: 2px solid #17C6B5;
+  outline: 2px solid #14B8A6;
   outline-offset: -2px;
   border-radius: 12px;
 }
@@ -229,7 +473,7 @@ textarea:focus-visible {
   left: 0;
   z-index: 9999;
   padding: 12px 24px;
-  background: #17C6B5;
+  background: #14B8A6;
   color: #0B1F3A;
   font-weight: 700;
   font-size: 14px;
@@ -257,7 +501,7 @@ textarea:focus-visible {
 
 /* Dark mode selection */
 .dark ::selection {
-  background: rgba(23, 198, 181, 0.3);
+  background: rgba(20, 184, 166, 0.3);
   color: #F8FAFC;
 }
 

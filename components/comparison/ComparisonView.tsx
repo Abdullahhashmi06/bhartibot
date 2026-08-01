@@ -57,16 +57,14 @@ export default function ComparisonView({ candidates, analyses, answers }: Props)
 
   // Derived score dimensions based on match_score + offset (matching AiAnalysisPanel pattern)
   function getScoreDims(candidateId: string) {
-    const score = analyses[candidateId]?.match_score ?? 50;
+    const analysis = analyses[candidateId];
     return {
-      technical: Math.min(score + 4, 96),
-      projects: Math.min(score + 2, 94),
-      education: Math.max(score - 2, 10),
-      experience: Math.max(score - 5, 10),
-      communication: Math.min(score + 6, 98),
-      cultureFit: Math.min(score + 1, 92),
-      resumeQuality: Math.min(score + 3, 95),
-      confidence: 94,
+      technical: analysis?.technical_score ?? 0,
+      education: analysis?.education_score ?? 0,
+      experience: analysis?.experience_score ?? 0,
+      communication: analysis?.communication_score ?? 0,
+      cultureFit: analysis?.culture_fit_score ?? 0,
+      projects: analysis?.resume_quality_score ?? 0,
     };
   }
 

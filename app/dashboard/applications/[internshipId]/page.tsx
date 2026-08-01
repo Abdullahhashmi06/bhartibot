@@ -14,8 +14,10 @@ export const dynamic = "force-dynamic";
 
 export default async function InternshipApplicantsPage({
   params,
+  searchParams,
 }: {
   params: { internshipId: string };
+  searchParams: { tab?: string };
 }) {
   const supabase = createClient();
   const {
@@ -27,19 +29,36 @@ export default async function InternshipApplicantsPage({
   const internship = internships.find((i) => i.id === params.internshipId);
   if (!internship) notFound();
 
-  const applications = await getApplicationsWithScores(
+  const allApplications = await getApplicationsWithScores(
     supabase,
     params.internshipId
   );
 
-  const newCount = applications.filter((a) => a.status === "new").length;
-  const underReview = applications.filter(
+  const newCount = allApplications.filter((a) => a.status === "new").length;
+  const underReview = allApplications.filter(
     (a) => a.status === "under_review"
   ).length;
-  const shortlisted = applications.filter(
+  const shortlisted = allApplications.filter(
     (a) => a.status === "shortlisted"
   ).length;
-  const rejected = applications.filter((a) => a.status === "rejected").length;
+  const rejected = allApplications.filter((a) => a.status === "rejected").length;
+
+  const currentTab = searchParams.tab || "new";
+  let displayedApplications = allApplications;
+  
+  if (currentTab === "all") {
+    displayedApplications = allApplications;
+  } else if (currentTab === "new") {
+    displayedApplications = allApplications.filter((a) => a.status === "new");
+  } else if (currentTab === "under_review") {
+    displayedApplications = allApplications.filter((a) => a.status === "under_review");
+  } else if (currentTab === "shortlisted") {
+    displayedApplications = allApplications.filter((a) => a.status === "shortlisted");
+  } else if (currentTab === "rejected") {
+    displayedApplications = allApplications.filter((a) => a.status === "rejected");
+  } else if (currentTab === "archived") {
+    displayedApplications = allApplications.filter((a) => a.status === "archived");
+  }
 
   return (
     <Shell userEmail={user.email}>
@@ -55,7 +74,7 @@ export default async function InternshipApplicantsPage({
 
           <div className="flex items-center gap-2">
             <ExportActions
-              applications={applications as any}
+              applications={allApplications as any}
               internshipTitle={internship.title}
               variant="bulk"
             />
@@ -92,7 +111,7 @@ export default async function InternshipApplicantsPage({
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           <MetricCard
             label="Total Applicants"
-            value={applications.length}
+            value={allApplications.length}
             icon={<Users className="h-4 w-4" />}
             tone="navy"
           />
@@ -116,19 +135,53 @@ export default async function InternshipApplicantsPage({
           />
         </div>
 
+        {/* TABS */}
+        <div className="flex flex-wrap gap-2 border-b border-border">
+          {[
+            { id: "new", label: "New Applicants", count: newCount },
+            { id: "under_review", label: "Under Review", count: underReview },
+            { id: "shortlisted", label: "Shortlisted", count: shortlisted },
+            { id: "rejected", label: "Rejected", count: rejected },
+            { id: "archived", label: "Archived", count: allApplications.filter((a) => a.status === "archived").length },
+            { id: "all", label: "All", count: allApplications.length },
+          ].map((tab) => {
+            const isActive = currentTab === tab.id;
+            return (
+              <Link
+                key={tab.id}
+                href={`/dashboard/applications/${params.internshipId}${tab.id === "all" ? "" : `?tab=${tab.id}`}`}
+                className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition-colors ${
+                  isActive
+                    ? "border-teal text-teal-dark dark:text-teal"
+                    : "border-transparent text-text-muted hover:border-border hover:text-primary dark:hover:text-white"
+                }`}
+              >
+                {tab.label}
+                <span className={`rounded-full px-2 py-0.5 text-[10px] ${
+                  isActive ? "bg-teal text-white" : "bg-slate-100 text-text-secondary dark:bg-slate-800 dark:text-text-muted"
+                }`}>
+                  {tab.count}
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+
         {/* APPLICANT LIST COMPONENT WITH SEARCH & FILTERS */}
-        {applications.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-3 rounded-3xl border border-dashed border-border bg-white dark:bg-slate-800 py-20 text-center shadow-subtle">
+        {displayedApplications.length === 0 ? (
+          <div className="flex flex-col items-center justify-center gap-3 rounded-3xl border border-dashed border-border bg-white dark:bg-slate-800 py-20 text-center shadow-subtle mt-4">
             <Users className="h-12 w-12 text-text-muted" />
             <div className="space-y-1">
-              <p className="text-base font-bold text-primary dark:text-white">No Applications Received Yet</p>
+              <p className="text-base font-bold text-primary dark:text-white">No Applications Found</p>
               <p className="text-xs text-text-secondary max-w-sm mx-auto">
-                {internship.status === "published"
-                  ? "Share your public link to start collecting PDF resumes."
-                  : "Publish this internship to enable public candidate submissions."}
+                {currentTab === "all"
+                  ? (internship.status === "published"
+                      ? "Share your public link to start collecting PDF resumes."
+                      : "Publish this internship to enable public candidate submissions.")
+                  : "No applications match the current tab filter."}
               </p>
             </div>
-            {internship.status !== "published" && (
+            {internship.status !== "published" && currentTab === "all" && (
               <Link
                 href={`/internships/${internship.public_slug}`}
                 className="mt-2 inline-flex items-center gap-2 rounded-xl bg-gradient-primary text-white px-4 py-2 text-xs font-semibold shadow-teal"
@@ -138,10 +191,12 @@ export default async function InternshipApplicantsPage({
             )}
           </div>
         ) : (
-          <ApplicantList
-            applications={applications}
-            internshipId={params.internshipId}
-          />
+          <div className="mt-4">
+            <ApplicantList
+              applications={displayedApplications}
+              internshipId={params.internshipId}
+            />
+          </div>
         )}
       </div>
     </Shell>
