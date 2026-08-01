@@ -24,6 +24,13 @@ export default function EditInternshipForm({
 
   const [title, setTitle] = useState(internship.title);
   const [description, setDescription] = useState(internship.description ?? "");
+  const [stipend, setStipend] = useState(internship.stipend ?? "");
+  const [deadline, setDeadline] = useState(
+    internship.deadline ? internship.deadline.slice(0, 10) : ""
+  );
+  const [internshipType, setInternshipType] = useState(
+    internship.internship_type || "full_time"
+  );
   const [requirements, setRequirements] =
     useState<Requirement[]>(initialRequirements);
 
@@ -63,6 +70,9 @@ export default function EditInternshipForm({
       {
         title: title.trim(),
         description: description.trim(),
+        stipend: stipend.trim(),
+        deadline: deadline ? new Date(deadline).toISOString() : null,
+        internship_type: internshipType,
         requirements,
       }
     );
@@ -118,6 +128,42 @@ export default function EditInternshipForm({
           className={inputClass}
           placeholder="Describe the role, responsibilities, and what the intern will learn…"
         />
+      </div>
+
+      {/* Listing metadata: stipend, deadline, type */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="space-y-1.5">
+          <label className="text-xs font-semibold text-text-primary">Stipend (if any)</label>
+          <input
+            type="text"
+            value={stipend}
+            onChange={(e) => setStipend(e.target.value)}
+            className={inputClass}
+            placeholder="e.g. PKR 25,000/month"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <label className="text-xs font-semibold text-text-primary">Application Deadline</label>
+          <input
+            type="date"
+            value={deadline}
+            onChange={(e) => setDeadline(e.target.value)}
+            className={inputClass}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <label className="text-xs font-semibold text-text-primary">Internship Type</label>
+          <select
+            value={internshipType}
+            onChange={(e) => setInternshipType(e.target.value)}
+            className={inputClass}
+          >
+            <option value="full_time">Full-time</option>
+            <option value="part_time">Part-time</option>
+            <option value="contract">Contract</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
       </div>
 
       {/* Requirements */}

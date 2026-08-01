@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="brand" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0E8A6D"/>
+      <stop offset="55%" stop-color="#17C6B5"/>
+      <stop offset="100%" stop-color="#4EE0B8"/>
+    </linearGradient>
+  </defs>
+  <!-- Rounded brand tile -->
+  <rect x="16" y="16" width="480" height="480" rx="120" fill="url(#brand)"/>
+  <!-- AI match gauge arc -->
+  <circle cx="256" cy="256" r="150" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="14" stroke-linecap="round" stroke-dasharray="520 422" transform="rotate(-90 256 256)"/>
+  <!-- Sparkle mark -->
+  <path d="M256 128 C 268 196 316 244 384 256 C 316 268 268 316 256 384 C 244 316 196 268 128 256 C 196 244 244 196 256 128 Z" fill="#FFFFFF"/>
+  <!-- Gauge needle dot -->
+  <circle cx="366" cy="366" r="20" fill="#FFFFFF"/>
+</svg>

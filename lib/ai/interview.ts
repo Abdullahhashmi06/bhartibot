@@ -7,19 +7,7 @@ import {
   parseJsonFromModelText,
 } from "@/lib/ai/prompts";
 import { AiError } from "@/lib/ai/errors";
-import type { CandidateScoreInput } from "@/lib/types";
-
-export interface InterviewQuestion {
-  question: string;
-  purpose: string;
-  difficulty: "Easy" | "Medium" | "Hard";
-  category:
-    | "Technical"
-    | "Projects"
-    | "Behavioral"
-    | "Problem Solving"
-    | "Communication";
-}
+import type { CandidateScoreInput, InterviewQuestion } from "@/lib/types";
 
 /**
  * Generates personalized interview questions for a candidate.

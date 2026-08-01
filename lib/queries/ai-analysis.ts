@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { AiErrorType, AiFailureResult } from "@/lib/ai/errors";
-import type { CandidateAiAnalysis, ParsedResume, CandidateRecommendation } from "@/lib/types";
+import type { CandidateAiAnalysis, InterviewQuestion, ParsedResume, CandidateRecommendation } from "@/lib/types";
 
 export interface CachedAiFailure {
   application_id: string;
@@ -185,3 +185,66 @@ export async function saveCandidateAnalysis(
 
 //   return result as CandidateAiAnalysis;
 // }
+
+/**
+ * Retrieves stored interview questions for an application from the database.
+ * Returns null if no questions exist.
+ * Never calls the AI provider.
+ */
+export async function getInterviewQuestions(
+  supabase: SupabaseClient,
+  applicationId: string
+): Promise<InterviewQuestion[] | null> {
+  const { data, error } = await supabase
+    .from("candidate_ai_analysis")
+    .select("interview_questions")
+    .eq("application_id", applicationId)
+    .maybeSingle();
+
+  if (error || !data?.interview_questions) {
+    return null;
+  }
+
+  return data.interview_questions as InterviewQuestion[];
+}
+
+/**
+ * Saves (replaces) interview questions for an application.
+ * Uses the application_id to upsert on the existing candidate_ai_analysis row.
+ * Never calls the AI provider.
+ */
+export async function saveInterviewQuestions(
+  supabase: SupabaseClient,
+  applicationId: string,
+  questions: InterviewQuestion[]
+): Promise<boolean> {
+  const { error } = await supabase
+    .from("candidate_ai_analysis")
+    .update({ interview_questions: questions })
+    .eq("application_id", applicationId);
+
+  if (error) {
+    console.error("[InternIQ AI] saveInterviewQuestions:", error.message);
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Deletes stored interview questions for an application.
+ * Used before regeneration to clear the cache.
+ */
+export async function deleteInterviewQuestions(
+  supabase: SupabaseClient,
+  applicationId: string
+): Promise<void> {
+  const { error } = await supabase
+    .from("candidate_ai_analysis")
+    .update({ interview_questions: null })
+    .eq("application_id", applicationId);
+
+  if (error) {
+    console.error("[InternIQ AI] deleteInterviewQuestions:", error.message);
+  }
+}

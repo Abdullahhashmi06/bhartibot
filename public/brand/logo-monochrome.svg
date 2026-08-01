@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Monochrome silhouette (white) used by Android themed icons -->
+  <path d="M256 128 C 268 196 316 244 384 256 C 316 268 268 316 256 384 C 244 316 196 268 128 256 C 196 244 244 196 256 128 Z" fill="#FFFFFF"/>
+  <circle cx="366" cy="366" r="20" fill="#FFFFFF"/>
+</svg>

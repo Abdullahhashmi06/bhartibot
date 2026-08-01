@@ -19,3 +19,8 @@
 npm-debug.log*
 next-env.d.ts
 *.tsbuildinfo
+
+# generated service worker (rebuilt on every `next build`)
+public/sw.js
+public/sw.js.map
+public/swe-worker.js*

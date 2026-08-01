@@ -23,11 +23,13 @@ import {
   TrendingUp,
   Lightbulb,
   PenSquare,
+  Share2,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import Tag from "@/components/ui/Tag";
 import FormNotice from "@/components/ui/FormNotice";
 import CircularGauge from "@/components/ai/CircularGauge";
+import ShareReviewDialog from "@/components/share/ShareReviewDialog";
 import { StrengthCard } from "@/components/ai/StrengthCard";
 import { WeaknessCard } from "@/components/ai/WeaknessCard";
 import { MissingSkillChip } from "@/components/ai/MissingSkillChip";
@@ -49,6 +51,10 @@ type Props = {
   hasCv: boolean;
   initialAnalysis: CandidateAiAnalysis | null;
   initialFailure: AiFailureResult | null;
+  initialQuestions?: CandidateAiAnalysis["interview_questions"] | null;
+  applicantName?: string;
+  internshipTitle?: string;
+  organizationName?: string;
 };
 
 function AccordionSection({
@@ -91,10 +97,15 @@ export default function AiAnalysisPanel({
   hasCv,
   initialAnalysis,
   initialFailure,
+  initialQuestions,
+  applicantName = "Candidate",
+  internshipTitle = "Internship",
+  organizationName = "Organization",
 }: Props) {
   const [analysis, setAnalysis] = useState(initialAnalysis);
   const [failure, setFailure] = useState(initialFailure);
   const [isPending, startTransition] = useTransition();
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
 
   // Recruiter notes state
   const [notes, setNotes] = useState(initialAnalysis?.recruiter_notes ?? "");
@@ -143,6 +154,16 @@ export default function AiAnalysisPanel({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onClick={() => setShareDialogOpen(true)}
+            leftIcon={<Share2 className="h-3.5 w-3.5 text-teal" />}
+          >
+            Share Candidate Review
+          </Button>
+
           {analysis && (
             <Button
               type="button"
@@ -475,6 +496,7 @@ export default function AiAnalysisPanel({
           <InterviewQuestionGenerator
             applicationId={applicationId}
             internshipId={internshipId}
+            initialQuestions={initialQuestions ?? null}
           />
 
           {/* Notes Input Section — Pre-filled with AI generated recruiter notes */}
@@ -530,6 +552,18 @@ export default function AiAnalysisPanel({
           <p className="text-xs text-text-secondary">{failure.message}</p>
         </div>
       )}
+
+      {/* Share Candidate Review Dialog */}
+      <ShareReviewDialog
+        open={shareDialogOpen}
+        onClose={() => setShareDialogOpen(false)}
+        applicationId={applicationId}
+        internshipId={internshipId}
+        applicantName={applicantName}
+        internshipTitle={internshipTitle}
+        organizationName={organizationName}
+        hasResume={hasCv}
+      />
     </section>
   );
 }

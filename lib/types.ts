@@ -33,6 +33,9 @@ export interface Internship {
   duration: string | null;
   status: InternshipStatus | string;
   public_slug: string | null;
+  stipend?: string | null;
+  deadline?: string | null;
+  internship_type?: string | null;
   created_at: string;
 }
 
@@ -43,6 +46,9 @@ export interface NewInternshipInput {
   location: string;
   work_mode: WorkMode;
   duration: string;
+  stipend?: string;
+  deadline?: string;
+  internship_type?: string;
   requirements: Requirement[];
   questions?: {
     question: string;
@@ -66,6 +72,102 @@ export interface Application {
   cv_path: string | null;
   status: ApplicationStatus | string;
   created_at: string;
+}
+
+/**
+ * A single row from the get_applicant_feed() RPC — published, open internships
+ * joined with the organisation name, skill buckets, applicant count, and the
+ * average AI match score of existing applicants (competition intelligence).
+ */
+export interface ApplicantFeedItem {
+  id: string;
+  organization_id: string;
+  title: string;
+  field: string | null;
+  description: string | null;
+  location: string | null;
+  work_mode: string | null;
+  duration: string | null;
+  stipend: string | null;
+  internship_type: string | null;
+  deadline: string | null;
+  status: string;
+  public_slug: string | null;
+  company_name: string;
+  required_skills: string[];
+  preferred_skills: string[];
+  applicant_count: number;
+  avg_applicant_match: number | null;
+  created_at: string;
+}
+
+/**
+ * Configurable recommendation-engine weights, persisted in the
+ * recommendation_settings table. The engine reads these dynamically — changing
+ * a row (and bumping `version`) instantly refreshes future recommendations
+ * without any code change.
+ */
+export interface RecommendationWeights {
+  required_skills_weight: number;
+  preferred_skills_weight: number;
+  education_weight: number;
+  experience_weight: number;
+  project_weight: number;
+  profile_weight: number;
+  competition_weight: number;
+  recency_weight: number;
+  algorithm_version: string;
+  cache_version: number;
+  version: number;
+}
+
+/** One missing skill with a priority order and estimated gains if learned. */
+export interface SkillGap {
+  skill: string;
+  priority: "High" | "Medium" | "Low";
+  matchGain: number; // estimated +match percentage points
+  acceptanceGain: number; // estimated +acceptance percentage points
+}
+
+/** Competition intelligence for one internship. */
+export interface CompetitionIntelligence {
+  count: number;
+  label: string;
+  tone: "emerald" | "amber" | "rose";
+  dot: string;
+  estimatedDifficulty: "Low" | "Moderate" | "High";
+  avgApplicantMatch: number | null;
+}
+
+/**
+ * Cached AI recommendation for one (applicant, internship) pair.
+ * Persisted in the applicant_recommendations table; the signal_hash allows
+ * cheap staleness detection (recompute only when the applicant or the
+ * internship requirements change). Extended with the v2 analytics columns.
+ */
+export interface ApplicantRecommendation {
+  id: string;
+  applicant_id: string;
+  internship_id: string;
+  match_score: number;
+  explanation: string;
+  matched_skills: string[];
+  missing_skills: string[];
+  signal_hash: string;
+  acceptance_probability: number;
+  overall_score: number;
+  skill_gaps: SkillGap[] | null;
+  strengths: string[];
+  weaknesses: string[];
+  competition_level: string;
+  avg_applicant_match: number | null;
+  reason_generated: "ai" | "computed" | "cache";
+  algorithm_version: string;
+  cache_version: number;
+  weights_snapshot: Record<string, number> | null;
+  profile_completeness: number;
+  generated_at: string;
+  updated_at: string;
 }
 
 export interface ApplicationAnswerInput {
@@ -148,6 +250,18 @@ export interface CandidateScoreInput {
   screeningAnswers: { question: string; answer: string }[];
 }
 
+export interface InterviewQuestion {
+  question: string;
+  purpose: string;
+  difficulty: "Easy" | "Medium" | "Hard";
+  category:
+    | "Technical"
+    | "Projects"
+    | "Behavioral"
+    | "Problem Solving"
+    | "Communication";
+}
+
 export interface CandidateAiAnalysis {
   id: string;
   application_id: string;
@@ -173,6 +287,9 @@ export interface CandidateAiAnalysis {
   communication_reason?: string;
   culture_reason?: string;
   recruiter_notes?: string;
+
+  // Persisted AI-generated interview questions (JSONB column).
+  interview_questions?: InterviewQuestion[] | null;
 }
 
 export const FIELD_OPTIONS = [
@@ -215,4 +332,90 @@ export interface ActivityItem {
   timestamp: string;
   icon?: string;
   link?: string;
+}
+// ── Share Candidate Review ────────────────────────────────────────────────
+
+export type SharedSection =
+  | "candidate_summary"
+  | "match_score"
+  | "resume_summary"
+  | "strengths"
+  | "weaknesses"
+  | "skills"
+  | "radar_chart"
+  | "interview_questions"
+  | "recommendation";
+
+export const SHARED_SECTION_LABELS: Record<SharedSection, string> = {
+  candidate_summary: "Candidate Summary",
+  match_score: "Match Score",
+  resume_summary: "Resume Summary",
+  strengths: "AI Strengths",
+  weaknesses: "AI Weaknesses",
+  skills: "Skill Breakdown",
+  radar_chart: "Radar Chart",
+  interview_questions: "Interview Questions",
+  recommendation: "AI Recommendation",
+};
+
+export interface ShareToken {
+  id: string;
+  application_id: string;
+  organization_id: string;
+  created_by: string;
+  token: string;
+  password_hash: string | null;
+  expires_at: string | null;
+  is_revoked: boolean;
+  viewed_count: number;
+  last_viewed_at: string | null;
+  created_at: string;
+  shared_sections: SharedSection[];
+  include_resume: boolean;
+  include_notes: boolean;
+}
+
+export type ShareExpiration = "never" | "24h" | "7d" | "30d";
+
+export const SHARE_EXPIRATION_LABELS: Record<ShareExpiration, string> = {
+  never: "Never expires",
+  "24h": "24 Hours",
+  "7d": "7 Days",
+  "30d": "30 Days",
+};
+
+export interface CreateShareTokenInput {
+  applicationId: string;
+  organizationId: string;
+  sharedSections: SharedSection[];
+  expiration: ShareExpiration;
+  password?: string;
+  includeResume: boolean;
+  includeNotes: boolean;
+}
+
+export interface SharedReviewData {
+  token: string;
+  applicant_name: string;
+  email: string;
+  phone: string | null;
+  university: string | null;
+  degree: string | null;
+  internship_title: string;
+  internship_field: string | null;
+  organization_name: string;
+  match_score: number | null;
+  strengths: string[];
+  weaknesses: string[];
+  missing_skills: string[];
+  recommendation: string | null;
+  reasoning: string | null;
+  parsed_resume: ParsedResume | null;
+  interview_questions: InterviewQuestion[] | null;
+  recruiter_notes: string | null;
+  cv_url: string | null;
+  shared_sections: SharedSection[];
+  include_resume: boolean;
+  include_notes: boolean;
+  expires_at: string | null;
 }

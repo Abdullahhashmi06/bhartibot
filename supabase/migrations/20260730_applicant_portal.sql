@@ -65,11 +65,18 @@ alter table public.applicant_experience enable row level security;
 alter table public.saved_jobs enable row level security;
 
 -- Applicants can manage their own data
+-- (drop-if-exists makes the migration re-runnable / order-independent)
+drop policy if exists applicant_profiles_own on public.applicant_profiles;
 create policy applicant_profiles_own on public.applicant_profiles for all to authenticated using (id = auth.uid()) with check (id = auth.uid());
+drop policy if exists applicant_skills_own on public.applicant_skills;
 create policy applicant_skills_own on public.applicant_skills for all to authenticated using (applicant_id = auth.uid()) with check (applicant_id = auth.uid());
+drop policy if exists applicant_projects_own on public.applicant_projects;
 create policy applicant_projects_own on public.applicant_projects for all to authenticated using (applicant_id = auth.uid()) with check (applicant_id = auth.uid());
+drop policy if exists applicant_experience_own on public.applicant_experience;
 create policy applicant_experience_own on public.applicant_experience for all to authenticated using (applicant_id = auth.uid()) with check (applicant_id = auth.uid());
+drop policy if exists saved_jobs_own on public.saved_jobs;
 create policy saved_jobs_own on public.saved_jobs for all to authenticated using (applicant_id = auth.uid()) with check (applicant_id = auth.uid());
 
 -- Applicants can view published internships
+drop policy if exists internships_public_read on public.internships;
 create policy internships_public_read on public.internships for select to anon, authenticated using (status = 'published');

@@ -79,6 +79,26 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     return () => mq.removeEventListener("change", handler);
   }, [theme, mounted]);
 
+  // Keep the PWA browser chrome (status bar, task switcher) in sync with the
+  // in-app theme. Next.js emits theme-color metas WITH media attributes from
+  // the viewport export; those only follow the OS scheme, so we strip them and
+  // append a plain meta (no media attr) that always wins and follows the
+  // manual toggle.
+  useEffect(() => {
+    if (!mounted) return;
+    const color =
+      resolved === "dark" ? "#081426" : "#0E8A6D";
+
+    document
+      .querySelectorAll('meta[name="theme-color"]')
+      .forEach((m) => m.remove());
+
+    const meta = document.createElement("meta");
+    meta.setAttribute("name", "theme-color");
+    meta.setAttribute("content", color);
+    document.head.appendChild(meta);
+  }, [resolved, mounted]);
+
   const setTheme = useCallback((t: Theme) => {
     setThemeState(t);
   }, []);

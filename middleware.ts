@@ -103,6 +103,7 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    // Exclude static assets, PWA files, and public images from middleware
+    "/((?!_next/static|_next/image|favicon.ico|favicon-.*|apple-touch-icon.*|manifest.webmanifest|sw.js|offline|icons/|splash/|brand/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

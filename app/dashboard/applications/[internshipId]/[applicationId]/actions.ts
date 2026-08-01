@@ -6,7 +6,6 @@ import { runCandidateAnalysis } from "@/lib/ai/analysis";
 import type { AiFailureResult } from "@/lib/ai/errors";
 import {
   clearAiAnalysisFailure,
-  deleteCandidateAiAnalysis,
 } from "@/lib/queries/ai-analysis";
 import {
   getApplicationAnswers,
@@ -48,10 +47,7 @@ export async function reanalyzeApplicantCv(
   }
 
   if (force) {
-    await Promise.all([
-      deleteCandidateAiAnalysis(supabase, applicationId),
-      clearAiAnalysisFailure(supabase, applicationId),
-    ]);
+    await clearAiAnalysisFailure(supabase, applicationId);
   }
 
   const { data: internship, error: internshipError } = await supabase

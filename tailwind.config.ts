@@ -24,6 +24,11 @@ const config: Config = {
         emerald: {
           DEFAULT: "#29D391",
           light: "#EAFBF4",
+          dark: "#0E8A6D",
+        },
+        mint: {
+          DEFAULT: "#4EE0B8",
+          light: "#E4FAF3",
         },
         purple: {
           ai: "#6F52ED",
@@ -58,12 +63,13 @@ const config: Config = {
       boxShadow: {
         subtle: "0 1px 3px 0 rgba(11, 31, 58, 0.05), 0 1px 2px -1px rgba(11, 31, 58, 0.05)",
         card: "0 4px 20px -2px rgba(11, 31, 58, 0.05)",
-        hover: "0 10px 30px -4px rgba(11, 31, 58, 0.12)",
+        hover: "0 12px 32px -6px rgba(11, 31, 58, 0.14)",
         ai: "0 10px 35px -5px rgba(111, 82, 237, 0.25)",
         teal: "0 10px 35px -5px rgba(23, 198, 181, 0.25)",
+        emerald: "0 10px 35px -5px rgba(14, 138, 109, 0.25)",
       },
       backgroundImage: {
-        "gradient-primary": "linear-gradient(135deg, #17C6B5 0%, #6F52ED 100%)",
+        "gradient-primary": "linear-gradient(135deg, #0E8A6D 0%, #17C6B5 55%, #4EE0B8 100%)",
         "gradient-radial-ai": "radial-gradient(circle at top right, rgba(111, 82, 237, 0.15), transparent 50%)",
         "gradient-card-glow": "linear-gradient(180deg, rgba(23, 198, 181, 0.03) 0%, rgba(255, 255, 255, 1) 100%)",
       },

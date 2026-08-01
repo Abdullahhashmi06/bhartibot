@@ -43,12 +43,12 @@ export default function SkillEditor({ skills: initialSkills }: { skills: any[] }
   };
 
   return (
-    <div className="bg-white rounded-3xl p-6 shadow-card border border-border">
+    <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-card border border-border dark:border-slate-700">
       <div className="flex items-center gap-3 mb-6">
-        <div className="p-2 bg-purple-50 text-purple-ai rounded-xl">
+        <div className="p-2 bg-teal-light text-teal-dark dark:bg-teal/15 dark:text-teal rounded-xl">
           <Code className="w-5 h-5" />
         </div>
-        <h2 className="text-xl font-display font-bold text-primary">Skills</h2>
+        <h2 className="text-xl font-display font-bold text-primary dark:text-white">Skills</h2>
       </div>
 
       <form onSubmit={handleAdd} className="flex gap-2 mb-6">
@@ -56,10 +56,10 @@ export default function SkillEditor({ skills: initialSkills }: { skills: any[] }
           type="text" 
           value={newSkill} 
           onChange={e => setNewSkill(e.target.value)} 
-          className="flex-1 p-2 border border-border rounded-xl text-sm outline-none focus:border-purple-ai"
+          className="flex-1 p-2 border border-border rounded-xl text-sm outline-none focus:border-teal dark:bg-slate-700 dark:text-white dark:border-slate-600"
           placeholder="e.g. React, Python"
         />
-        <button type="submit" className="p-2 bg-purple-ai text-white rounded-xl hover:bg-purple-600 transition-colors">
+        <button type="submit" className="p-2 bg-gradient-to-r from-emerald-dark to-teal text-white rounded-xl hover:opacity-95 transition-opacity">
           <Plus className="w-5 h-5" />
         </button>
       </form>
@@ -72,10 +72,10 @@ export default function SkillEditor({ skills: initialSkills }: { skills: any[] }
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
               key={s.id} 
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 text-purple-700 rounded-lg text-sm font-medium border border-purple-100"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-teal-light/70 dark:bg-teal/15 text-teal-dark dark:text-teal rounded-lg text-sm font-medium border border-teal/20"
             >
               {s.skill}
-              <button onClick={() => handleRemove(s.id)} className="text-purple-400 hover:text-purple-900 focus:outline-none">
+              <button onClick={() => handleRemove(s.id)} className="text-teal/60 hover:text-teal-dark dark:hover:text-teal-light focus:outline-none">
                 <X className="w-3.5 h-3.5" />
               </button>
             </motion.div>

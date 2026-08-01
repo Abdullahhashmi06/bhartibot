@@ -8,6 +8,8 @@ interface CircularGaugeProps {
   size?: number;
   strokeWidth?: number;
   label?: string;
+  /** Force a tone; when omitted the tone is derived from the score. */
+  tone?: "teal" | "purple" | "amber" | "rose" | "indigo" | "mint";
   className?: string;
 }
 
@@ -16,6 +18,7 @@ export default function CircularGauge({
   size = 140,
   strokeWidth = 10,
   label = "Match Score",
+  tone,
   className,
 }: CircularGaugeProps) {
   const radius = (size - strokeWidth) / 2;
@@ -23,11 +26,29 @@ export default function CircularGauge({
   const normalizedScore = Math.min(Math.max(score, 0), 100);
   const strokeDashoffset = circumference - (normalizedScore / 100) * circumference;
 
-  // Determine tone color based on score
+  // Determine tone color based on score (or the forced tone)
   let gradientId = "gauge-teal";
   let textColor = "text-teal";
 
-  if (score >= 80) {
+  if (tone === "indigo") {
+    gradientId = "gauge-indigo";
+    textColor = "text-indigo-500";
+  } else if (tone === "mint") {
+    gradientId = "gauge-mint";
+    textColor = "text-emerald-dark";
+  } else if (tone === "purple") {
+    gradientId = "gauge-purple";
+    textColor = "text-purple-ai";
+  } else if (tone === "amber") {
+    gradientId = "gauge-amber";
+    textColor = "text-warning";
+  } else if (tone === "rose") {
+    gradientId = "gauge-rose";
+    textColor = "text-danger";
+  } else if (tone === "teal") {
+    gradientId = "gauge-teal";
+    textColor = "text-teal-dark";
+  } else if (score >= 80) {
     gradientId = "gauge-teal";
     textColor = "text-teal-dark";
   } else if (score >= 60) {
@@ -60,6 +81,14 @@ export default function CircularGauge({
           <linearGradient id="gauge-rose" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#EF4444" />
             <stop offset="100%" stopColor="#F87171" />
+          </linearGradient>
+          <linearGradient id="gauge-indigo" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#6366F1" />
+            <stop offset="100%" stopColor="#818CF8" />
+          </linearGradient>
+          <linearGradient id="gauge-mint" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#0E8A6D" />
+            <stop offset="100%" stopColor="#29D391" />
           </linearGradient>
         </defs>
 

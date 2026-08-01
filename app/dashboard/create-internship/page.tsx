@@ -36,6 +36,9 @@ export default function CreateInternshipPage() {
   const [location, setLocation] = useState("");
   const [workMode, setWorkMode] = useState<WorkMode>("on-site");
   const [duration, setDuration] = useState("");
+  const [stipend, setStipend] = useState("");
+  const [deadline, setDeadline] = useState("");
+  const [internshipType, setInternshipType] = useState("full_time");
   const [required, setRequired] = useState<string[]>(["Python"]);
   const [preferred, setPreferred] = useState<string[]>(["Pandas"]);
   const [questions, setQuestions] = useState<
@@ -106,6 +109,9 @@ export default function CreateInternshipPage() {
       location: location.trim(),
       work_mode: workMode,
       duration: duration.trim(),
+      stipend: stipend.trim(),
+      deadline: deadline || undefined,
+      internship_type: internshipType,
       requirements,
       questions,
     });
@@ -273,6 +279,49 @@ export default function CreateInternshipPage() {
                         placeholder="e.g. 8 - 12 Weeks"
                         className="w-full rounded-xl border border-border bg-slate-50/50 px-4 py-2.5 text-sm text-text-primary focus:border-teal focus:bg-white focus:outline-none transition-all"
                       />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-text-primary">
+                        Stipend (if any)
+                      </label>
+                      <input
+                        type="text"
+                        value={stipend}
+                        onChange={(e) => setStipend(e.target.value)}
+                        placeholder="e.g. PKR 25,000/month"
+                        className="w-full rounded-xl border border-border bg-slate-50/50 px-4 py-2.5 text-sm text-text-primary focus:border-teal focus:bg-white focus:outline-none transition-all"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-text-primary">
+                        Application Deadline
+                      </label>
+                      <input
+                        type="date"
+                        value={deadline}
+                        onChange={(e) => setDeadline(e.target.value)}
+                        className="w-full rounded-xl border border-border bg-slate-50/50 px-4 py-2.5 text-sm text-text-primary focus:border-teal focus:bg-white focus:outline-none transition-all"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-text-primary">
+                        Internship Type
+                      </label>
+                      <select
+                        value={internshipType}
+                        onChange={(e) => setInternshipType(e.target.value)}
+                        className="w-full rounded-xl border border-border bg-slate-50/50 px-3.5 py-2.5 text-sm text-text-primary focus:border-teal focus:bg-white focus:outline-none"
+                      >
+                        <option value="full_time">Full-time</option>
+                        <option value="part_time">Part-time</option>
+                        <option value="contract">Contract</option>
+                        <option value="other">Other</option>
+                      </select>
                     </div>
                   </div>
 

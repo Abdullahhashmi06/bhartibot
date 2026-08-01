@@ -116,6 +116,9 @@ export async function createInternship(
       location: input.location,
       work_mode: input.work_mode,
       duration: input.duration,
+      stipend: input.stipend?.trim() || null,
+      deadline: input.deadline || null,
+      internship_type: input.internship_type || "full_time",
       status: "draft",
       public_slug: slugify(input.title),
     })
@@ -245,14 +248,20 @@ export async function updateInternship(
     title?: string;
     description?: string;
     requirements?: Requirement[];
+    stipend?: string | null;
+    deadline?: string | null;
+    internship_type?: string | null;
   }
 ): Promise<{ internship: Internship | null; error: string | null }> {
-  const updates: Record<string, string> = {};
+  const updates: Record<string, string | null> = {};
   if (patch.title !== undefined) {
     updates.title = patch.title;
     updates.public_slug = slugify(patch.title);
   }
   if (patch.description !== undefined) updates.description = patch.description;
+  if (patch.stipend !== undefined) updates.stipend = patch.stipend ?? "";
+  if (patch.deadline !== undefined) updates.deadline = patch.deadline ?? null;
+  if (patch.internship_type !== undefined) updates.internship_type = patch.internship_type ?? "full_time";
 
   if (Object.keys(updates).length > 0) {
     const { error } = await supabase

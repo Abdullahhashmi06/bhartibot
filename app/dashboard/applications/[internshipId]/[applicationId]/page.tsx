@@ -14,8 +14,6 @@ import {
   Clock,
   ExternalLink,
   Download,
-  FileSpreadsheet,
-  FileDown,
 } from "lucide-react";
 import Shell from "@/components/layout/Shell";
 import Tag from "@/components/ui/Tag";
@@ -27,6 +25,7 @@ import {
 } from "@/lib/queries/applications";
 import { getRecruiterInternships, getInternshipRequirements } from "@/lib/queries/internships";
 import { ensureCandidateAnalysis } from "@/lib/ai/analysis";
+import { getInterviewQuestions } from "@/lib/queries/ai-analysis";
 import AiAnalysisPanel from "@/components/applications/AiAnalysisPanel";
 import { getAvatarUrl } from "@/lib/utils";
 import Timeline from "@/components/applications/Timeline";
@@ -87,10 +86,11 @@ export default async function ApplicantDetailPage({
   const initialFailure =
     analysisState.kind === "failure" ? analysisState.failure : null;
 
-  // Fetch interview and star status in parallel
-  const [interview, starred] = await Promise.all([
+  // Fetch interview, starred status, and cached interview questions in parallel
+  const [interview, starred, initialQuestions] = await Promise.all([
     getInterview(supabase, params.applicationId),
     isStarred(supabase, user.id, params.applicationId),
+    getInterviewQuestions(supabase, params.applicationId),
   ]);
 
   function timeAgo(dateStr: string): string {
@@ -311,6 +311,9 @@ export default async function ApplicantDetailPage({
           hasCv={Boolean(application.cv_path)}
           initialAnalysis={initialAnalysis}
           initialFailure={initialFailure}
+          initialQuestions={initialQuestions}
+          applicantName={application.applicant_name}
+          internshipTitle={internship.title}
         />
       </div>
     </Shell>

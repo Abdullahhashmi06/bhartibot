@@ -3,9 +3,18 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
-import { User, Lock, Trash2, Save } from "lucide-react";
+import { User, Lock, Trash2, Save, Info, Bell } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { useRouter } from "next/navigation";
+import {
+  APP_VERSION,
+  BUILD_ID,
+  formatBuildDate,
+} from "@/lib/version";
+import {
+  getNotificationPermission,
+  ensureNotificationPermission,
+} from "@/lib/pwa/sw-register";
 
 export default function SettingsPage() {
   const [profile, setProfile] = useState<any>({});
@@ -59,6 +68,42 @@ export default function SettingsPage() {
       <div>
         <h1 className="text-3xl font-display font-bold text-primary dark:text-white">Account Settings</h1>
         <p className="text-text-secondary dark:text-slate-400 mt-1">Manage your personal information and preferences.</p>
+      </div>
+
+      {/* App Information Card */}
+      <div className="bg-white dark:bg-slate-800 rounded-3xl p-8 shadow-card border border-border dark:border-slate-700">
+        <h2 className="text-xl font-display font-bold text-primary dark:text-white mb-6 flex items-center gap-2">
+          <Info className="w-5 h-5 text-teal" /> App Information
+        </h2>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="rounded-xl bg-slate-50 dark:bg-slate-700/50 border border-border dark:border-slate-600 p-4 text-center">
+            <span className="font-mono text-[10px] text-text-muted uppercase block">Version</span>
+            <span className="font-display font-bold text-lg text-primary dark:text-white">{APP_VERSION}</span>
+          </div>
+          <div className="rounded-xl bg-slate-50 dark:bg-slate-700/50 border border-border dark:border-slate-600 p-4 text-center">
+            <span className="font-mono text-[10px] text-text-muted uppercase block">Build</span>
+            <span className="font-mono font-bold text-sm text-teal-dark dark:text-teal truncate">{BUILD_ID}</span>
+          </div>
+          <div className="rounded-xl bg-slate-50 dark:bg-slate-700/50 border border-border dark:border-slate-600 p-4 text-center col-span-2">
+            <span className="font-mono text-[10px] text-text-muted uppercase block">Deployed</span>
+            <span className="font-mono font-bold text-xs text-primary dark:text-white">{formatBuildDate()}</span>
+          </div>
+        </div>
+        <p className="text-[11px] text-text-muted mt-4 font-mono">
+          InternIQ PWA · Installable · Offline-ready
+        </p>
+      </div>
+
+      {/* Notifications Card */}
+      <div className="bg-white dark:bg-slate-800 rounded-3xl p-8 shadow-card border border-border dark:border-slate-700">
+        <h2 className="text-xl font-display font-bold text-primary dark:text-white mb-2 flex items-center gap-2">
+          <Bell className="w-5 h-5 text-teal" /> Notifications
+        </h2>
+        <p className="text-xs text-text-secondary mb-4">
+          Get notified about application status updates, interview reminders and offers.
+        </p>
+        <NotificationGate />
       </div>
 
       <div className="bg-white dark:bg-slate-800 rounded-3xl p-8 shadow-card border border-border dark:border-slate-700">
@@ -125,6 +170,50 @@ export default function SettingsPage() {
           Delete Account
         </Button>
       </div>
+    </div>
+  );
+}
+
+function NotificationGate() {
+  const [permission, setPermission] = useState<NotificationPermission | "unsupported" | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    setPermission(getNotificationPermission());
+  }, []);
+
+  const enable = async () => {
+    setBusy(true);
+    const p = await ensureNotificationPermission();
+    setPermission(p);
+    setBusy(false);
+    if (p === "granted") toast.success("Notifications enabled!");
+  };
+
+  if (permission === null) return null;
+  if (permission === "unsupported") {
+    return (
+      <p className="text-xs text-text-muted">
+        Notifications aren&apos;t supported in this browser.
+      </p>
+    );
+  }
+
+  const granted = permission === "granted";
+
+  return (
+    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <p className="text-xs text-text-secondary">
+        Status:{" "}
+        <span className={`font-semibold ${granted ? "text-emerald-dark dark:text-emerald" : "text-warning"}`}>
+          {granted ? "Enabled" : permission === "denied" ? "Blocked" : "Not enabled"}
+        </span>
+      </p>
+      {!granted && (
+        <Button variant="gradient" size="sm" onClick={enable} disabled={busy}>
+          {busy ? "Requesting..." : permission === "denied" ? "Re-enable in Browser Settings" : "Enable Notifications"}
+        </Button>
+      )}
     </div>
   );
 }
