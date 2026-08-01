@@ -13,15 +13,75 @@ export function isSwSupported(): boolean {
   return typeof window !== "undefined" && "serviceWorker" in navigator;
 }
 
+/**
+ * Self-heal stale service workers left over from a previous build/deploy.
+ *
+ * Scenario this fixes: a production `public/sw.js` was served and registered
+ * in the browser, then the codebase changed (e.g. after a branch merge). The
+ * old worker keeps intercepting navigations and serving stale cached chunks
+ * (old `webpack.js`, old hashed `layout-*.css`), which 404 against the new
+ * server and crash React with `Cannot read properties of null (reading
+ * 'removeChild')` inside the error/redirect boundaries.
+ *
+ * If `/sw.js` no longer resolves on the server (deleted, dev mode, or the
+ * build was cleaned), the stale registration is dropped and its `interniq-*`
+ * runtime caches are purged so they can never be served again.
+ */
+export async function healStaleServiceWorker(): Promise<void> {
+  if (!isSwSupported()) return;
+  try {
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    if (registrations.length === 0) return;
+
+    // Does the server still serve a service worker at /sw.js?
+    let swAvailable = false;
+    try {
+      const res = await fetch("/sw.js", { cache: "no-store" });
+      swAvailable = res.ok;
+    } catch {
+      swAvailable = false;
+    }
+
+    if (swAvailable) return;
+
+    await Promise.all(
+      registrations.map((reg) =>
+        reg.unregister().catch(() => {
+          /* ignore */
+        })
+      )
+    );
+
+    // Purge runtime caches written by the stale worker.
+    if ("caches" in window) {
+      const keys = await caches.keys();
+      await Promise.all(
+        keys
+          .filter((name) => name.startsWith("interniq-"))
+          .map((name) => caches.delete(name))
+      );
+    }
+  } catch {
+    // Never block app boot on SW hygiene.
+  }
+}
+
 export function getRegistration(): Promise<ServiceWorkerRegistration | null> {
   if (!isSwSupported()) return Promise.resolve(null);
   if (!registrationPromise) {
-    registrationPromise = navigator.serviceWorker
-      .register("/sw.js", { updateViaCache: "none" })
-      .catch((err) => {
+    registrationPromise = (async () => {
+      // Drop any stale registration before registering the current build.
+      await healStaleServiceWorker();
+      try {
+        return await navigator.serviceWorker.register("/sw.js", {
+          updateViaCache: "none",
+        });
+      } catch (err) {
+        // /sw.js may be absent in dev — that's expected and non-fatal.
         console.warn("[InternIQ PWA] Service worker registration failed:", err);
         return null;
-      });
+      }
+    })();
   }
   return registrationPromise;
 }

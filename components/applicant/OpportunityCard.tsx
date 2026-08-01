@@ -47,6 +47,15 @@ function timeAgo(dateStr: string): string {
   return `${Math.floor(days / 30)}mo ago`;
 }
 
+/* Brand-safe competition badge — emerald / amber / indigo. No red. */
+function competitionClasses(tone: string) {
+  if (tone === "emerald")
+    return "bg-emerald-light dark:bg-emerald/15 text-emerald-dark dark:text-emerald border-emerald/20";
+  if (tone === "amber")
+    return "bg-amber-50 dark:bg-amber-500/15 text-warning dark:text-amber-300 border-warning/25";
+  return "bg-indigo-50 dark:bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 border-indigo-500/20";
+}
+
 interface OpportunityCardProps {
   job: RecommendationResult;
   index?: number;
@@ -78,14 +87,16 @@ export default function OpportunityCard({
     : null;
   const deadlinePassed = daysLeft !== null && daysLeft < 0;
   const logoGradient = companyLogoGradient(job.company_name || "C");
+  const compClasses = competitionClasses(competition.tone);
 
+  /* ── COMPACT VARIANT (used on the homepage sections) ────────────────── */
   if (variant === "compact") {
     return (
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: Math.min(index * 0.04, 0.2) }}
-        className="min-w-[300px] max-w-[300px] snap-start scroll-ml-4 bg-white dark:bg-slate-800 rounded-2xl shadow-card border border-border p-5 flex flex-col hover:border-teal/40 hover:shadow-hover hover:-translate-y-1 transition-all duration-300"
+        className="flex flex-col bg-white dark:bg-slate-800 rounded-2xl shadow-card border border-border dark:border-slate-700 p-5 hover:border-teal/40 hover:shadow-hover hover:-translate-y-1 transition-all duration-300 h-full"
       >
         {/* COMPANY + TITLE */}
         <div className="flex items-start gap-3 mb-3">
@@ -103,12 +114,7 @@ export default function OpportunityCard({
               {job.title}
             </h3>
           </div>
-          <CircularGauge
-            score={job.matchScore}
-            size={40}
-            strokeWidth={4}
-            label="Match"
-          />
+          <CircularGauge score={job.matchScore} size={44} strokeWidth={4} label="Match" hideLabel />
         </div>
 
         <div className="flex flex-wrap items-center gap-2 text-[11px] text-text-muted dark:text-slate-400 mb-3">
@@ -118,8 +124,8 @@ export default function OpportunityCard({
             </span>
           )}
           {job.work_mode && (
-            <span className="inline-flex items-center gap-1">
-              <Building className="h-3 w-3 text-teal" /> {job.work_mode}
+            <span className="inline-flex items-center gap-1 capitalize">
+              <Building className="h-3 w-3 text-teal" /> {job.work_mode.replace("-", " ")}
             </span>
           )}
           {job.stipend && (
@@ -130,25 +136,15 @@ export default function OpportunityCard({
         </div>
 
         {/* COMPETITION + DEADLINE */}
-        <div className="flex items-center gap-2 mb-3">
-          <span
-            className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-semibold border ${
-              competition.tone === "emerald"
-                ? "bg-emerald-light text-emerald-dark border-emerald/20"
-                : competition.tone === "amber"
-                ? "bg-amber-50 text-warning border-warning/20"
-                : "bg-rose-50 text-danger border-danger/20"
-            }`}
-          >
+        <div className="flex flex-wrap items-center gap-2 mb-3">
+          <span className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-semibold border ${compClasses}`}>
             {competition.dot} {competition.label}
           </span>
-          <span className="text-[10px] text-text-muted">
-            {job.applicant_count} applicants
-          </span>
+          <span className="text-[10px] text-text-muted">{job.applicant_count} applicants</span>
           {daysLeft !== null && (
             <span
               className={`ml-auto text-[10px] inline-flex items-center gap-1 ${
-                deadlinePassed ? "text-danger" : "text-text-muted"
+                deadlinePassed ? "text-slate-400 line-through" : "text-text-muted"
               }`}
             >
               <Calendar className="h-3 w-3" />{" "}
@@ -188,7 +184,7 @@ export default function OpportunityCard({
             onClick={onToggleSave}
             className={`p-2 rounded-lg transition-all ${
               saved
-                ? "text-teal bg-teal-light"
+                ? "text-teal bg-teal-light dark:bg-teal/15"
                 : "text-slate-400 hover:text-teal hover:bg-teal-light/60"
             }`}
             aria-label="Save job"
@@ -207,10 +203,10 @@ export default function OpportunityCard({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.97 }}
       transition={{ delay: Math.min(index * 0.05, 0.3), duration: 0.4 }}
-      className="bg-white dark:bg-slate-800 rounded-3xl shadow-card border border-border p-6 sm:p-7 flex flex-col hover:border-teal/30 hover:shadow-hover hover:-translate-y-1 transition-all duration-300 group"
+      className="flex flex-col bg-white dark:bg-slate-800 rounded-3xl shadow-card border border-border dark:border-slate-700 p-6 hover:border-teal/30 hover:shadow-hover hover:-translate-y-1 transition-all duration-300 group h-full"
     >
-      {/* COMPANY BLOCK */}
-      <div className="flex items-start justify-between gap-3 mb-4">
+      {/* COMPANY BLOCK + COMPACT METRICS ROW */}
+      <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-3 min-w-0">
           <div
             className={`h-12 w-12 rounded-2xl bg-gradient-to-br ${logoGradient} text-white flex items-center justify-center font-display font-bold text-xl shadow-teal shrink-0`}
@@ -229,24 +225,21 @@ export default function OpportunityCard({
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <div className="text-center">
-            <CircularGauge score={job.matchScore} size={52} strokeWidth={5} label="Match" />
+
+        {/* Elegant glass metric chips — small rings, premium not shouty.
+            Both chips share fixed sizing so they always align. */}
+        <div className="flex items-start gap-3 shrink-0">
+          <div className="flex flex-col items-center rounded-2xl bg-slate-50/80 dark:bg-slate-700/40 border border-border dark:border-slate-600 px-3 py-2.5 min-w-[64px]">
+            <CircularGauge score={job.matchScore} size={52} strokeWidth={4.5} label="AI Match" />
           </div>
-          <div className="text-center">
-            <CircularGauge
-              score={job.acceptanceProbability}
-              size={52}
-              strokeWidth={5}
-              label="Acceptance"
-              tone="mint"
-            />
+          <div className="hidden sm:flex flex-col items-center rounded-2xl bg-mint-light/60 dark:bg-emerald-500/10 border border-mint/25 dark:border-emerald-500/25 px-3 py-2.5 min-w-[64px]">
+            <CircularGauge score={job.acceptanceProbability} size={52} strokeWidth={4.5} label="Acceptance" tone="mint" />
           </div>
         </div>
       </div>
 
       {/* TITLE — primary focus */}
-      <h3 className="font-display font-bold text-xl text-primary dark:text-white leading-snug group-hover:text-teal-dark dark:group-hover:text-teal transition-colors">
+      <h3 className="mt-4 font-display font-bold text-xl text-primary dark:text-white leading-snug group-hover:text-teal-dark dark:group-hover:text-teal transition-colors">
         {job.title}
       </h3>
 
@@ -310,7 +303,7 @@ export default function OpportunityCard({
           )}
           {job.skillGaps.length > 0 && (
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 mb-1.5">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-500 dark:text-indigo-300 mb-1.5">
                 <LightbulbInline /> Skills to Learn
               </p>
               <div className="flex flex-wrap gap-1.5">
@@ -318,7 +311,7 @@ export default function OpportunityCard({
                   <span
                     key={idx}
                     title={`${gap.priority} priority · +${gap.matchGain}% match if learned`}
-                    className="text-[11px] px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-200/70 dark:border-amber-500/25 cursor-help"
+                    className="text-[11px] px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border border-indigo-200/70 dark:border-indigo-500/25 cursor-help"
                   >
                     {gap.skill}
                     <span className="ml-1 font-bold text-emerald-dark dark:text-mint">
@@ -332,17 +325,9 @@ export default function OpportunityCard({
         </div>
       )}
 
-      {/* COMPETITION INTELLIGENCE */}
+      {/* COMPETITION INTELLIGENCE — brand-safe badges */}
       <div className="flex flex-wrap items-center gap-2 mt-4">
-        <span
-          className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[11px] font-semibold ${
-            competition.tone === "emerald"
-              ? "bg-emerald-light text-emerald-dark border-emerald/20"
-              : competition.tone === "amber"
-              ? "bg-amber-50 text-warning border-warning/20"
-              : "bg-rose-50 text-danger border-danger/20"
-          }`}
-        >
+        <span className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[11px] font-semibold ${compClasses}`}>
           <Flame className="h-3 w-3" />
           {job.applicant_count} applicants · {competition.dot} {competition.label}
         </span>
@@ -353,10 +338,10 @@ export default function OpportunityCard({
           <span
             className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-[11px] font-semibold ${
               deadlinePassed
-                ? "bg-rose-50 text-danger border-danger/20"
+                ? "bg-slate-100 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-600 line-through"
                 : daysLeft <= 7
-                ? "bg-amber-50 text-warning border-warning/20"
-                : "bg-slate-50 dark:bg-slate-700/40 text-text-secondary dark:text-slate-300 border-border"
+                ? "bg-amber-50 dark:bg-amber-500/15 text-warning dark:text-amber-300 border-warning/25"
+                : "bg-slate-50 dark:bg-slate-700/40 text-text-secondary dark:text-slate-300 border-border dark:border-slate-600"
             }`}
           >
             <Calendar className="h-3 w-3" />
@@ -421,7 +406,5 @@ export default function OpportunityCard({
 }
 
 function LightbulbInline() {
-  return (
-    <span className="inline-block align-[-2px] mr-0.5">💡</span>
-  );
+  return <span className="inline-block align-[-2px] mr-0.5">💡</span>;
 }

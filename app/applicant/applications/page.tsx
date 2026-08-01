@@ -27,12 +27,12 @@ export default async function ApplicationsPage() {
             <ApplicationCard key={app.id} app={app} />
           ))
         ) : (
-          <div className="bg-white rounded-3xl p-12 text-center shadow-card border border-border flex flex-col items-center">
-            <div className="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mb-4">
+          <div className="bg-white dark:bg-slate-800 rounded-3xl p-12 text-center shadow-card border border-border dark:border-slate-700 flex flex-col items-center">
+            <div className="w-16 h-16 bg-teal-light dark:bg-teal/15 text-teal-dark dark:text-teal rounded-full flex items-center justify-center mb-4">
               <Briefcase className="w-8 h-8" />
             </div>
-            <h2 className="text-xl font-display font-bold text-primary mb-2">No Applications Yet</h2>
-            <p className="text-text-secondary max-w-md mx-auto mb-6">
+            <h2 className="text-xl font-display font-bold text-primary dark:text-white mb-2">No Applications Yet</h2>
+            <p className="text-text-secondary dark:text-slate-400 max-w-md mx-auto mb-6">
               You haven&apos;t applied to any internships yet. Explore available opportunities and start your journey!
             </p>
             <Link href="/applicant/internships">

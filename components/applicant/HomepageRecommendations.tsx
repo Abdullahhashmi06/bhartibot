@@ -207,7 +207,7 @@ export default function HomepageRecommendations({
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-5">
             {top.slice(0, 3).map((job, idx) => (
               <OpportunityCard
                 key={job.id}
@@ -225,10 +225,10 @@ export default function HomepageRecommendations({
         </section>
       )}
 
-      {/* HORIZONTAL CAROUSELS — differentiated sections */}
+      {/* RESPONSIVE SECTIONS — vertical grids, no horizontal scroll */}
       {sections.map((section, sectionIdx) => (
         <section key={section.key} className="animate-fade-up" style={{ animationDelay: `${sectionIdx * 0.06}s` }}>
-          <div className="flex items-end justify-between mb-4">
+          <div className="flex items-end justify-between mb-5">
             <div>
               <h2 className="text-xl font-display font-bold text-primary dark:text-white flex items-center gap-2.5">
                 <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-white dark:bg-slate-800 border border-border dark:border-slate-700 shadow-subtle">
@@ -245,27 +245,26 @@ export default function HomepageRecommendations({
             </span>
           </div>
 
-          {/* SNAP CAROUSEL — wheel/touch friendly, edge fade, hidden scrollbar */}
-          <div className="scroll-fade-x -mx-1 px-1">
-            <div className="hide-scrollbar flex gap-4 overflow-x-auto snap-x snap-mandatory pb-3 pt-1 scroll-smooth">
-              {section.jobs.slice(0, 6).map((job, idx) => (
-                <OpportunityCard
-                  key={job.id}
-                  job={job}
-                  index={idx}
-                  variant="compact"
-                  saved={savedSet.has(job.id)}
-                  applied={appliedSet.has(job.id)}
-                  applying={applying === job.id}
-                  onToggleSave={() => toggleSave(job.id)}
-                  onApply={() => handleApply(job)}
-                  onWhyThisMatch={() => setDrawerJob(job)}
-                />
-              ))}
-              {/* End-of-rail CTA card */}
+          {/* Grid — 1 mobile → 2 tablet → 3 laptop → 4 desktop. Vertical only. */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-5">
+            {section.jobs.slice(0, 6).map((job, idx) => (
+              <OpportunityCard
+                key={job.id}
+                job={job}
+                index={idx}
+                saved={savedSet.has(job.id)}
+                applied={appliedSet.has(job.id)}
+                applying={applying === job.id}
+                onToggleSave={() => toggleSave(job.id)}
+                onApply={() => handleApply(job)}
+                onWhyThisMatch={() => setDrawerJob(job)}
+              />
+            ))}
+            {/* End-of-rail CTA card */}
+            {section.jobs.length > 3 && (
               <Link
                 href="/applicant/internships"
-                className="snap-start scroll-ml-4 min-w-[220px] max-w-[220px] shrink-0 rounded-2xl border-2 border-dashed border-border dark:border-slate-700 flex flex-col items-center justify-center gap-2 p-6 text-center hover:border-teal/40 hover:bg-teal-light/30 dark:hover:bg-teal/5 transition-colors"
+                className="rounded-3xl border-2 border-dashed border-border dark:border-slate-700 flex flex-col items-center justify-center gap-2 p-6 text-center hover:border-teal/40 hover:bg-teal-light/30 dark:hover:bg-teal/5 transition-colors min-h-[200px]"
               >
                 <Compass className="h-6 w-6 text-teal" />
                 <span className="text-sm font-semibold text-primary dark:text-white">
@@ -275,7 +274,7 @@ export default function HomepageRecommendations({
                   See every open opportunity
                 </span>
               </Link>
-            </div>
+            )}
           </div>
         </section>
       ))}

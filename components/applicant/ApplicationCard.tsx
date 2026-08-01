@@ -86,40 +86,40 @@ export default function ApplicationCard({ app }: { app: any }) {
   };
 
   const statusColors: Record<string, string> = {
-    new: "text-blue-700 bg-blue-50 border-blue-200",
-    under_review: "text-amber-700 bg-amber-50 border-amber-200",
-    ai_reviewed: "text-amber-700 bg-amber-50 border-amber-200",
-    viewed: "text-amber-700 bg-amber-50 border-amber-200",
-    shortlisted: "text-teal-700 bg-teal-50 border-teal-200",
-    interview: "text-teal-700 bg-teal-50 border-teal-200",
-    offer: "text-emerald-700 bg-emerald-50 border-emerald-200",
-    hired: "text-emerald-700 bg-emerald-50 border-emerald-200",
-    rejected: "text-rose-700 bg-rose-50 border-rose-200",
-    withdrawn: "text-slate-700 bg-slate-100 border-slate-300",
+    new: "text-indigo-600 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-500/15 border-indigo-200 dark:border-indigo-500/30",
+    under_review: "text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-500/15 border-amber-200 dark:border-amber-500/30",
+    ai_reviewed: "text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-500/15 border-amber-200 dark:border-amber-500/30",
+    viewed: "text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-500/15 border-amber-200 dark:border-amber-500/30",
+    shortlisted: "text-teal-700 dark:text-teal bg-teal-50 dark:bg-teal/15 border-teal-200 dark:border-teal/30",
+    interview: "text-teal-700 dark:text-teal bg-teal-50 dark:bg-teal/15 border-teal-200 dark:border-teal/30",
+    offer: "text-emerald-700 dark:text-emerald bg-emerald-50 dark:bg-emerald/15 border-emerald-200 dark:border-emerald/30",
+    hired: "text-emerald-700 dark:text-emerald bg-emerald-50 dark:bg-emerald/15 border-emerald-200 dark:border-emerald/30",
+    rejected: "text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700/60 border-slate-300 dark:border-slate-600",
+    withdrawn: "text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700/60 border-slate-300 dark:border-slate-600",
   };
 
   const stageColor = statusColors[status] || "text-slate-700 bg-slate-100 border-slate-200";
 
   return (
-    <div className="bg-white rounded-3xl p-6 shadow-card border border-border">
+    <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-card border border-border dark:border-slate-700">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div className="flex gap-4">
-          <div className="w-14 h-14 bg-gradient-to-br from-slate-50 to-slate-100 border border-border rounded-2xl flex items-center justify-center text-2xl font-bold text-primary shrink-0 shadow-subtle">
+          <div className="w-14 h-14 bg-gradient-to-br from-teal-light to-emerald-light dark:from-teal/20 dark:to-emerald/15 border border-teal/15 dark:border-teal/25 rounded-2xl flex items-center justify-center text-2xl font-bold text-teal-dark dark:text-teal shrink-0 shadow-subtle">
             {app.internships?.company_name?.charAt(0) || "C"}
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-xl font-display font-bold text-primary">{app.internships?.title}</h2>
+              <h2 className="text-xl font-display font-bold text-primary dark:text-white">{app.internships?.title}</h2>
               <span className={`inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-semibold ${stageColor} border`}>
                 {getStageLabel(status)}
               </span>
             </div>
             <div className="flex flex-wrap items-center gap-2 mt-1">
-              <span className="text-sm font-medium text-text-secondary">{app.internships?.company_name}</span>
-              <span className="w-1 h-1 rounded-full bg-slate-300 hidden sm:inline-block"></span>
-              <span className="text-sm text-text-muted">{app.internships?.location} • {app.internships?.work_mode}</span>
+              <span className="text-sm font-medium text-text-secondary dark:text-slate-400">{app.internships?.company_name}</span>
+              <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600 hidden sm:inline-block"></span>
+              <span className="text-sm text-text-muted dark:text-slate-500">{app.internships?.location} • {app.internships?.work_mode}</span>
             </div>
-            <p className="text-xs text-text-muted mt-2">Applied on {new Date(app.created_at).toLocaleDateString()}</p>
+            <p className="text-xs text-text-muted dark:text-slate-500 mt-2">Applied on {new Date(app.created_at).toLocaleDateString()}</p>
           </div>
         </div>
         <div className="flex gap-2">
@@ -134,7 +134,7 @@ export default function ApplicationCard({ app }: { app: any }) {
             </Button>
           )}
           {status !== "withdrawn" && status !== "rejected" && status !== "hired" && (
-            <Button variant="ghost" size="sm" className="text-rose-500 hover:text-rose-600 hover:bg-rose-50" onClick={handleWithdraw} disabled={withdrawing}>
+            <Button variant="ghost" size="sm" className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700" onClick={handleWithdraw} disabled={withdrawing}>
               {withdrawing ? "Withdrawing..." : "Withdraw"}
             </Button>
           )}

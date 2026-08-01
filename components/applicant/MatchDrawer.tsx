@@ -123,7 +123,7 @@ export default function MatchDrawer({
                         ? "bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-500/30"
                         : job.competitionIntelligence.tone === "amber"
                         ? "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-500/30"
-                        : "bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-500/30"
+                        : "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-500/30"
                     }`}
                   >
                     {job.competitionIntelligence.dot} {job.competitionIntelligence.label}
@@ -220,13 +220,13 @@ export default function MatchDrawer({
               {/* WEAKNESSES */}
               {job.weaknesses.length > 0 && (
                 <div className="rounded-2xl border border-border p-4">
-                  <h3 className="text-[11px] font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400 mb-2 flex items-center gap-1.5">
-                    <AlertTriangle className="h-3.5 w-3.5" /> Resume Weaknesses
+                  <h3 className="text-[11px] font-bold uppercase tracking-wider text-indigo-500 dark:text-indigo-300 mb-2 flex items-center gap-1.5">
+                    <AlertTriangle className="h-3.5 w-3.5" /> Areas To Strengthen
                   </h3>
                   <ul className="space-y-1.5">
                     {job.weaknesses.map((w, idx) => (
                       <li key={idx} className="flex items-start gap-2 text-xs text-text-secondary dark:text-slate-300 leading-relaxed">
-                        <AlertTriangle className="h-3.5 w-3.5 text-rose-400 shrink-0 mt-0.5" />
+                        <AlertTriangle className="h-3.5 w-3.5 text-indigo-400 shrink-0 mt-0.5" />
                         {w}
                       </li>
                     ))}

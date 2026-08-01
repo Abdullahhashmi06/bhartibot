@@ -17,9 +17,9 @@ export default function ResumeHealth({ profile, skills, projects, experience }: 
     { label: "External Links (GitHub/LinkedIn)", passed: !!(profile?.github_url || profile?.linkedin_url), tip: "Link your GitHub to showcase code quality and collaboration" },
   ];
 
-  let healthColor = "text-rose-500";
-  let healthBg = "bg-rose-50 dark:bg-rose-500/15";
-  let healthBar = "bg-rose-500";
+  let healthColor = "text-indigo-500 dark:text-indigo-300";
+  let healthBg = "bg-indigo-50 dark:bg-indigo-500/15";
+  let healthBar = "bg-indigo-500 dark:bg-indigo-400";
   let healthLabel = "Needs Work";
   let healthEmoji = "🔧";
 

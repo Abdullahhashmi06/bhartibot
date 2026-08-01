@@ -21,8 +21,8 @@ export default async function ResumePage() {
   return (
     <div className="space-y-8 pb-12">
       <div>
-        <h1 className="text-3xl font-display font-bold text-primary">Resume & Documents</h1>
-        <p className="text-text-secondary mt-1">Manage your resume and see how well it matches industry standards.</p>
+        <h1 className="text-3xl font-display font-bold text-primary dark:text-white">Resume & Documents</h1>
+        <p className="text-text-secondary dark:text-slate-400 mt-1">Manage your resume and see how well it matches industry standards.</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

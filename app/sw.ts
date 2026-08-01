@@ -54,6 +54,37 @@ const isPrivatePath = (pathname: string) =>
 
 const isSupabaseUrl = (url: URL) => url.hostname.includes("supabase.co");
 
+// Cache version — bump this on every deploy so stale runtime caches written
+// by a previous service worker version can NEVER be read again. Old
+// `interniq-*` caches are purged in the activate handler below.
+const SW_VERSION = "v2";
+const CACHE_NAMES = {
+  static: `interniq-static-${SW_VERSION}`,
+  fonts: `interniq-fonts-${SW_VERSION}`,
+  assets: `interniq-assets-${SW_VERSION}`,
+  avatars: `interniq-avatars-${SW_VERSION}`,
+  images: `interniq-images-${SW_VERSION}`,
+  pages: `interniq-pages-${SW_VERSION}`,
+};
+
+// Purge any runtime cache from a previous SW version on activation, so a
+// stale worker can never serve deleted chunks (the root cause of React's
+// "Cannot read properties of null (reading 'removeChild')" after deploys).
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    (async () => {
+      const allowed = new Set(Object.values(CACHE_NAMES));
+      const keys = await caches.keys();
+      await Promise.all(
+        keys
+          .filter((name) => name.startsWith("interniq-") && !allowed.has(name))
+          .map((name) => caches.delete(name))
+      );
+      await self.clients.claim();
+    })()
+  );
+});
+
 const serwist = new Serwist({
   precacheEntries: self.__SW_MANIFEST,
   skipWaiting: false,
@@ -74,7 +105,7 @@ const serwist = new Serwist({
         url.origin === self.location.origin &&
         url.pathname.startsWith("/_next/static/"),
       handler: new StaleWhileRevalidate({
-        cacheName: "interniq-static",
+        cacheName: CACHE_NAMES.static,
         plugins: [
           new ExpirationPlugin({
             maxEntries: 200,
@@ -89,7 +120,7 @@ const serwist = new Serwist({
         url.hostname === "fonts.googleapis.com" ||
         url.hostname === "fonts.gstatic.com",
       handler: new CacheFirst({
-        cacheName: "interniq-fonts",
+        cacheName: CACHE_NAMES.fonts,
         plugins: [
           new ExpirationPlugin({
             maxEntries: 32,
@@ -106,7 +137,7 @@ const serwist = new Serwist({
           url.pathname
         ),
       handler: new CacheFirst({
-        cacheName: "interniq-assets",
+        cacheName: CACHE_NAMES.assets,
         plugins: [
           new ExpirationPlugin({
             maxEntries: 64,
@@ -119,7 +150,7 @@ const serwist = new Serwist({
     {
       matcher: ({ url }) => url.hostname === "api.dicebear.com",
       handler: new CacheFirst({
-        cacheName: "interniq-avatars",
+        cacheName: CACHE_NAMES.avatars,
         plugins: [
           new ExpirationPlugin({
             maxEntries: 128,
@@ -137,7 +168,7 @@ const serwist = new Serwist({
         url.pathname.startsWith("/_next/image") &&
         !url.search.includes("supabase"),
       handler: new CacheFirst({
-        cacheName: "interniq-images",
+        cacheName: CACHE_NAMES.images,
         plugins: [
           new ExpirationPlugin({
             maxEntries: 128,
@@ -156,7 +187,7 @@ const serwist = new Serwist({
         return !isPrivatePath(url.pathname);
       },
       handler: new NetworkFirst({
-        cacheName: "interniq-pages",
+        cacheName: CACHE_NAMES.pages,
         networkTimeoutSeconds: 4,
         plugins: [
           new ExpirationPlugin({

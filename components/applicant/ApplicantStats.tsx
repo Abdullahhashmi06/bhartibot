@@ -73,15 +73,15 @@ export default function ApplicantStats({ stats }: { stats: any }) {
       label: "Rejected",
       value: stats.rejected || 0,
       icon: XCircle,
-      tile: "bg-rose-50 text-danger dark:bg-rose-500/15 dark:text-rose-300",
-      accent: "text-danger dark:text-rose-300",
+      tile: "bg-slate-100 text-slate-600 dark:bg-slate-700/60 dark:text-slate-300",
+      accent: "text-slate-600 dark:text-slate-300",
       trend: stats.rejected > 0 ? "Opportunity to improve" : "No rejections",
       trendUp: false,
     },
   ];
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3.5">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-7 gap-4">
       {statCards.map((stat, i) => (
         <motion.div
           key={i}

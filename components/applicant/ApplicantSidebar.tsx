@@ -11,10 +11,8 @@ import {
   Bookmark,
   FileText,
   Settings,
-  Sparkles,
   Menu,
   X,
-  ChevronRight,
   Sun,
   Moon,
 } from "lucide-react";
@@ -42,7 +40,9 @@ export default function ApplicantSidebar({
 }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [collapsed, setCollapsed] = useState(false);
+  // Desktop sidebar is fixed-width (w-64) — the main content reserves that
+  // space via lg:pl-64 in the layout, so no collapse toggling that would
+  // leave content hidden behind the rail.
   const { theme, setTheme, resolvedTheme } = useTheme();
 
   return (
@@ -89,9 +89,8 @@ export default function ApplicantSidebar({
 
       <aside
         className={cn(
-          "fixed top-0 bottom-0 left-0 z-50 flex flex-col bg-[#0B1F3A] text-white transition-all duration-300 shadow-2xl",
-          mobileOpen ? "translate-x-0 w-72" : "-translate-x-full lg:translate-x-0",
-          collapsed ? "lg:w-20" : "lg:w-64"
+          "fixed top-0 bottom-0 left-0 z-50 flex flex-col bg-[#0B1F3A] text-white transition-all duration-300 shadow-2xl w-64",
+          mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
         <div className="flex items-center justify-between px-6 py-6 border-b border-white/10">
@@ -108,23 +107,15 @@ export default function ApplicantSidebar({
                 </svg>
               </div>
             </div>
-            {!collapsed && (
-              <div className="flex flex-col">
-                <span className="font-display text-xl font-extrabold tracking-tight text-white">
-                  Intern<span className="text-gradient">IQ</span>
-                </span>
-                <span className="font-mono text-[9px] uppercase tracking-wider text-teal">
-                  Applicant Portal
-                </span>
-              </div>
-            )}
+            <div className="flex flex-col">
+              <span className="font-display text-xl font-extrabold tracking-tight text-white">
+                Intern<span className="text-gradient">IQ</span>
+              </span>
+              <span className="font-mono text-[9px] uppercase tracking-wider text-teal">
+                Applicant Portal
+              </span>
+            </div>
           </Link>
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            className="hidden lg:flex h-6 w-6 items-center justify-center rounded-full bg-white/10 text-white/70 hover:bg-white/20 hover:text-white transition-colors"
-          >
-            <ChevronRight className={cn("h-4 w-4 transition-transform", !collapsed && "rotate-180")} />
-          </button>
         </div>
 
         <nav className="flex-1 space-y-1.5 px-3 py-6 overflow-y-auto">
@@ -146,8 +137,8 @@ export default function ApplicantSidebar({
                 )}
               >
                 <Icon className="h-5 w-5 shrink-0" />
-                {!collapsed && <span>{item.label}</span>}
-                {isActive && !collapsed && (
+                <span className="truncate">{item.label}</span>
+                {isActive && (
                   <span className="ml-auto h-2 w-2 rounded-full bg-white shadow-sm" />
                 )}
               </Link>
@@ -156,34 +147,32 @@ export default function ApplicantSidebar({
         </nav>
 
         <div className="border-t border-white/10 p-4 space-y-3">
-          {!collapsed && (
-            <div className="flex items-center justify-between px-2">
-              <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500">
-                Display
-              </span>
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={() => {
-                    // Cycle: light -> dark -> system -> light
-                    if (theme === "light") setTheme("dark");
-                    else if (theme === "dark") setTheme("system");
-                    else setTheme("light");
-                  }}
-                  className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/10 text-white/70 hover:bg-white/20 hover:text-white transition-all"
-                  title={"Theme: " + theme + " (click to cycle)"}
-                >
-                  {theme === "dark" ? (
-                    <Moon className="h-3.5 w-3.5" />
-                  ) : theme === "system" ? (
-                    <Sun className="h-3.5 w-3.5" />
-                  ) : (
-                    <Moon className="h-3.5 w-3.5" />
-                  )}
-                </button>
-              </div>
+          <div className="flex items-center justify-between px-2">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500">
+              Display
+            </span>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => {
+                  // Cycle: light -> dark -> system -> light
+                  if (theme === "light") setTheme("dark");
+                  else if (theme === "dark") setTheme("system");
+                  else setTheme("light");
+                }}
+                className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/10 text-white/70 hover:bg-white/20 hover:text-white transition-all"
+                title={"Theme: " + theme + " (click to cycle)"}
+              >
+                {theme === "dark" ? (
+                  <Moon className="h-3.5 w-3.5" />
+                ) : theme === "system" ? (
+                  <Sun className="h-3.5 w-3.5" />
+                ) : (
+                  <Moon className="h-3.5 w-3.5" />
+                )}
+              </button>
             </div>
-          )}
-          {!collapsed && (userEmail || userName) && (
+          </div>
+          {(userEmail || userName) && (
             <div className="flex items-center gap-3 px-2">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-teal/20 text-teal font-bold font-mono text-sm border border-teal/30 shrink-0">
                 {(userName || userEmail || "A")[0].toUpperCase()}
@@ -198,8 +187,8 @@ export default function ApplicantSidebar({
               </div>
             </div>
           )}
-          <div className={cn("flex", collapsed ? "justify-center" : "justify-between")}>
-            <LogoutButton collapsed={collapsed} />
+          <div className="flex justify-between">
+            <LogoutButton />
           </div>
         </div>
       </aside>
