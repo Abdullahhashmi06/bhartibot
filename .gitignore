@@ -24,3 +24,10 @@ next-env.d.ts
 public/sw.js
 public/sw.js.map
 public/swe-worker.js*
+
+# Freebuff local desktop cache (never merge)
+.freebuff/
+desktop.db
+desktop.db-shm
+desktop.db-wal
+desktop-v2.db
