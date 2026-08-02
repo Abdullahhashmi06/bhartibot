@@ -7,6 +7,10 @@ import { Button } from "@/components/ui/Button";
 import Shell from "@/components/layout/Shell";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
+import {
+  verifyRecaptcha,
+  recaptchaErrorMessage,
+} from "@/lib/recaptcha/client";
 
 const inputClass =
   "w-full rounded-xl border border-border bg-slate-50/50 px-4 py-3 text-sm text-text-primary placeholder:text-text-muted focus:border-teal focus:bg-white focus:outline-none transition-all shadow-subtle";
@@ -62,6 +66,12 @@ export default function ResetPasswordPage() {
     }
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
+      return;
+    }
+
+    const check = await verifyRecaptcha("password_reset");
+    if (!check.ok) {
+      setError(recaptchaErrorMessage());
       return;
     }
 

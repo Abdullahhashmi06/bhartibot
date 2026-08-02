@@ -10,6 +10,10 @@ import { createApplication } from "@/lib/queries/applications";
 import { ScreeningQuestion } from "@/lib/types";
 import { uploadCv } from "@/lib/queries/storage";
 import { isValidCgpa } from "@/lib/utils";
+import {
+  verifyRecaptcha,
+  recaptchaErrorMessage,
+} from "@/lib/recaptcha/client";
 
 const inputClass =
   "w-full rounded-xl border border-border bg-slate-50/50 px-4 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-teal focus:bg-white focus:outline-none transition-all shadow-subtle";
@@ -125,6 +129,12 @@ export default function ApplicationForm({
         setError("Please answer all screening questions before submitting.");
         return;
       }
+    }
+
+    const check = await verifyRecaptcha("apply");
+    if (!check.ok) {
+      setError(recaptchaErrorMessage());
+      return;
     }
 
     setStatus("submitting");

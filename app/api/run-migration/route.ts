@@ -12,8 +12,19 @@ import path from "path";
  * chunk through the exec_sql RPC. Requires an `exec_sql` function in Supabase
  * (the migration file itself creates it; you can also paste the file into the
  * Supabase SQL Editor once to bootstrap it).
+ *
+ * SECURITY: This endpoint executes SQL from a file on disk. It is therefore
+ * restricted to non-production environments (dev/staging only). In production
+ * it returns 403 without reading anything.
  */
 export async function GET() {
+  if (process.env.NODE_ENV === "production") {
+    return NextResponse.json(
+      { results: ["Migration runner is disabled in production."] },
+      { status: 403 }
+    );
+  }
+
   const supabase = createClient();
   const results: string[] = [];
 

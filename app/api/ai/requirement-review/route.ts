@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { reviewRequirements } from "@/lib/ai/assistant";
+import { requireUser } from "@/lib/api/require-user";
 
 export async function POST(req: NextRequest) {
   try {
+    const user = await requireUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+    }
+
     const body = await req.json();
     const result = await reviewRequirements(body);
     return NextResponse.json(result);

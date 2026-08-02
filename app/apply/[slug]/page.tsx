@@ -27,9 +27,6 @@ export default async function ApplyPage({
     getInternshipQuestions(supabase, internship.id),
   ]);
 
-  console.log("Internship ID:", internship.id);
-  console.log("Questions:", questions);
-  
   const required = requirements.filter((r) => r.type === "required");
   const preferred = requirements.filter((r) => r.type === "preferred");
 
