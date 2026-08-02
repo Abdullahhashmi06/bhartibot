@@ -105,7 +105,15 @@
   }
 
   .dark .text-text-muted {
-    color: #64748B;
+    color: #94A3B8;
+  }
+
+  .dark .text-teal-dark {
+    color: #2DD4BF;
+  }
+
+  .dark .text-emerald-dark {
+    color: #34D399;
   }
 
   /* Slate gray text used across many components — ensure it is never

@@ -40,7 +40,13 @@ const withSerwist = withSerwistInit({
   // us full control over the update lifecycle (update banner, controllerchange
   // reload) — disable Serwist's auto-injected registration snippet.
   register: false,
-  disable: false,
+  // CRITICAL: never run the service worker in development. Dev chunks are
+  // volatile (webpack.js + hashed chunks change on every rebuild), and a stale
+  // worker intercepting navigations can serve an old chunk alongside new ones.
+  // Mixing two React copies is exactly what produces the
+  // "Invalid hook call / Cannot read properties of null (reading 'useContext')"
+  // crash inside next/link's LinkComponent. Production builds still get the SW.
+  disable: process.env.NODE_ENV === "development",
 });
 
 export default withSerwist(nextConfig);

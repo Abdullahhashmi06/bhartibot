@@ -66,8 +66,25 @@ export async function healStaleServiceWorker(): Promise<void> {
   }
 }
 
+/**
+ * True when the service worker should be registered in this environment.
+ *
+ * The worker is DISABLED in development (next.config.mjs `disable: true`),
+ * because dev chunks are volatile — a stale worker can serve an old chunk
+ * alongside new ones, loading two copies of React and crashing with
+ * "Invalid hook call / Cannot read properties of null (reading 'useContext')".
+ */
+export function isSwEnabled(): boolean {
+  return process.env.NODE_ENV !== "development";
+}
+
 export function getRegistration(): Promise<ServiceWorkerRegistration | null> {
-  if (!isSwSupported()) return Promise.resolve(null);
+  if (!isSwSupported() || !isSwEnabled()) {
+    // Dev: no worker exists to register — but still drop any stale worker left
+    // over from a previous production build so it can never serve old chunks.
+    void healStaleServiceWorker();
+    return Promise.resolve(null);
+  }
   if (!registrationPromise) {
     registrationPromise = (async () => {
       // Drop any stale registration before registering the current build.
@@ -77,7 +94,7 @@ export function getRegistration(): Promise<ServiceWorkerRegistration | null> {
           updateViaCache: "none",
         });
       } catch (err) {
-        // /sw.js may be absent in dev — that's expected and non-fatal.
+        // /sw.js may be absent in some environments — expected and non-fatal.
         console.warn("[InternIQ PWA] Service worker registration failed:", err);
         return null;
       }

@@ -7,10 +7,6 @@ import { Button } from "@/components/ui/Button";
 import { toast } from "sonner";
 import { Sparkles, Mail, Lock, User, KeyRound, ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
-import {
-  verifyRecaptcha,
-  recaptchaErrorMessage,
-} from "@/lib/recaptcha/client";
 
 export default function ApplicantAuthPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -68,12 +64,6 @@ export default function ApplicantAuthPage() {
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
-    const check = await verifyRecaptcha("oauth_signin");
-    if (!check.ok) {
-      toast.error(recaptchaErrorMessage());
-      setLoading(false);
-      return;
-    }
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
@@ -92,11 +82,6 @@ export default function ApplicantAuthPage() {
       toast.error("Please enter your email address");
       return;
     }
-    const check = await verifyRecaptcha("password_reset");
-    if (!check.ok) {
-      toast.error(recaptchaErrorMessage());
-      return;
-    }
     setLoading(true);
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
       redirectTo: `${window.location.origin}/auth/reset-password`,
@@ -113,11 +98,6 @@ export default function ApplicantAuthPage() {
   const handleOtpRequest = async () => {
     if (!email.trim()) {
       toast.error("Please enter your email address");
-      return;
-    }
-    const check = await verifyRecaptcha("otp_request");
-    if (!check.ok) {
-      toast.error(recaptchaErrorMessage());
       return;
     }
     setLoading(true);
@@ -141,11 +121,6 @@ export default function ApplicantAuthPage() {
       toast.error("Please enter the complete verification code");
       return;
     }
-    const check = await verifyRecaptcha("otp_verify");
-    if (!check.ok) {
-      toast.error(recaptchaErrorMessage());
-      return;
-    }
     setLoading(true);
     const { data, error } = await supabase.auth.verifyOtp({
       email: email.trim(),
@@ -167,13 +142,6 @@ export default function ApplicantAuthPage() {
 
   const handlePasswordAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    const check = await verifyRecaptcha(isLogin ? "login" : "signup");
-    if (!check.ok) {
-      toast.error(recaptchaErrorMessage());
-      return;
-    }
-
     setLoading(true);
 
     try {
@@ -520,21 +488,21 @@ export default function ApplicantAuthPage() {
         )}
 
         <div className="mt-6 text-center text-sm">
-          <span className="text-text-secondary">
+          <span className="text-text-secondary dark:text-slate-300">
             {isLogin ? "Don't have an account? " : "Already have an account? "}
           </span>
           <button
             onClick={toggleMode}
-            className="text-teal font-medium hover:underline"
+            className="text-teal dark:text-teal-300 font-medium hover:underline"
           >
             {isLogin ? "Sign up" : "Sign in"}
           </button>
         </div>
 
-        <div className="mt-4 pt-4 border-t border-border text-center">
+        <div className="mt-4 pt-4 border-t border-border dark:border-slate-800 text-center">
           <button
             onClick={() => (window.location.href = "/login")}
-            className="text-xs text-text-secondary hover:text-primary transition-colors"
+            className="text-xs text-text-secondary dark:text-slate-400 hover:text-primary dark:hover:text-white transition-colors"
           >
             Recruiter? Sign in here →
           </button>

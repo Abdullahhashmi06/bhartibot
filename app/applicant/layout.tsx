@@ -80,52 +80,52 @@ export default async function ApplicantLayout({
     if (!newProfile) {
       // Still no profile — render a fallback instead of redirecting to avoid loop
       console.warn("Could not create applicant profile after retries, showing fallback");
-      return (
-        <div className="min-h-screen bg-background dark:bg-slate-950 flex">
-          <ApplicantSidebar userEmail={user.email} userName={user.user_metadata?.full_name as string || "Applicant"} />
-          <AppContent>
-            <div className="rounded-3xl border border-border bg-white dark:bg-slate-800 p-8 text-center shadow-card">
-              <h2 className="text-xl font-display font-bold text-primary dark:text-white mb-2">
-                Welcome to InternIQ!
-              </h2>
-              <p className="text-text-secondary dark:text-slate-400 mb-6">
-                Your profile is being set up. Please visit your profile page to complete your information.
-              </p>
-              <a href="/applicant/profile" className="inline-flex items-center gap-2 rounded-xl bg-gradient-primary text-white px-6 py-3 text-sm font-semibold shadow-teal hover:opacity-90 transition-all">
-                Complete Profile
-              </a>
-            </div>
-            {children}
-          </AppContent>
-        </div>
-      );
-    }
-
     return (
-      <div className="min-h-screen bg-background dark:bg-slate-950 flex">
-        <ApplicantSidebar userEmail={user.email} userName={newProfile.full_name} />
-        <AppContent>{children}</AppContent>
+      <div className="min-h-screen bg-background dark:bg-slate-950 flex flex-col lg:flex-row antialiased">
+        <ApplicantSidebar userEmail={user.email} userName={user.user_metadata?.full_name as string || "Applicant"} />
+        <AppContent>
+          <div className="rounded-3xl border border-border bg-white dark:bg-slate-800 p-8 text-center shadow-card">
+            <h2 className="text-xl font-display font-bold text-primary dark:text-white mb-2">
+              Welcome to InternIQ!
+            </h2>
+            <p className="text-text-secondary dark:text-slate-400 mb-6">
+              Your profile is being set up. Please visit your profile page to complete your information.
+            </p>
+            <a href="/applicant/profile" className="inline-flex items-center gap-2 rounded-xl bg-gradient-primary text-white px-6 py-3 text-sm font-semibold shadow-teal hover:opacity-90 transition-all">
+              Complete Profile
+            </a>
+          </div>
+          {children}
+        </AppContent>
       </div>
     );
   }
 
-  // Check role — but be lenient. If no role is set, allow through
-  if (profile.role && profile.role !== "applicant") {
-    redirect("/dashboard");
-  }
-
-  // If profile has no role, set it to applicant
-  if (!profile.role) {
-    await supabase
-      .from("applicant_profiles")
-      .update({ role: "applicant" })
-      .eq("id", user.id);
-  }
-
   return (
-    <div className="min-h-screen bg-background dark:bg-slate-950 flex">
-      <ApplicantSidebar userEmail={user.email} userName={profile.full_name} />
+    <div className="min-h-screen bg-background dark:bg-slate-950 flex flex-col lg:flex-row antialiased">
+      <ApplicantSidebar userEmail={user.email} userName={newProfile.full_name} />
       <AppContent>{children}</AppContent>
     </div>
   );
+}
+
+// Check role — but be lenient. If no role is set, allow through
+if (profile.role && profile.role !== "applicant") {
+  redirect("/dashboard");
+}
+
+// If profile has no role, set it to applicant
+if (!profile.role) {
+  await supabase
+    .from("applicant_profiles")
+    .update({ role: "applicant" })
+    .eq("id", user.id);
+}
+
+return (
+  <div className="min-h-screen bg-background dark:bg-slate-950 flex flex-col lg:flex-row antialiased">
+    <ApplicantSidebar userEmail={user.email} userName={profile.full_name} />
+    <AppContent>{children}</AppContent>
+  </div>
+);
 }

@@ -9,10 +9,6 @@ import { Button } from "@/components/ui/Button";
 import FormNotice from "@/components/ui/FormNotice";
 import OtpVerifyForm from "@/components/auth/OtpVerifyForm";
 import { createClient } from "@/lib/supabase/client";
-import {
-  verifyRecaptcha,
-  recaptchaErrorMessage,
-} from "@/lib/recaptcha/client";
 
 type Step = "email" | "otp";
 
@@ -59,12 +55,6 @@ function LoginForm() {
     }
 
     setStatus("loading");
-    const check = await verifyRecaptcha("otp_request");
-    if (!check.ok) {
-      setStatus("idle");
-      setError(recaptchaErrorMessage());
-      return;
-    }
     const otpError = await sendLoginOtp(trimmed);
     setStatus("idle");
 
@@ -78,11 +68,6 @@ function LoginForm() {
   }
 
   async function handleVerifyOtp(token: string): Promise<string | null> {
-    const check = await verifyRecaptcha("otp_verify");
-    if (!check.ok) {
-      return recaptchaErrorMessage();
-    }
-
     const { error: verifyError } = await supabase.auth.verifyOtp({
       email: email.trim(),
       token,
@@ -105,12 +90,6 @@ function LoginForm() {
 
   async function handleGoogleLogin() {
     setError(null);
-
-    const check = await verifyRecaptcha("oauth_signin");
-    if (!check.ok) {
-      setError(recaptchaErrorMessage());
-      return;
-    }
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
@@ -135,12 +114,6 @@ function LoginForm() {
     }
 
     setStatus("loading");
-    const check = await verifyRecaptcha("password_reset");
-    if (!check.ok) {
-      setStatus("idle");
-      setError(recaptchaErrorMessage());
-      return;
-    }
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(trimmed, {
       redirectTo: `${window.location.origin}/auth/reset-password`,
     });
@@ -354,15 +327,15 @@ function LoginForm() {
                 </div>
               )}
 
-              <p className="text-xs text-text-secondary pt-1">
+              <p className="text-xs text-text-secondary dark:text-slate-300 pt-1">
                 No recruiter workspace yet?{" "}
-                <Link href="/signup" className="font-bold text-teal-dark hover:underline">
+                <Link href="/signup" className="font-bold text-teal-dark dark:text-teal-300 hover:underline">
                   Sign up
                 </Link>
               </p>
-              <p className="text-xs text-text-secondary pt-1">
+              <p className="text-xs text-text-secondary dark:text-slate-300 pt-1">
                 Looking for internships instead?{" "}
-                <Link href="/applicant-auth" className="font-bold text-purple-ai hover:underline">
+                <Link href="/applicant-auth" className="font-bold text-purple-ai dark:text-purple-300 hover:underline">
                   Applicant Portal
                 </Link>
               </p>
