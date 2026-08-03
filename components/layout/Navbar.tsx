@@ -1,14 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { Sparkles, LogIn, UserPlus } from "lucide-react";
 import { ButtonLink } from "@/components/ui/Button";
+import ThemeToggle from "@/components/ui/ThemeToggle";
 
 export default function Navbar() {
   const pathname = usePathname();
   const inDashboard = pathname?.startsWith("/dashboard");
-  const inApplicant = pathname?.startsWith("/applicant");
+  const inApplicant = pathname === "/applicant" || pathname?.startsWith("/applicant/");
 
   if (inDashboard || inApplicant) return null; // Dashboard uses Sidebar + Topbar
 
@@ -34,7 +35,7 @@ export default function Navbar() {
               <span className="font-display font-extrabold text-xl tracking-tight text-primary dark:text-white">
                 Intern<span className="text-gradient">IQ</span>
               </span>
-              <span className="hidden sm:inline font-mono text-[10px] uppercase tracking-wider text-text-secondary">
+              <span className="hidden sm:inline font-mono text-[10px] uppercase tracking-wider text-text-secondary dark:text-slate-400">
                 Discover Potential. Create Impact.
               </span>
             </div>
@@ -43,6 +44,7 @@ export default function Navbar() {
 
         {/* Action Buttons */}
         <div className="flex items-center gap-3">
+          <ThemeToggle />
           <ButtonLink
             href="/login"
             variant="ghost"
@@ -64,3 +66,4 @@ export default function Navbar() {
     </header>
   );
 }
+

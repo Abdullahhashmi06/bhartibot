@@ -43,20 +43,24 @@ interface RevealProps {
   variant?: RevealVariant;
   /** Stagger delay in seconds (e.g. 0.1, 0.2) for cascading lists. */
   delay?: number;
-  /** Only animate once when scrolled into view (default true). */
+  /**
+   * Only animate once when scrolled into view.
+   * Defaults to false — animations re-trigger every time the element
+   * enters the viewport (scroll up, then back down = animates again).
+   */
   once?: boolean;
   className?: string;
 }
 
 /**
- * Scroll-reveal wrapper. Elements fade/slide/pop in the first time they enter
- * the viewport. Respects prefers-reduced-motion.
+ * Scroll-reveal wrapper. Elements fade/slide/pop every time they enter
+ * the viewport (re-triggerable). Respects prefers-reduced-motion.
  */
 export default function Reveal({
   children,
   variant = "fade-up",
   delay = 0,
-  once = true,
+  once = false,
   className,
 }: RevealProps) {
   const reduceMotion = useReducedMotion();
@@ -71,7 +75,7 @@ export default function Reveal({
       variants={variants[variant]}
       initial="hidden"
       whileInView="visible"
-      viewport={{ once, margin: "-40px" }}
+      viewport={{ once, margin: "-40px", amount: 0.15 }}
       transition={{ duration: 0.5, delay, ease: [0.22, 1, 0.36, 1] }}
     >
       {children}

@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Sparkles,
   ArrowRight,
@@ -35,9 +35,9 @@ export default function LandingPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="inline-flex items-center gap-2 rounded-full border border-teal/30 bg-teal-light/50 px-4 py-1.5 text-xs font-mono font-semibold text-teal-dark shadow-subtle mb-6"
+            className="inline-flex items-center gap-2 rounded-full border border-teal/40 bg-teal-light/60 dark:bg-teal/20 dark:border-teal/50 px-4 py-1.5 text-xs font-mono font-semibold text-teal-dark dark:text-teal-300 shadow-subtle mb-6"
           >
-            <Sparkles className="h-3.5 w-3.5 text-teal" />
+            <Sparkles className="h-3.5 w-3.5 text-teal dark:text-teal-400" />
             <span>InternIQ — Next-Gen AI Recruitment SaaS</span>
           </motion.div>
 
@@ -266,30 +266,34 @@ export default function LandingPage() {
 
           <div className="space-y-4">
             <Reveal variant="fade-down" delay={0.05}>
-            <FaqItem
-              question="Does InternIQ replace recruiter decisions?"
-              answer={
-                <div><p><strong>No.</strong> InternIQ is an evidence organizer, not a decision maker.</p><ul className="list-disc pl-5 space-y-1 mt-2"><li>It parses resumes and evaluates qualifications against your specific requirements</li><li>Provides transparent evidence mapping with source citations</li><li>Generates match scores based on objective criteria</li></ul><p className="mt-2">Recruiters always retain full control over hiring decisions — InternIQ delivers the evidence to make those decisions faster and more informed.</p></div>
-              }
-              isOpen={faqOpen === 0}
-              onToggle={() => setFaqOpen(faqOpen === 0 ? null : 0)}
-            />
-            <FaqItem
-              question="Do applicants need an account to apply?"
-              answer={
-                <div><p><strong>No account is required</strong> for applicants applying through public links.</p><p className="mt-2">Recruiters generate a unique application URL for each internship posting. Applicants can apply directly by uploading their CV and answering screening questions — no sign-up needed.</p><p className="mt-2">However, applicants who <em>choose</em> to create an account gain access to application tracking, AI-powered job recommendations, and profile management.</p></div>
-              }
-              isOpen={faqOpen === 1}
-              onToggle={() => setFaqOpen(faqOpen === 1 ? null : 1)}
-            />
-            <FaqItem
-              question="What file formats are supported for CV analysis?"
-              answer={
-                <div><p>InternIQ currently supports <strong>PDF format</strong> for CV analysis.</p><ul className="list-disc pl-5 space-y-1 mt-2"><li>Standard PDF documents up to 10 MB</li><li>Text-based PDFs are parsed for education, skills, projects, and experience</li><li>Scanned image PDFs may have limited extraction accuracy</li></ul><p className="mt-2">We recommend applicants upload text-based PDF resumes for the most accurate AI evidence mapping.</p></div>
-              }
-              isOpen={faqOpen === 2}
-              onToggle={() => setFaqOpen(faqOpen === 2 ? null : 2)}
-            />
+              <FaqItem
+                question="Does InternIQ replace recruiter decisions?"
+                answer={
+                  <div><p><strong>No.</strong> InternIQ is an evidence organizer, not a decision maker.</p><ul className="list-disc pl-5 space-y-1 mt-2"><li>It parses resumes and evaluates qualifications against your specific requirements</li><li>Provides transparent evidence mapping with source citations</li><li>Generates match scores based on objective criteria</li></ul><p className="mt-2">Recruiters always retain full control over hiring decisions — InternIQ delivers the evidence to make those decisions faster and more informed.</p></div>
+                }
+                isOpen={faqOpen === 0}
+                onToggle={() => setFaqOpen(faqOpen === 0 ? null : 0)}
+              />
+            </Reveal>
+            <Reveal variant="fade-down" delay={0.12}>
+              <FaqItem
+                question="Do applicants need an account to apply?"
+                answer={
+                  <div><p><strong>No account is required</strong> for applicants applying through public links.</p><p className="mt-2">Recruiters generate a unique application URL for each internship posting. Applicants can apply directly by uploading their CV and answering screening questions — no sign-up needed.</p><p className="mt-2">However, applicants who <em>choose</em> to create an account gain access to application tracking, AI-powered job recommendations, and profile management.</p></div>
+                }
+                isOpen={faqOpen === 1}
+                onToggle={() => setFaqOpen(faqOpen === 1 ? null : 1)}
+              />
+            </Reveal>
+            <Reveal variant="fade-down" delay={0.19}>
+              <FaqItem
+                question="What file formats are supported for CV analysis?"
+                answer={
+                  <div><p>InternIQ currently supports <strong>PDF format</strong> for CV analysis.</p><ul className="list-disc pl-5 space-y-1 mt-2"><li>Standard PDF documents up to 10 MB</li><li>Text-based PDFs are parsed for education, skills, projects, and experience</li><li>Scanned image PDFs may have limited extraction accuracy</li></ul><p className="mt-2">We recommend applicants upload text-based PDF resumes for the most accurate AI evidence mapping.</p></div>
+                }
+                isOpen={faqOpen === 2}
+                onToggle={() => setFaqOpen(faqOpen === 2 ? null : 2)}
+              />
             </Reveal>
           </div>
         </div>
@@ -377,23 +381,42 @@ function FaqItem({
   onToggle: () => void;
 }) {
   return (
-    <div className="rounded-2xl border border-border bg-white overflow-hidden shadow-subtle">
+    <div className="rounded-2xl border border-border dark:border-slate-700 bg-white dark:bg-slate-900 overflow-hidden shadow-subtle transition-colors">
       <button
         onClick={onToggle}
-        className="flex w-full items-center justify-between p-5 text-left font-display font-bold text-base text-primary hover:bg-slate-50 transition-colors"
+        aria-expanded={isOpen}
+        className="flex w-full items-center justify-between p-5 text-left font-display font-bold text-base text-primary dark:text-white hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors"
       >
         <span>{question}</span>
-        <ChevronDown
-          className={`h-5 w-5 text-text-muted transition-transform ${
-            isOpen ? "rotate-180 text-teal" : ""
-          }`}
-        />
+        <motion.span
+          animate={{ rotate: isOpen ? 180 : 0 }}
+          transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+          className="shrink-0 ml-3"
+        >
+          <ChevronDown
+            className={`h-5 w-5 transition-colors duration-300 ${
+              isOpen ? "text-teal" : "text-text-muted dark:text-slate-500"
+            }`}
+          />
+        </motion.span>
       </button>
-      {isOpen && (
-        <div className="px-5 pb-5 pt-4 text-sm text-text-secondary leading-7 border-t border-slate-100 space-y-3">
-          {answer}
-        </div>
-      )}
+
+      <AnimatePresence initial={false}>
+        {isOpen && (
+          <motion.div
+            key="faq-content"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            className="overflow-hidden"
+          >
+            <div className="px-5 pb-5 pt-4 text-sm text-text-secondary dark:text-slate-300 leading-7 border-t border-slate-100 dark:border-slate-700/60 space-y-3">
+              {answer}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
