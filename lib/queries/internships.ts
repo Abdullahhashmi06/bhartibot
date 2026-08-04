@@ -107,7 +107,13 @@ export async function getRecruiterInternships(
     query = query.eq("status", status);
   }
 
+  console.log("===== Recruiter Internships =====");
+  console.log("Organization ID:", organizationId);
+
   const { data, error } = await query;
+
+  console.log("Internships returned:", data);
+  console.log("Internship error:", error);
 
   if (error) {
     console.error("getRecruiterInternships failed:", error.message);
@@ -312,7 +318,7 @@ export async function unpublishInternship(
   return { internship: data as Internship, error: null };
 }
 
-/** Update editable fields on an existing internship (title, description, requirements, stipend, deadline, internship_type, profile-link requirements). */
+/** Update editable fields on an existing internship (title, description, requirements, profile-link requirements). */
 export async function updateInternship(
   supabase: SupabaseClient,
   internshipId: string,
