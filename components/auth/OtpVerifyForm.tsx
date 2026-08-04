@@ -4,6 +4,10 @@ import { FormEvent, useState } from "react";
 import { KeyRound, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import FormNotice from "@/components/ui/FormNotice";
+import {
+  verifyRecaptcha,
+  recaptchaErrorMessage,
+} from "@/lib/recaptcha/client";
 
 export default function OtpVerifyForm({
   email,
@@ -49,6 +53,16 @@ export default function OtpVerifyForm({
     setError(null);
     setInfo(null);
     setStatus("resending");
+
+    // Gate the resend like every other sensitive action — prevents an
+    // attacker from using resend to spam a victim's inbox.
+    const check = await verifyRecaptcha("otp_resend");
+    if (!check.ok) {
+      setStatus("idle");
+      setError(recaptchaErrorMessage());
+      return;
+    }
+
     const resendError = await onResend();
     setStatus("idle");
 

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { sendRejectionEmailAction } from "./actions";
+import { sendRejectionEmailAction, sendShortlistedEmailAction } from "./actions";
 import { ApplicationStatus } from "@/lib/types";
 
 /**
@@ -51,7 +51,10 @@ export async function updateStatusServerAction(
       revalidatePath(`/dashboard/applications/${preFetched.internshipId}`, "layout");
     }
 
-    // Fire rejection email (fire-and-forget, never blocks)
+    // Fire status-change emails (fire-and-forget, never blocks).
+    // Dedup is handled by the previous-status guard above plus the
+    // per-application in-memory markers in the actions — emails only fire
+    // when the status ACTUALLY changes, never on refresh/notes edits.
     if (newStatus === "rejected" && prevStatus !== "rejected") {
       sendRejectionEmailAction(applicationId, {
         applicantEmail: preFetched?.applicantEmail,
@@ -60,6 +63,17 @@ export async function updateStatusServerAction(
         organizationName: preFetched?.organizationName,
       }).catch((err) => {
         console.error("[statusActions] Rejection email fire-and-forget failed:", err);
+      });
+    }
+
+    if (newStatus === "shortlisted" && prevStatus !== "shortlisted") {
+      sendShortlistedEmailAction(applicationId, {
+        applicantEmail: preFetched?.applicantEmail,
+        applicantName: preFetched?.applicantName,
+        internshipTitle: preFetched?.internshipTitle,
+        organizationName: preFetched?.organizationName,
+      }).catch((err) => {
+        console.error("[statusActions] Shortlisted email fire-and-forget failed:", err);
       });
     }
 

@@ -32,6 +32,29 @@ export function isValidCgpa(value: string): boolean {
 }
 
 /**
+ * Sanitizes a `next`/redirect parameter to a safe internal path.
+ *
+ * Prevents open-redirect: only relative paths starting with a single "/" are
+ * accepted. Absolute URLs (https://evil.com), protocol-relative URLs
+ * (//evil.com), backslash tricks (\evil.com), and anything else fall back to
+ * `fallback`. Use for every `?next=`-style redirect target.
+ */
+export function safeRedirectPath(
+  next: string | null | undefined,
+  fallback = "/"
+): string {
+  if (!next) return fallback;
+  const trimmed = next.trim();
+  if (!trimmed.startsWith("/")) return fallback;
+  // Browsers treat backslashes as forward slashes for special schemes, so
+  // `//evil.com`, `/\\evil.com` and `\evil.com` all resolve to an external
+  // host. Normalize backslashes, then reject anything scheme-relative.
+  const normalized = trimmed.replace(/\\/g, "/");
+  if (normalized.startsWith("//")) return fallback;
+  return trimmed;
+}
+
+/**
  * Recover the original uploaded filename from a storage path.
  *
  * Storage paths look like:

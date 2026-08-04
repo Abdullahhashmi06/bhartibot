@@ -9,7 +9,7 @@ import { RecommendationCard } from "@/components/ai/RecommendationCard";
 import { RadarChartWidget, RequirementBarChart } from "@/components/ai/InfographicCharts";
 import Tag from "@/components/ui/Tag";
 import { Button } from "@/components/ui/Button";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getSharedReviewDataByToken } from "@/lib/queries/share";
 import type { SharedSection } from "@/lib/types";
 
@@ -25,7 +25,11 @@ export async function generateMetadata({
   params: { token: string };
   searchParams: { pwd?: string };
 }): Promise<Metadata> {
-  const supabase = createClient();
+  // Token-gated access must bypass table RLS (share links are public by
+  // design); the token UUID is the capability. Table-level ANON policies have
+  // been revoked for security, so this read runs through the service-role
+  // admin client — never exposed to the browser.
+  const supabase = createAdminClient();
   const result = await getSharedReviewDataByToken(
     supabase,
     params.token,
@@ -97,7 +101,7 @@ export default async function SharedReviewPage({
   params: { token: string };
   searchParams: { pwd?: string };
 }) {
-  const supabase = createClient();
+  const supabase = createAdminClient();
   const result = await getSharedReviewDataByToken(
     supabase,
     params.token,

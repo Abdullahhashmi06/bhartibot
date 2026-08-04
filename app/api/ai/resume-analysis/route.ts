@@ -8,6 +8,7 @@ import {
   buildHeuristicResumeFeedback,
 } from "@/lib/ai/resume-feedback";
 import { runAiOperation } from "@/lib/ai/service";
+import { rateLimitOrNull } from "@/lib/api/rate-limit";
 
 /**
  * POST /api/ai/resume-analysis
@@ -16,7 +17,10 @@ import { runAiOperation } from "@/lib/ai/service";
  * feedback (score, strengths, improvements, missing elements, skills).
  * Requires a signed-in applicant with a cv_path on their profile.
  */
-export async function POST(_req: NextRequest) {
+export async function POST(req: NextRequest) {
+  const limited = rateLimitOrNull(req);
+  if (limited) return limited;
+
   const supabase = createClient();
   const {
     data: { user },

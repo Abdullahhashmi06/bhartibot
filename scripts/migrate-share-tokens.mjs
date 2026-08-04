@@ -4,7 +4,9 @@
  * Usage: node scripts/migrate-share-tokens.mjs
  * 
  * Reads .env.local manually (no dotenv dependency needed).
- * Uses Supabase REST API with service_role key to execute raw SQL.
+ * Uses the Supabase Management API (database/query endpoint) with a
+ * management key to execute raw SQL. The dev-only exec_sql RPC was removed
+ * from the codebase on 2026-08-07 and must never ship.
  */
 
 import { readFileSync } from "fs";
@@ -45,14 +47,17 @@ try {
 }
 
 const SUPABASE_URL = env.NEXT_PUBLIC_SUPABASE_URL;
-const SERVICE_ROLE_KEY = env.SUPABASE_SERVICE_ROLE_KEY;
+// The Supabase Management API authenticates with a personal access token
+// (sbp_...) from https://supabase.com/dashboard/account/tokens. The service
+// role key is NOT accepted by api.supabase.com — it will always return 401.
+const ACCESS_TOKEN = env.SUPABASE_ACCESS_TOKEN;
 
 if (!SUPABASE_URL) {
   console.error("❌ NEXT_PUBLIC_SUPABASE_URL not found in .env.local");
   process.exit(1);
 }
-if (!SERVICE_ROLE_KEY) {
-  console.error("❌ SUPABASE_SERVICE_ROLE_KEY not found in .env.local");
+if (!ACCESS_TOKEN) {
+  console.error("❌ SUPABASE_ACCESS_TOKEN (Management API personal access token) not found in .env.local");
   process.exit(1);
 }
 
@@ -61,53 +66,36 @@ const SQL_PATH = resolve(ROOT, "supabase", "migrations", "20260802_share_tokens.
 const sql = readFileSync(SQL_PATH, "utf-8");
 console.log(`📋 Read migration (${sql.length} bytes)`);
 
-// ── SQL execution via Supabase REST API ────────────────────────────────────
-const SUPABASE_REST = `${SUPABASE_URL}/rest/v1`;
+// ── SQL execution via the Supabase Management API ──────────────────────────
 
 async function execSql(sqlStatement) {
-  // Try exec_sql RPC first
-  const rpcResponse = await fetch(`${SUPABASE_REST}/rpc/exec_sql`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "apikey": SERVICE_ROLE_KEY,
-      "Authorization": `Bearer ${SERVICE_ROLE_KEY}`,
-    },
-    body: JSON.stringify({ sql: sqlStatement }),
-  });
-
-  if (rpcResponse.ok) return { ok: true, method: "rpc" };
-
-  const rpcError = await rpcResponse.text();
-
-  // Fallback: use the SQL endpoint via pg_dump or direct query
-  // Supabase projects have a /sql endpoint available via the management API
+  // The dev-only exec_sql RPC has been removed (2026-08-07) and must never
+  // exist in production. Apply raw SQL via the Supabase Management API
+  // database/query endpoint (requires a management API key) or, preferably,
+  // paste the migration into the Supabase SQL Editor.
   const projectRef = extractProjectRef(SUPABASE_URL);
-  if (projectRef) {
-    const mgmtResponse = await fetch(
-      `https://api.supabase.com/v1/projects/${projectRef}/database/query`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${SERVICE_ROLE_KEY}`,
-        },
-        body: JSON.stringify({ query: sqlStatement }),
-      }
-    );
-
-    if (mgmtResponse.ok) {
-      return { ok: true, method: "mgmt_api" };
-    }
-
-    const mgmtError = await mgmtResponse.text();
-    return { 
-      ok: false, 
-      error: `RPC: ${rpcError.substring(0, 200)}\nMgmt: ${mgmtError.substring(0, 200)}` 
-    };
+  if (!projectRef) {
+    return { ok: false, error: "Could not extract project ref from SUPABASE_URL." };
   }
 
-  return { ok: false, error: rpcError.substring(0, 300) };
+  const mgmtResponse = await fetch(
+    `https://api.supabase.com/v1/projects/${projectRef}/database/query`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${ACCESS_TOKEN}`,
+      },
+      body: JSON.stringify({ query: sqlStatement }),
+    }
+  );
+
+  if (mgmtResponse.ok) {
+    return { ok: true, method: "mgmt_api" };
+  }
+
+  const mgmtError = await mgmtResponse.text();
+  return { ok: false, error: mgmtError.substring(0, 300) };
 }
 
 function extractProjectRef(url) {

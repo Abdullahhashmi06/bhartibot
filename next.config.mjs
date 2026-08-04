@@ -12,6 +12,54 @@ const nextConfig = {
       },
     ],
   },
+  // ── Security headers ───────────────────────────────────────────────────────
+  // Defense-in-depth for production: clickjacking, MIME sniffing, referrer
+  // leakage, permissions. CSP is scoped to allow only the origins the app
+  // genuinely talks to (Google reCAPTCHA, Google Fonts, Supabase, DiceBear).
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          {
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
+          },
+          {
+            key: "Content-Security-Policy",
+            value: [
+              "default-src 'self'",
+              // Next.js injects inline scripts (hydration) + the theme script.
+              // 'unsafe-eval' is only needed by the webpack HMR dev runtime,
+              // so it is added in development and dropped in production.
+              `script-src 'self' 'unsafe-inline' https://www.google.com https://www.gstatic.com${
+                process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""
+              }`,
+              // Next.js injects inline styles; Google Fonts is a stylesheet.
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+              "font-src 'self' https://fonts.gstatic.com data:",
+              // DiceBear avatars + Supabase storage signed-URL images.
+              "img-src 'self' data: blob: https://*.supabase.co https://api.dicebear.com",
+              // Supabase REST/realtime, reCAPTCHA client + verification, and
+              // the reCAPTCHA host used by the invisible v3 token flow.
+              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.google.com https://recaptcha.google.com",
+              // CV preview iframes render Supabase signed URLs.
+              "frame-src 'self' https://*.supabase.co",
+              "worker-src 'self'",
+              "manifest-src 'self'",
+              "base-uri 'self'",
+              "form-action 'self'",
+              "frame-ancestors 'self'",
+              "object-src 'none'",
+            ].join("; "),
+          },
+        ],
+      },
+    ];
+  },
   // Build-time app version info, exposed to the client via NEXT_PUBLIC_*
   env: {
     NEXT_PUBLIC_APP_VERSION: process.env.npm_package_version || "0.1.0",

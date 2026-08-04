@@ -4,6 +4,8 @@ import { getInternshipRequirements } from "@/lib/queries/internships";
 import { getApplicationById, getApplicationAnswers } from "@/lib/queries/applications";
 import { getCandidateAiAnalysis, getInterviewQuestions, saveInterviewQuestions } from "@/lib/queries/ai-analysis";
 import { generateInterviewQuestions } from "@/lib/ai/interview";
+import { requireRecruiter } from "@/lib/api/require-user";
+import { rateLimitOrNull } from "@/lib/api/rate-limit";
 import type { CandidateScoreInput, InterviewQuestion } from "@/lib/types";
 
 /**
@@ -17,6 +19,9 @@ import type { CandidateScoreInput, InterviewQuestion } from "@/lib/types";
  */
 export async function POST(req: NextRequest) {
   try {
+    const limited = rateLimitOrNull(req);
+    if (limited) return limited;
+
     const { applicationId, internshipId, force } = await req.json();
     if (!applicationId || !internshipId) {
       return NextResponse.json(
@@ -25,11 +30,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await requireRecruiter();
     if (!user) {
       return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
     }
+
+    const supabase = createClient();
 
     // ── Step 1: Check cache (skip if force=true) ──────────────────────
     if (!force) {
@@ -101,6 +107,9 @@ export async function POST(req: NextRequest) {
  */
 export async function PUT(req: NextRequest) {
   try {
+    const limited = rateLimitOrNull(req);
+    if (limited) return limited;
+
     const { applicationId, questions } = await req.json();
     if (!applicationId || !Array.isArray(questions)) {
       return NextResponse.json(
@@ -109,11 +118,12 @@ export async function PUT(req: NextRequest) {
       );
     }
 
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await requireRecruiter();
     if (!user) {
       return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
     }
+
+    const supabase = createClient();
 
     const saved = await saveInterviewQuestions(
       supabase,

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { safeRedirectPath } from "@/lib/utils";
 
 /**
  * Recruiter OAuth callback (Google).
@@ -12,7 +13,8 @@ import { createClient } from "@/lib/supabase/server";
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") || "/dashboard";
+  // Open-redirect guard: only a relative path may be used as the redirect target.
+  const next = safeRedirectPath(searchParams.get("next"), "/dashboard");
 
   if (code) {
     const supabase = createClient();

@@ -20,31 +20,14 @@
 --   8. All base RLS policies recreated idempotently (drop if exists).
 --
 -- HOW TO RUN:
---   Option A (recommended): open your Supabase project → SQL Editor → paste
---     this entire file → Run.
---   Option B: after creating the exec_sql helper below, hit /api/run-migration
---     while signed in, or run `node supabase/run-migration.js`.
+--   Open your Supabase project → SQL Editor → paste this entire file → Run.
+--
+-- SECURITY NOTE (2026-08-07): the old dev-only `public.exec_sql(text)`
+-- SECURITY DEFINER helper (used by the removed /api/run-migration endpoint)
+-- has been fully removed from this project. Arbitrary SQL execution must
+-- never exist in production — apply migrations only via the Supabase SQL
+-- Editor. The removal migration is 20260807_remove_exec_sql.sql.
 -- ============================================================================
-
--- ----------------------------------------------------------------------------
--- 0. exec_sql helper (used by the run-migration endpoint / script).
---    Only created if it does not already exist.
--- ----------------------------------------------------------------------------
-DO $$
-BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'exec_sql' AND pg_function_is_visible(oid)) THEN
-    CREATE FUNCTION public.exec_sql(sql text) RETURNS void
-    LANGUAGE plpgsql SECURITY DEFINER
-    SET search_path = public
-    AS $$ BEGIN EXECUTE sql; END $$;
-  END IF;
-END $$;
-
--- Restricted on purpose and applied UNCONDITIONALLY (even if exec_sql already
--- existed from an older setup): exec_sql runs as the definer with full DB
--- rights, so only authenticated users and service_role may call it — never anon.
-REVOKE ALL ON FUNCTION public.exec_sql(text) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.exec_sql(text) TO authenticated, service_role;
 
 -- ----------------------------------------------------------------------------
 -- 1. Backfill profiles + organisations for existing auth users.

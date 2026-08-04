@@ -9,6 +9,10 @@ import { Button } from "@/components/ui/Button";
 import FormNotice from "@/components/ui/FormNotice";
 import OtpVerifyForm from "@/components/auth/OtpVerifyForm";
 import { createClient } from "@/lib/supabase/client";
+import {
+  verifyRecaptcha,
+  recaptchaErrorMessage,
+} from "@/lib/recaptcha/client";
 
 type Step = "details" | "otp";
 
@@ -34,6 +38,13 @@ export default function RecruiterSignupPage() {
     }
 
     setStatus("loading");
+
+    const check = await verifyRecaptcha("signup");
+    if (!check.ok) {
+      setStatus("idle");
+      setError(recaptchaErrorMessage());
+      return;
+    }
 
     const { data, error: signUpError } = await supabase.auth.signUp({
       email: email.trim(),

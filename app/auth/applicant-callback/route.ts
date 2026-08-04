@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { safeRedirectPath } from "@/lib/utils";
 
 /**
  * Applicant OAuth callback (Google).
@@ -10,7 +11,8 @@ import { createClient } from "@/lib/supabase/server";
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") || "/applicant";
+  // Open-redirect guard: only a relative path may be used as the redirect target.
+  const next = safeRedirectPath(searchParams.get("next"), "/applicant");
 
   if (code) {
     const supabase = createClient();
@@ -36,6 +38,14 @@ export async function GET(request: Request) {
           role: "applicant",
         });
       }
+
+      // The on_auth_user_created trigger runs at user creation (before OAuth
+      // metadata carries a role hint), so Google applicants may have gotten a
+      // spurious recruiter profile + empty org. Remove it now that the
+      // applicant profile is guaranteed to exist.
+      await supabase.rpc("remove_spurious_recruiter_profile", {
+        p_user_id: data.user.id,
+      });
     }
   }
 

@@ -92,6 +92,7 @@ export default function InterviewScheduler({
         meetingLink: meetingLink.trim() || null,
         venue: venue.trim() || null,
         notes: notes.trim() || null,
+        interviewerName: interviewerName.trim() || null,
         // Pass pre-fetched details to avoid DB queries (makes email resilient to DB outages)
         applicantName: applicantName,
         applicantEmail: applicantEmail,
@@ -99,9 +100,9 @@ export default function InterviewScheduler({
         organizationName: organizationName,
       }).then((result) => {
         if (result?.skipped) {
-          console.warn("[InterviewScheduler] Email skipped (RESEND_API_KEY not configured)");
+          console.warn("[InterviewScheduler] Email skipped (SMTP not configured)");
           toast.warning(
-            "Interview scheduled — email notification not sent because RESEND_API_KEY isn't configured.",
+            "Interview scheduled — email notification not sent because SMTP isn't configured.",
             { duration: 6000 }
           );
         } else if (!result?.success) {

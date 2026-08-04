@@ -74,6 +74,23 @@ export async function createShareLink(
     return { success: false, error: "Internship not found." };
   }
 
+  // C6 (security): the application must belong to the SAME internship (and
+  // therefore the same org) as the internshipId the recruiter claims. Without
+  // this, a recruiter could create a share token referencing another org's
+  // candidate application and exfiltrate their data through the review URL.
+  const { data: application } = await supabase
+    .from("applications")
+    .select("internship_id")
+    .eq("id", applicationId)
+    .maybeSingle();
+
+  if (!application || application.internship_id !== internshipId) {
+    return {
+      success: false,
+      error: "Application not found for this internship.",
+    };
+  }
+
   const passwordHash = opts.password ? hashPassword(opts.password) : null;
   const expiresAt = calculateExpiresAt(opts.expiration);
 

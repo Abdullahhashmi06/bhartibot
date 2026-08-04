@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { reviewRequirements } from "@/lib/ai/assistant";
-import { requireUser } from "@/lib/api/require-user";
+import { requireRecruiter } from "@/lib/api/require-user";
+import { rateLimitOrNull } from "@/lib/api/rate-limit";
 
 export async function POST(req: NextRequest) {
   try {
-    const user = await requireUser();
+    const limited = rateLimitOrNull(req);
+    if (limited) return limited;
+
+    const user = await requireRecruiter();
     if (!user) {
       return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
     }

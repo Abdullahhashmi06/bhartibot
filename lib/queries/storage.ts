@@ -68,12 +68,17 @@ export async function uploadCv(
   // recruiter can always download the resume under its real name. The
   // timestamp is stripped on the display/download side via
   // extractOriginalFilename().
+  //
+  // The `public-apply/` folder prefix matches the storage RLS INSERT policy
+  // (security hardening): anonymous and signed-in applicants may only write
+  // under public-apply/, keeping the bucket from becoming an arbitrary-write
+  // target while preserving the anonymous apply flow.
   const fileExt = file.name.split(".").pop() || "pdf";
   const safeBase = file.name
     .replace(/\.[^.]+$/, "")
     .replace(/[^\w.\- ]/g, "_")
     .slice(0, 80) || "resume";
-  const fileName = `${Date.now()}_${safeBase}.${fileExt}`;
+  const fileName = `public-apply/${Date.now()}_${safeBase}.${fileExt}`;
 
   const { data, error } = await supabase.storage
     .from("cv-files")

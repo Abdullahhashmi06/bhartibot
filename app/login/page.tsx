@@ -9,6 +9,11 @@ import { Button } from "@/components/ui/Button";
 import FormNotice from "@/components/ui/FormNotice";
 import OtpVerifyForm from "@/components/auth/OtpVerifyForm";
 import { createClient } from "@/lib/supabase/client";
+import {
+  verifyRecaptcha,
+  recaptchaErrorMessage,
+} from "@/lib/recaptcha/client";
+import { safeRedirectPath } from "@/lib/utils";
 
 type Step = "email" | "otp";
 
@@ -55,6 +60,14 @@ function LoginForm() {
     }
 
     setStatus("loading");
+
+    const check = await verifyRecaptcha("login");
+    if (!check.ok) {
+      setStatus("idle");
+      setError(recaptchaErrorMessage());
+      return;
+    }
+
     const otpError = await sendLoginOtp(trimmed);
     setStatus("idle");
 
@@ -78,7 +91,7 @@ function LoginForm() {
       return verifyError.message;
     }
 
-    const next = searchParams.get("next") || "/dashboard";
+    const next = safeRedirectPath(searchParams.get("next"), "/dashboard");
     router.push(next);
     router.refresh();
     return null;
@@ -91,6 +104,14 @@ function LoginForm() {
   async function handleGoogleLogin() {
     setError(null);
 
+    setStatus("loading");
+    const check = await verifyRecaptcha("google_oauth");
+    if (!check.ok) {
+      setStatus("idle");
+      setError(recaptchaErrorMessage());
+      return;
+    }
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
@@ -100,6 +121,7 @@ function LoginForm() {
 
     if (error) {
       console.error(error);
+      setStatus("idle");
       setError(error.message);
     }
   }
@@ -114,6 +136,14 @@ function LoginForm() {
     }
 
     setStatus("loading");
+
+    const check = await verifyRecaptcha("password_reset");
+    if (!check.ok) {
+      setStatus("idle");
+      setError(recaptchaErrorMessage());
+      return;
+    }
+
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(trimmed, {
       redirectTo: `${window.location.origin}/auth/reset-password`,
     });

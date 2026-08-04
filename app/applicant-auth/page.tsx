@@ -8,6 +8,10 @@ import { toast } from "sonner";
 import { Sparkles, Mail, Lock, User, KeyRound, ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
 import Shell from "@/components/layout/Shell";
+import {
+  verifyRecaptcha,
+  recaptchaErrorMessage,
+} from "@/lib/recaptcha/client";
 
 export default function ApplicantAuthPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -65,6 +69,12 @@ export default function ApplicantAuthPage() {
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
+    const check = await verifyRecaptcha("google_oauth");
+    if (!check.ok) {
+      toast.error(recaptchaErrorMessage());
+      setLoading(false);
+      return;
+    }
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
@@ -84,6 +94,12 @@ export default function ApplicantAuthPage() {
       return;
     }
     setLoading(true);
+    const check = await verifyRecaptcha("password_reset");
+    if (!check.ok) {
+      setLoading(false);
+      toast.error(recaptchaErrorMessage());
+      return;
+    }
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
       redirectTo: `${window.location.origin}/auth/reset-password`,
     });
@@ -102,6 +118,12 @@ export default function ApplicantAuthPage() {
       return;
     }
     setLoading(true);
+    const check = await verifyRecaptcha("login");
+    if (!check.ok) {
+      setLoading(false);
+      toast.error(recaptchaErrorMessage());
+      return;
+    }
     const { error } = await supabase.auth.signInWithOtp({
       email: email.trim(),
       options: {
@@ -144,6 +166,13 @@ export default function ApplicantAuthPage() {
   const handlePasswordAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
+    const check = await verifyRecaptcha(isLogin ? "login" : "signup");
+    if (!check.ok) {
+      toast.error(recaptchaErrorMessage());
+      setLoading(false);
+      return;
+    }
 
     try {
       if (isLogin) {
