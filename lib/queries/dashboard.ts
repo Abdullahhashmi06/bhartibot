@@ -46,11 +46,18 @@ export async function getDashboardAnalytics(supabase: SupabaseClient): Promise<{
 
   const orgId = profile.organization_id;
 
-  const { data: internships } = await supabase
+  const { data: internships, error: internshipsError } = await supabase
     .from("internships")
     .select("*")
     .eq("organization_id", orgId)
-    .order("created_at", { ascending: false }) as { data: Internship[] | null };
+    .order("created_at", { ascending: false }) as { data: Internship[] | null; error: { message: string } | null };
+
+  if (internshipsError) {
+    console.warn(
+      "[getDashboardAnalytics] internships query failed (RLS/permission issue?), returning empty:",
+      internshipsError.message
+    );
+  }
 
   const activeInternships = internships?.filter(i => i.status !== "archived" && i.status !== "closed") || [];
   const archivedInternships = internships?.filter(i => i.status === "archived" || i.status === "closed") || [];
@@ -60,11 +67,17 @@ export async function getDashboardAnalytics(supabase: SupabaseClient): Promise<{
   // 2. Get applications for these internships
   let applications: Application[] = [];
   if (internshipIds.length > 0) {
-    const { data: apps } = await supabase
+    const { data: apps, error: appsError } = await supabase
       .from("applications")
       .select("*")
       .in("internship_id", internshipIds)
       .order("created_at", { ascending: false });
+    if (appsError) {
+      console.warn(
+        "[getDashboardAnalytics] applications query failed (RLS/permission issue?), counting zero:",
+        appsError.message
+      );
+    }
     if (apps) applications = apps as Application[];
   }
 
@@ -72,31 +85,49 @@ export async function getDashboardAnalytics(supabase: SupabaseClient): Promise<{
   const appIds = applications.map(a => a.id);
   let analyses: CandidateAiAnalysis[] = [];
   if (appIds.length > 0) {
-    const { data: ais } = await supabase
+    const { data: ais, error: aisError } = await supabase
       .from("candidate_ai_analysis")
       .select("*")
       .in("application_id", appIds);
+    if (aisError) {
+      console.warn(
+        "[getDashboardAnalytics] candidate_ai_analysis query failed (RLS/permission issue?):",
+        aisError.message
+      );
+    }
     if (ais) analyses = ais as CandidateAiAnalysis[];
   }
 
   // 4. Get requirements for top skills
   let requirements: Requirement[] = [];
   if (internshipIds.length > 0) {
-    const { data: reqs } = await supabase
+    const { data: reqs, error: reqsError } = await supabase
       .from("requirements")
       .select("*")
       .in("internship_id", internshipIds);
+    if (reqsError) {
+      console.warn(
+        "[getDashboardAnalytics] requirements query failed (RLS/permission issue?):",
+        reqsError.message
+      );
+    }
     if (reqs) requirements = reqs as Requirement[];
   }
 
   // 4.5 Get actual interviews for these apps
   let scheduledInterviews = 0;
   if (appIds.length > 0) {
-    const { count } = await supabase
+    const { count, error: interviewsError } = await supabase
       .from("interviews")
       .select("*", { count: "exact", head: true })
       .in("application_id", appIds)
       .in("status", ["scheduled", "completed", "offer_sent"]);
+    if (interviewsError) {
+      console.warn(
+        "[getDashboardAnalytics] interviews count query failed (RLS/permission issue?):",
+        interviewsError.message
+      );
+    }
     if (count) scheduledInterviews = count;
   }
 
