@@ -57,6 +57,29 @@ export async function getCandidateAiAnalysis(
   return (data as CandidateAiAnalysis) ?? null;
 }
 
+/**
+ * Batched variant of getCandidateAiAnalysis for multiple applications.
+ * One round-trip instead of N, used by the comparison page.
+ */
+export async function getCandidateAiAnalyses(
+  supabase: SupabaseClient,
+  applicationIds: string[]
+): Promise<CandidateAiAnalysis[]> {
+  if (applicationIds.length === 0) return [];
+
+  const { data, error } = await supabase
+    .from("candidate_ai_analysis")
+    .select("*")
+    .in("application_id", applicationIds);
+
+  if (error) {
+    console.error("[InternIQ AI] getCandidateAiAnalyses:", error.message);
+    return [];
+  }
+
+  return (data as CandidateAiAnalysis[]) ?? [];
+}
+
 export async function upsertCandidateAiAnalysis(
   supabase: SupabaseClient,
   row: AnalysisInsert

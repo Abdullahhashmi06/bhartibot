@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getApplicationsByIds, getApplicationAnswers } from "@/lib/queries/applications";
-import { getCandidateAiAnalysis } from "@/lib/queries/ai-analysis";
+import { getApplicationsByIds, getApplicationAnswersForApplications } from "@/lib/queries/applications";
+import { getCandidateAiAnalyses } from "@/lib/queries/ai-analysis";
 import type { CandidateAiAnalysis } from "@/lib/types";
 import Shell from "@/components/layout/Shell";
 import ComparisonView from "@/components/comparison/ComparisonView";
@@ -54,35 +54,26 @@ export default async function ComparePage({
     );
   }
 
-  // Fetch analyses and answers for each candidate in parallel with graceful error handling
+  // Fetch analyses and answers for ALL candidates with two batched queries
+  // (previously one round-trip pair per candidate). Failures degrade to the
+  // same null/[] defaults as before.
+  const [analysisRows, answersByApplication] = await Promise.all([
+    getCandidateAiAnalyses(supabase, ids),
+    getApplicationAnswersForApplications(supabase, ids),
+  ]);
+
   const analyses: Record<string, CandidateAiAnalysis | null> = {};
-  const answers: Record<string, { question: string; answer: string }[]> = {};
-
-  const results = await Promise.allSettled(
-    candidates.map(async (candidate) => {
-      const [analysis, candidateAnswers] = await Promise.all([
-        getCandidateAiAnalysis(supabase, candidate.id),
-        getApplicationAnswers(supabase, candidate.id),
-      ]);
-      return { candidateId: candidate.id, analysis, answers: candidateAnswers };
-    })
-  );
-
-  // Build lookup maps from settled results, defaulting to null/[] on failure
-  results.forEach((result) => {
-    if (result.status === "fulfilled") {
-      const { candidateId, analysis, answers: candidateAnswers } = result.value;
-      analyses[candidateId] = analysis || null;
-      answers[candidateId] = candidateAnswers || [];
-    }
+  analysisRows.forEach((analysis) => {
+    analyses[analysis.application_id] = analysis;
   });
 
-  // Ensure every candidate has at least null/[] entries even if fetch failed
+  // Ensure every candidate has at least null/[] entries
+  const answers: Record<string, { question: string; answer: string }[]> = {};
   candidates.forEach((c) => {
     if (!(c.id in analyses)) {
       analyses[c.id] = null;
-      answers[c.id] = [];
     }
+    answers[c.id] = answersByApplication[c.id] || [];
   });
 
   return (

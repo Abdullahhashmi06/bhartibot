@@ -156,6 +156,40 @@ export async function getApplicationAnswers(
   );
 }
 
+/**
+ * Batched variant of getApplicationAnswers for multiple applications.
+ * One round-trip instead of N, grouped by application_id. Used by the
+ * comparison page.
+ */
+export async function getApplicationAnswersForApplications(
+  supabase: SupabaseClient,
+  applicationIds: string[]
+): Promise<Record<string, { question: string; answer: string }[]>> {
+  if (applicationIds.length === 0) return {};
+
+  const { data, error } = await supabase
+    .from("answers")
+    .select("application_id, answer, questions(question)")
+    .in("application_id", applicationIds)
+    .order("created_at", { ascending: true });
+
+  if (error || !data) return {};
+
+  const grouped: Record<string, { question: string; answer: string }[]> = {};
+  (data as {
+    application_id: string;
+    answer: string;
+    questions: { question: string }[] | null;
+  }[]).forEach((row) => {
+    if (!grouped[row.application_id]) grouped[row.application_id] = [];
+    grouped[row.application_id].push({
+      question: row.questions?.[0]?.question ?? "Unknown question",
+      answer: row.answer,
+    });
+  });
+  return grouped;
+}
+
 /** Update an application's recruiter-facing status. */
 export async function updateApplicationStatus(
   supabase: SupabaseClient,

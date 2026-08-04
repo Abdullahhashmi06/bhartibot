@@ -6,6 +6,9 @@ export async function getDashboardAnalytics(supabase: SupabaseClient): Promise<{
   recentActivity: ActivityItem[];
   topUniversities: { university: string; applicants: number; avgScore: number }[];
   topSkills: { skill: string; count: number }[];
+  internships: Internship[];
+  applicationsCountByInternship: Record<string, number>;
+  orgResolved: boolean;
 }> {
   // 1. Get all internships for the organization
   const { data: { user } } = await supabase.auth.getUser();
@@ -35,6 +38,9 @@ export async function getDashboardAnalytics(supabase: SupabaseClient): Promise<{
       recentActivity: [],
       topUniversities: [],
       topSkills: [],
+      internships: [],
+      applicationsCountByInternship: {},
+      orgResolved: false,
     };
   }
 
@@ -43,7 +49,8 @@ export async function getDashboardAnalytics(supabase: SupabaseClient): Promise<{
   const { data: internships } = await supabase
     .from("internships")
     .select("*")
-    .eq("organization_id", orgId) as { data: Internship[] | null };
+    .eq("organization_id", orgId)
+    .order("created_at", { ascending: false }) as { data: Internship[] | null };
 
   const activeInternships = internships?.filter(i => i.status !== "archived" && i.status !== "closed") || [];
   const archivedInternships = internships?.filter(i => i.status === "archived" || i.status === "closed") || [];
@@ -148,16 +155,20 @@ export async function getDashboardAnalytics(supabase: SupabaseClient): Promise<{
     scoreDistribution: { excellent, good, average, weak }
   };
 
-  // Top Universities
-  const uniMap = new Map<string, { count: number, totalScore: number }>();
+  // Top Universities — single pass over applications (O(A)) instead of the
+  // previous per-university filter scans (O(U × A)). The scoredCount tracks
+  // applications that have an AI analysis, matching the old denominator exactly.
+  const analysisByApp = new Map(analyses.map(a => [a.application_id, a]));
+  const uniMap = new Map<string, { count: number, totalScore: number, scoredCount: number }>();
   applications.forEach(app => {
     const uni = app.university || "Unknown";
-    const analysis = analyses.find(a => a.application_id === app.id);
+    const analysis = analysisByApp.get(app.id);
     const score = analysis?.match_score || 0;
-    
-    if (!uniMap.has(uni)) uniMap.set(uni, { count: 0, totalScore: 0 });
+
+    if (!uniMap.has(uni)) uniMap.set(uni, { count: 0, totalScore: 0, scoredCount: 0 });
     const current = uniMap.get(uni)!;
     current.count++;
+    if (analysis) current.scoredCount++;
     if (score > 0) {
       current.totalScore += score;
     }
@@ -167,7 +178,7 @@ export async function getDashboardAnalytics(supabase: SupabaseClient): Promise<{
     .map(([university, data]) => ({
       university,
       applicants: data.count,
-      avgScore: data.totalScore > 0 ? Math.round(data.totalScore / applications.filter(a => a.university === university && analyses.some(an => an.application_id === a.id)).length || 1) : 0
+      avgScore: data.totalScore > 0 ? Math.round(data.totalScore / (data.scoredCount || 1)) : 0
     }))
     .sort((a, b) => b.applicants - a.applicants)
     .slice(0, 5);
@@ -219,10 +230,23 @@ export async function getDashboardAnalytics(supabase: SupabaseClient): Promise<{
   // Sort and limit activity
   recentActivity.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
   
+  // Applications per internship — derived from the applications already fetched
+  // for this org (exact count, same source rows as getApplicationsCountByInternship).
+  const applicationsCountByInternship: Record<string, number> = {};
+  if (internships) {
+    internships.forEach(i => { applicationsCountByInternship[i.id] = 0; });
+  }
+  applications.forEach(app => {
+    applicationsCountByInternship[app.internship_id] = (applicationsCountByInternship[app.internship_id] || 0) + 1;
+  });
+
   return {
     stats,
     topUniversities,
     topSkills,
-    recentActivity: recentActivity.slice(0, 10)
+    recentActivity: recentActivity.slice(0, 10),
+    internships: (internships as Internship[]) ?? [],
+    applicationsCountByInternship,
+    orgResolved: true,
   };
 }
