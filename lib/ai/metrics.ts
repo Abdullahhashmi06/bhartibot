@@ -53,13 +53,3 @@ export function recordMetric(metric: AiRequestMetric): void {
 
   console.log(logLine);
 }
-
-/** Get the recent metrics (for debugging / health dashboards). */
-export function getRecentMetrics(): AiRequestMetric[] {
-  return [...metrics];
-}
-
-/** Reset all stored metrics. */
-export function resetMetrics(): void {
-  metrics = [];
-}

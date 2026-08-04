@@ -263,61 +263,6 @@ ${INTERVIEW_SCHEMA}
 }
 
 
-/** Candidate Summary — standalone recruiter-friendly candidate summary. */
-export const CANDIDATE_SUMMARY_SYSTEM = `You write concise, professional recruiter summaries for internship candidates.
-Return valid JSON only. Do not use markdown, code fences, or any commentary.
-Summaries should sound like a senior technical recruiter.`;
-
-export const CANDIDATE_SUMMARY_SCHEMA = `{
-  "candidate_summary": "Abdullah demonstrates strong technical foundations in Machine Learning and Python through multiple academic projects. While professional experience is limited, the candidate possesses relevant coursework and problem-solving ability. Overall, the profile indicates strong potential for an entry-level ML internship."
-}`;
-
-export function buildCandidateSummaryPrompt(
-  input: CandidateScoreInput
-): string {
-  const required = input.requirements
-    .filter((r) => r.type === "required")
-    .map((r) => r.requirement);
-  const preferred = input.requirements
-    .filter((r) => r.type === "preferred")
-    .map((r) => r.requirement);
-
-  return `Write a recruiter-friendly candidate summary.
-
-Internship: ${input.internship.title}
-Description: ${input.internship.description ?? "N/A"}
-
-Required skills:
-${required.join(", ")}
-
-Preferred skills:
-${preferred.join(", ")}
-
-Parsed resume:
-${JSON.stringify(input.parsedResume)}
-
-Screening answers:
-${
-  input.screeningAnswers.length > 0
-    ? input.screeningAnswers
-        .map((a) => `Q: ${a.question}\nA: ${a.answer}`)
-        .join("\n\n")
-    : "None provided."
-}
-
-Rules:
-- 80-150 words.
-- Professional tone.
-- Recruiter friendly.
-- Mention strongest qualifications.
-- Mention largest gaps.
-- Mention overall hiring recommendation.
-
-Return JSON matching:
-${CANDIDATE_SUMMARY_SCHEMA}`;
-}
-
-
 /** Strength Summary — concise strength paragraph for recruiter display cards. */
 export const STRENGTH_SUMMARY_SYSTEM = `You write concise strength summaries for internship candidates.
 Return valid JSON only. Do not use markdown, code fences, or any commentary.

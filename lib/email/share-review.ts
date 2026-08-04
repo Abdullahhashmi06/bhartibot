@@ -1,7 +1,10 @@
 /**
  * Email utilities for shared candidate reviews.
- * Uses the application's configured email provider (Resend / SMTP).
+ * Uses the centralized SMTP email service in lib/email/smtp.
  */
+
+import { sendEmail } from "./smtp";
+import { escapeHtml } from "./templates";
 
 export interface ShareReviewEmailInput {
   to: string[];
@@ -133,74 +136,25 @@ export function buildShareReviewEmailHtml({
 }
 
 /**
- * Simple HTML escaping to prevent injection in emails.
- */
-function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
-
-/**
- * Sends a share review email.
- *
- * Uses Resend by default if RESEND_API_KEY is configured.
- * Falls back to logging the email content for development.
+ * Sends a share review email via the centralized SMTP service.
  */
 export async function sendShareReviewEmail(
   input: ShareReviewEmailInput
 ): Promise<ShareReviewEmailResult> {
-  // Try Resend if API key is configured
-  const resendApiKey = process.env.RESEND_API_KEY;
+  const result = await sendEmail({
+    to: input.to,
+    subject: input.subject,
+    html: input.html,
+  });
 
-  if (resendApiKey) {
-    try {
-      const response = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${resendApiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          from: process.env.RESEND_FROM_EMAIL || "InternIQ <reviews@interniq.ai>",
-          to: input.to,
-          subject: input.subject,
-          html: input.html,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorBody = await response.text();
-        console.error("[Share Email] Resend API error:", response.status, errorBody);
-        return { success: false, error: `Email API error: ${response.status}` };
-      }
-
-      const data = await response.json();
-      return { success: true, sentTo: input.to };
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Unknown error";
-      console.error("[Share Email] Resend send failed:", message);
-      return { success: false, error: message };
-    }
+  if (result.success) {
+    return { success: true, sentTo: input.to };
   }
 
-  // Fallback: log the email content
-  console.log("[Share Email] No email provider configured. Logging email:");
-  console.log(`  To: ${input.to.join(", ")}`);
-  console.log(`  Subject: ${input.subject}`);
-  console.log(`  HTML length: ${input.html.length} chars`);
+  // When SMTP is not configured, preserve the non-blocking flow.
+  if (result.skipped) {
+    return { success: true, sentTo: input.to };
+  }
 
-  // Log failure but don't throw — the report still exists
-  console.warn(
-    "[Share Email] RESEND_API_KEY not set. Email was not actually sent. " +
-    "Configure RESEND_API_KEY in environment variables to enable email delivery."
-  );
-
-  return {
-    success: true, // Report still exists, don't block the flow
-    sentTo: input.to,
-  };
+  return { success: false, error: result.error ?? "Email sending failed." };
 }

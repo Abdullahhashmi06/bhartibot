@@ -5,10 +5,7 @@ export interface ApplicationWithScore extends Application {
   match_score: number | null;
 }
 
-/**
- * Submit a student application plus screening answers.
- * cv_path is left null until Day 7 storage upload is wired.
- */
+/** Submit a student application plus screening answers. */
 export async function createApplication(
   supabase: SupabaseClient,
   input: NewApplicationInput

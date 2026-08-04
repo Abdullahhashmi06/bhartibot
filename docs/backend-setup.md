@@ -52,7 +52,7 @@ NEXT_PUBLIC_SUPABASE_URL=...
 NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 ```
 
-Copy from `.env.local.example`. Never commit real keys.
+Copy from `.env.example`. Never commit real keys.
 
 ## 5. Run the app
 

@@ -135,11 +135,12 @@ export async function sendEmail(
 
   const config = getSmtpConfig();
 
-  // Not configured → log the would-be email for dev inspection.
+  // Not configured → log the would-be send for dev inspection (recipient +
+  // subject only; never the message body, which may contain personal data).
   if (!config) {
-    console.log("[SMTP] SKIPPED (SMTP_* not configured). To:", toCheck.list.join(", "));
-    console.log("[SMTP] Subject:", input.subject);
-    console.log("[SMTP] Body preview:", input.html.replace(/<[^>]*>/g, "").slice(0, 200));
+    console.log(
+      `[SMTP] SKIPPED (SMTP_* not configured). To: ${toCheck.list.join(", ")} · Subject: ${input.subject}`
+    );
     return {
       success: false,
       skipped: true,

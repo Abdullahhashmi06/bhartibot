@@ -22,7 +22,7 @@ Supabase with status `new`. CV file storage lands Day 7.
 ```bash
 git clone <repo-url>
 cd <your-clone-directory>
-cp .env.local.example .env.local   # fill in the two values from Developer B
+cp .env.example .env.local   # then fill in your Supabase + provider values
 npm install
 npm run dev
 ```
@@ -88,8 +88,8 @@ middleware.ts                        session refresh + route protection
 
 ## Environment variables
 
-Copy `.env.local.example` to `.env.local` (already git-ignored) and fill in
-the two values Developer B gives you from the Supabase dashboard
+Copy `.env.example` to `.env.local` (already git-ignored) and fill in every
+variable for your environment. At minimum you need the public Supabase pair
 (Project Settings → API):
 
 ```
@@ -100,6 +100,9 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=
 Both are public and safe in the browser. The `SUPABASE_SERVICE_ROLE_KEY`
 and any AI API key must **only** ever be used in server-side code (route
 handlers / server actions), never in a client component, never committed.
+
+`.env.example` documents the full variable set (Supabase, reCAPTCHA, AI
+providers, SMTP email, PWA metadata) with sensible defaults.
 
 Add for AI resume analysis (server-only):
 

@@ -103,8 +103,6 @@ export async function sendInterviewEmailAction(params: InterviewEmailParams & {
   try {
     const details = await resolveInterviewDetails(params);
     if (!details) {
-      // Log the email params as fallback so it's visible in server logs
-      console.log("[EMAIL FALLBACK] Interview email would be sent to application " + params.applicationId);
       return { success: false, error: "Could not resolve applicant details" };
     }
 
@@ -189,7 +187,6 @@ export async function sendRejectionEmailAction(
 
         if (!application || !application.email) {
           console.error("[EMAIL] Application not found for rejection email:", applicationId);
-          console.log("[EMAIL FALLBACK] Rejection email would be sent for application " + applicationId);
           return { success: false, error: "Applicant not found" };
         }
 
@@ -219,7 +216,6 @@ export async function sendRejectionEmailAction(
       } catch (dbErr) {
         const msg = dbErr instanceof Error ? dbErr.message : "DB error";
         console.error("[EMAIL] DB fallback failed for rejection, logging instead. Error: " + msg);
-        console.log("[EMAIL FALLBACK] Rejection for application " + applicationId + " (DB unreachable)");
         return { success: false, error: "DB unreachable, email not sent" };
       }
     }

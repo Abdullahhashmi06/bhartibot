@@ -25,9 +25,6 @@ export async function updateStatusServerAction(
 ): Promise<{ error: string | null }> {
   try {
     const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    console.log("[statusActions] User:", user?.id);
-
     const { data, error } = await supabase
       .from("applications")
       .update({ status: newStatus })

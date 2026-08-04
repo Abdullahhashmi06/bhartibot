@@ -170,30 +170,6 @@ export async function saveCandidateAnalysis(
 }
 
 /**
- * Updates specific fields of an existing candidate analysis.
- * Only the provided fields are updated; the rest remain unchanged.
- */
-// export async function updateCandidateAnalysis(
-//   supabase: SupabaseClient,
-//   applicationId: string,
-//   data: UpdateCandidateAnalysisInput
-// ): Promise<CandidateAiAnalysis | null> {
-//   const { data: result, error } = await supabase
-//     .from("candidate_ai_analysis")
-//     .update(data)
-//     .eq("application_id", applicationId)
-//     .select()
-//     .single();
-
-//   if (error) {
-//     console.error("[InternIQ AI] updateCandidateAnalysis:", error.message);
-//     return null;
-//   }
-
-//   return result as CandidateAiAnalysis;
-// }
-
-/**
  * Retrieves stored interview questions for an application from the database.
  * Returns null if no questions exist.
  * Never calls the AI provider.
