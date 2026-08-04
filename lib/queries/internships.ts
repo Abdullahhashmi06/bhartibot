@@ -107,18 +107,19 @@ export async function getRecruiterInternships(
     query = query.eq("status", status);
   }
 
-  console.log("===== Recruiter Internships =====");
-  console.log("Organization ID:", organizationId);
+  // console.log("===== Recruiter Internships =====");
+  // console.log("Organization ID:", organizationId);
 
   const { data, error } = await query;
 
-  console.log("Internships returned:", data);
-  console.log("Internship error:", error);
+  // console.log("Internships returned:", data);
+  // console.log("Internship error:", error);
 
   if (error) {
     console.error("getRecruiterInternships failed:", error.message);
     return [];
   }
+  // console.log("Recruiter internships:", data);
   return (data as Internship[]) ?? [];
 }
 

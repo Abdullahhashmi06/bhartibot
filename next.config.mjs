@@ -47,7 +47,7 @@ const nextConfig = {
               // the reCAPTCHA host used by the invisible v3 token flow.
               "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.google.com https://recaptcha.google.com",
               // CV preview iframes render Supabase signed URLs.
-              "frame-src 'self' https://*.supabase.co",
+              "frame-src 'self' https://*.supabase.co https://www.google.com https://accounts.google.com",
               "worker-src 'self'",
               "manifest-src 'self'",
               "base-uri 'self'",

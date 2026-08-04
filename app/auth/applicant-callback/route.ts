@@ -49,5 +49,9 @@ export async function GET(request: Request) {
     }
   }
 
+  // FOR testing 
+  // console.log("Origin:", origin);
+  // console.log("Next:", next);
+  // console.log("Final redirect:", `${origin}${next}`);
   return NextResponse.redirect(`${origin}${next}`);
 }

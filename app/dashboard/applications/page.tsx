@@ -29,7 +29,6 @@ export default async function ApplicationsDashboardPage() {
     getOrgApplicationStats(supabase, internshipIds),
     Promise.all(internships.map((i) => getApplicationsCountByInternship(supabase, i.id))),
   ]);
-
   const internshipsWithCounts = internships.map((internship, idx) => ({
     ...internship,
     count: counts[idx],

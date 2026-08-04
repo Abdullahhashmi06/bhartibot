@@ -248,6 +248,12 @@ export async function getOrgApplicationStats(
 
   const { data, error } = await query;
 
+  // console.log("==========");
+  // console.log("Internship IDs:", internshipIds);
+  // console.log("Applications:", data);
+  // console.log("Error:", error);
+  // console.log("==========");
+
   if (error) {
     console.warn(
       "[getOrgApplicationStats] query failed (RLS/permission issue?), returning zeros:",

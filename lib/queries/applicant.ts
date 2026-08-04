@@ -85,6 +85,7 @@ export async function getApplicantApplications(supabase: SupabaseClient, email: 
   }
   
   const { data, error } = await query;
+  console.log(data);
   return { data, error };
 }
 

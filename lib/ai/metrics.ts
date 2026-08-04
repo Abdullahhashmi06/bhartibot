@@ -51,5 +51,4 @@ export function recordMetric(metric: AiRequestMetric): void {
     .filter(Boolean)
     .join(" | ");
 
-  console.log(logLine);
 }
