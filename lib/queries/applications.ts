@@ -215,7 +215,13 @@ export async function getApplicationsCountByInternship(
     .select("*", { count: "exact", head: true })
     .eq("internship_id", internshipId);
 
-  if (error) return 0;
+  if (error) {
+    console.warn(
+      "[getApplicationsCountByInternship] query failed (RLS/permission issue?), returning 0:",
+      error.message
+    );
+    return 0;
+  }
   return count ?? 0;
 }
 
@@ -242,7 +248,15 @@ export async function getOrgApplicationStats(
 
   const { data, error } = await query;
 
-  if (error || !data) return { total: 0, new: 0, shortlisted: 0, rejected: 0 };
+  if (error) {
+    console.warn(
+      "[getOrgApplicationStats] query failed (RLS/permission issue?), returning zeros:",
+      error.message
+    );
+    return { total: 0, new: 0, shortlisted: 0, rejected: 0 };
+  }
+
+  if (!data) return { total: 0, new: 0, shortlisted: 0, rejected: 0 };
 
   const total = data.length;
   const newCount = data.filter((a) => a.status === "new").length;
