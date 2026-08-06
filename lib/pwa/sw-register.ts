@@ -42,7 +42,16 @@ export async function healStaleServiceWorker(): Promise<void> {
       swAvailable = false;
     }
 
-    if (swAvailable) return;
+    // In development the service worker is always disabled by design
+    // (next.config.mjs `disable: true`), so ANY registered worker is stale.
+    // A production build drops a real `public/sw.js` artifact into the public
+    // folder, which the DEV server also serves — so the /sw.js probe above
+    // would return true and wrongly keep the stale worker alive. In dev we
+    // must always purge, otherwise the old worker keeps intercepting
+    // navigations and serves old chunks alongside new dev chunks — mixing two
+    // React copies and crashing with "Cannot read properties of null (reading
+    // 'useContext')" inside next/navigation's usePathname.
+    if (swAvailable && process.env.NODE_ENV !== "development") return;
 
     await Promise.all(
       registrations.map((reg) =>

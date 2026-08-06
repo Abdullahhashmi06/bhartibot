@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { ActivityItem } from "@/lib/types";
+import { formatDateTimeShort } from "@/lib/utils";
 import { FileText, Sparkles, CheckCircle2, Megaphone, Clock } from "lucide-react";
 import Link from "next/link";
 
@@ -79,7 +80,7 @@ export default function ActivityFeed({ activities }: ActivityFeedProps) {
                       {activity.title}
                     </p>
                     <span className="text-[10px] font-mono text-text-muted whitespace-nowrap">
-                      {new Date(activity.timestamp).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      {formatDateTimeShort(activity.timestamp)}
                     </span>
                   </div>
                   <p className="text-xs text-text-secondary mt-0.5 truncate">

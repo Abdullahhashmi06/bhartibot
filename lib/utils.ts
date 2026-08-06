@@ -69,3 +69,42 @@ export function extractOriginalFilename(path: string): string {
   const stripped = last.replace(/^\d+_(.+)$/, "$1");
   return stripped || last;
 }
+
+/**
+ * Deterministic date formatting.
+ *
+ * Uses a FIXED locale ("en-GB") and FIXED timezone ("UTC") so server-rendered
+ * HTML and the client's first render are byte-identical. Locale-dependent APIs
+ * such as toLocaleDateString() produce different output on the server (e.g.
+ * "12/08/2026") vs the client (e.g. "8/12/2026") and cause React hydration
+ * mismatches — these helpers can never do that.
+ */
+const SHORT_DATE_FORMATTER = new Intl.DateTimeFormat("en-GB", {
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+  timeZone: "UTC",
+});
+
+const MEDIUM_DATETIME_FORMATTER = new Intl.DateTimeFormat("en-GB", {
+  month: "short",
+  day: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false,
+  timeZone: "UTC",
+});
+
+/** Short deterministic date, e.g. "08/12/2026" (DD/MM/YYYY, UTC). */
+export function formatDateShort(value: string | number | Date): string {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return SHORT_DATE_FORMATTER.format(date);
+}
+
+/** Short deterministic date + time, e.g. "12 Aug, 14:30" (UTC). */
+export function formatDateTimeShort(value: string | number | Date): string {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return MEDIUM_DATETIME_FORMATTER.format(date);
+}

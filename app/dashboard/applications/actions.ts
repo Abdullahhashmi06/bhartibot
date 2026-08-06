@@ -169,13 +169,10 @@ export async function sendRejectionEmailAction(
     let internshipTitle = preFetched?.internshipTitle || "";
     let organizationName = preFetched?.organizationName || "";
 
-    // If the 3 critical fields are provided, use them directly without DB
-    if (to && applicantName && internshipTitle && !organizationName) {
-      organizationName = "Organization";
-    }
-
-    // If details are missing, try DB
-    if (!to || !applicantName || !internshipTitle) {
+    // If the 3 critical fields are provided, use them directly without DB.
+    // When the org name is still unknown we ALSO resolve from DB so the email
+    // never reads "at Organization" (a missing template variable).
+    if (!to || !applicantName || !internshipTitle || !organizationName) {
       try {
         const supabase = createClient();
 
@@ -266,10 +263,11 @@ export async function sendShortlistedEmailAction(
     let to = preFetched?.applicantEmail || "";
     let applicantName = preFetched?.applicantName || "";
     let internshipTitle = preFetched?.internshipTitle || "";
-    let organizationName = preFetched?.organizationName || "Organization";
+    let organizationName = preFetched?.organizationName || "";
 
-    // Resolve from DB when pre-fetched details are missing.
-    if (!to || !applicantName || !internshipTitle) {
+    // Resolve from DB when pre-fetched details are missing (or the org name is
+    // unknown — otherwise the email would read "at Organization").
+    if (!to || !applicantName || !internshipTitle || !organizationName) {
       try {
         const supabase = createClient();
         const { data: application } = await supabase

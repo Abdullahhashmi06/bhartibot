@@ -18,6 +18,7 @@ import AiInsightsCard from "@/components/applicant/AiInsightsCard";
 import CircularGauge from "@/components/ai/CircularGauge";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
+import { formatDateShort } from "@/lib/utils";
 import type { RecommendationResult } from "@/lib/ai/recommendations";
 
 export const dynamic = "force-dynamic";
@@ -318,7 +319,7 @@ export default async function ApplicantDashboardPage() {
                           {app.status.replace("_", " ")}
                         </span>
                         <p className="text-xs text-text-muted flex items-center gap-1">
-                          <Clock className="w-3 h-3" /> {new Date(app.created_at).toLocaleDateString()}
+                          <Clock className="w-3 h-3" /> {formatDateShort(app.created_at)}
                         </p>
                       </div>
                     </div>

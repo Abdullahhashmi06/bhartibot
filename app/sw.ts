@@ -57,7 +57,11 @@ const isSupabaseUrl = (url: URL) => url.hostname.includes("supabase.co");
 // Cache version — bump this on every deploy so stale runtime caches written
 // by a previous service worker version can NEVER be read again. Old
 // `interniq-*` caches are purged in the activate handler below.
-const SW_VERSION = "v2";
+// v3 — bumped with the stale-chunk/dev-heal fix: the previous deploy (v2)
+// kept old v2 caches alive, and a stale worker serving those old chunks
+// alongside new HTML loads two React copies ("Cannot read properties of null
+// (reading 'useContext')" in next/navigation's usePathname).
+const SW_VERSION = "v3";
 const CACHE_NAMES = {
   static: `interniq-static-${SW_VERSION}`,
   fonts: `interniq-fonts-${SW_VERSION}`,

@@ -1,15 +1,15 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { User, Mail, Phone, GraduationCap, Link2, UploadCloud, FileText, Send, Sparkles, Github, Linkedin, AlertTriangle } from "lucide-react";
+import { User, Mail, Phone, GraduationCap, Link2, UploadCloud, FileText, Send, Sparkles, Github, Linkedin, AlertTriangle, CheckCircle2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import FormNotice from "@/components/ui/FormNotice";
 import { createClient } from "@/lib/supabase/client";
 import { createApplication } from "@/lib/queries/applications";
 import { ScreeningQuestion } from "@/lib/types";
 import { uploadCv } from "@/lib/queries/storage";
-import { isValidCgpa } from "@/lib/utils";
+import { isValidCgpa, extractOriginalFilename } from "@/lib/utils";
 import {
   verifyRecaptcha,
   recaptchaErrorMessage,
@@ -63,9 +63,83 @@ export default function ApplicationForm({
     Object.fromEntries(questions.map((q) => [q.id, ""]))
   );
 
+  // Auto-fill state: the applicant's stored CV path (reused instead of a new
+  // upload) and whether any profile data was pre-filled into the form.
+  const [profileCvPath, setProfileCvPath] = useState<string | null>(null);
+  const [autoFilled, setAutoFilled] = useState(false);
+
   const [cgpaError, setCgpaError] = useState<string | null>(null);
   const [status, setStatus] = useState<"idle" | "submitting">("idle");
   const [error, setError] = useState<string | null>(null);
+
+  // ── Applicant auto-fill ────────────────────────────────────────────────────
+  // When an authenticated applicant opens the form, pre-fill every field from
+  // their applicant_profiles row. Only values that already exist are copied —
+  // empty profile fields stay empty and must be completed manually, so
+  // validation is never bypassed. If the profile already has a CV, its storage
+  // path is reused so the applicant is not forced to upload again (no duplicate
+  // file is ever created). Guests (not signed in) skip this entirely and fill
+  // the form manually, exactly as before.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user || cancelled) return;
+
+        const { data: profile } = await supabase
+          .from("applicant_profiles")
+          .select(
+            "full_name, email, phone, university, degree, semester, cgpa, linkedin_url, github_url, portfolio_url, cv_path"
+          )
+          .eq("id", user.id)
+          .maybeSingle();
+
+        if (!profile || cancelled) return;
+
+        // Never overwrite anything the applicant may already have typed.
+        setApplicantName((current) => current || profile.full_name || "");
+        setEmail((current) => current || profile.email || "");
+        setPhone((current) => current || profile.phone || "");
+        setUniversity((current) => current || profile.university || "");
+        setDegree((current) => current || profile.degree || "");
+        setSemester((current) => current || profile.semester || "");
+        setCgpa((current) => current || profile.cgpa || "");
+        setLinkedinUrl((current) => current || profile.linkedin_url || "");
+        setGithubUrl((current) => current || profile.github_url || "");
+        setPortfolioUrl((current) => current || profile.portfolio_url || "");
+
+        // Reuse the stored profile CV instead of forcing a second upload.
+        if (profile.cv_path) {
+          setProfileCvPath(profile.cv_path);
+        }
+
+        if (
+          profile.full_name ||
+          profile.email ||
+          profile.phone ||
+          profile.university ||
+          profile.degree ||
+          profile.semester ||
+          profile.cgpa ||
+          profile.linkedin_url ||
+          profile.github_url ||
+          profile.portfolio_url ||
+          profile.cv_path
+        ) {
+          setAutoFilled(true);
+        }
+      } catch (err) {
+        // Auto-fill is best-effort — never block the manual flow.
+        console.warn("[ApplicationForm] Auto-fill skipped:", err);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [supabase]);
 
   function handleAnswerChange(questionId: string, value: string) {
     setAnswers((prev) => ({ ...prev, [questionId]: value }));
@@ -147,13 +221,24 @@ export default function ApplicationForm({
     let cvUploadFailed = false;
 
     if (cvFile) {
+      // A new file was explicitly chosen → upload it.
       const { path, error } = await uploadCv(supabase, cvFile);
       if (error || !path) {
-        console.warn("[ApplicationForm] CV upload failed:", error);
-        cvUploadFailed = true;
+        if (profileCvPath) {
+          // Upload failed but a profile CV exists → keep reusing it so the
+          // application never loses the applicant's CV.
+          cvPath = profileCvPath;
+        } else {
+          console.warn("[ApplicationForm] CV upload failed:", error);
+          cvUploadFailed = true;
+        }
       } else {
         cvPath = path;
       }
+    } else if (profileCvPath) {
+      // Reuse the CV already stored on the applicant's profile — no new
+      // upload, so the file is never duplicated.
+      cvPath = profileCvPath;
     }
 
     const { application, error: submitError } = await createApplication(
@@ -199,6 +284,26 @@ export default function ApplicationForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       {error && <FormNotice tone="error">{error}</FormNotice>}
+
+      {autoFilled && (
+        <div className="relative overflow-hidden rounded-2xl border border-emerald-500/25 bg-slate-900/90 px-5 py-4 shadow-emerald backdrop-blur">
+          <div className="pointer-events-none absolute -top-10 -right-10 h-24 w-24 rounded-full bg-emerald/20 blur-2xl" />
+          <div className="relative flex items-start gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-emerald/30 bg-emerald/20 text-emerald">
+              <Sparkles className="h-4 w-4" />
+            </div>
+            <div className="min-w-0 space-y-0.5">
+              <p className="font-display font-bold text-sm text-white">
+                Details pre-filled from your profile
+              </p>
+              <p className="text-xs leading-relaxed text-slate-300">
+                Your information was filled in automatically — please review it
+                before submitting. You can edit any field.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* SECTION 1: PERSONAL INFORMATION */}
       <div className="rounded-3xl border border-border bg-white p-6 sm:p-8 shadow-card space-y-5">
@@ -374,33 +479,78 @@ export default function ApplicationForm({
           </h2>
         </div>
 
-        <div className="rounded-2xl border-2 border-dashed border-border bg-slate-50/50 p-6 text-center space-y-3 hover:border-teal transition-all">
-          <FileText className="h-10 w-10 text-teal mx-auto" />
-          <div>
-            <input
-              type="file"
-              accept="application/pdf,.pdf"
-              onChange={(e) => setCvFile(e.target.files?.[0] ?? null)}
-              className="hidden"
-              id="cv-upload-input"
-            />
-            <label
-              htmlFor="cv-upload-input"
-              className="cursor-pointer inline-flex items-center gap-2 rounded-xl bg-primary text-white px-4 py-2.5 text-xs font-semibold shadow-subtle hover:bg-primary-light transition-all"
-            >
-              <UploadCloud className="h-4 w-4" /> Choose PDF File
-            </label>
+        {!cvFile && profileCvPath ? (
+          <div className="relative overflow-hidden rounded-2xl border border-emerald-500/25 bg-slate-900/90 p-5 sm:p-6 shadow-emerald backdrop-blur">
+            <div className="pointer-events-none absolute -bottom-14 -right-14 h-36 w-36 rounded-full bg-emerald/15 blur-3xl" />
+            <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-emerald/30 bg-emerald/20 text-emerald shadow-subtle">
+                  <FileText className="h-5 w-5" />
+                </div>
+                <div className="min-w-0">
+                  <p className="flex items-center gap-1.5 text-sm font-bold text-white">
+                    <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald" />{" "}
+                    Existing CV Attached
+                  </p>
+                  <p
+                    className="mt-0.5 truncate font-mono text-xs font-semibold text-emerald"
+                    title={extractOriginalFilename(profileCvPath)}
+                  >
+                    {extractOriginalFilename(profileCvPath)}
+                  </p>
+                </div>
+              </div>
+              <div className="shrink-0 sm:ml-auto">
+                <input
+                  type="file"
+                  accept="application/pdf,.pdf"
+                  onChange={(e) => setCvFile(e.target.files?.[0] ?? null)}
+                  className="hidden"
+                  id="cv-upload-input"
+                />
+                <label
+                  htmlFor="cv-upload-input"
+                  className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl bg-gradient-primary px-4 py-2.5 text-xs font-bold text-white shadow-teal transition-all hover:-translate-y-px hover:opacity-90 active:translate-y-0"
+                >
+                  <RefreshCw className="h-3.5 w-3.5" /> Replace CV
+                </label>
+              </div>
+            </div>
+            <p className="relative mt-4 border-t border-white/10 pt-3 text-left text-xs leading-relaxed text-slate-300">
+              Your profile CV will be attached automatically. Choose{" "}
+              <strong className="text-emerald">Replace CV</strong> to upload a
+              different file instead.
+            </p>
           </div>
-          {cvFile ? (
-            <p className="font-mono text-xs font-bold text-teal-dark">
-              Selected: {cvFile.name} ({(cvFile.size / 1024 / 1024).toFixed(2)} MB)
-            </p>
-          ) : (
-            <p className="text-xs text-text-muted">
-              Only PDF format is supported. Maximum file size 10MB.
-            </p>
-          )}
-        </div>
+        ) : (
+          <div className="rounded-2xl border-2 border-dashed border-border bg-slate-50/50 p-6 text-center space-y-3 hover:border-teal transition-all">
+            <FileText className="h-10 w-10 text-teal mx-auto" />
+            <div>
+              <input
+                type="file"
+                accept="application/pdf,.pdf"
+                onChange={(e) => setCvFile(e.target.files?.[0] ?? null)}
+                className="hidden"
+                id="cv-upload-input"
+              />
+              <label
+                htmlFor="cv-upload-input"
+                className="cursor-pointer inline-flex items-center gap-2 rounded-xl bg-primary text-white px-4 py-2.5 text-xs font-semibold shadow-subtle hover:bg-primary-light transition-all"
+              >
+                <UploadCloud className="h-4 w-4" /> Choose PDF File
+              </label>
+            </div>
+            {cvFile ? (
+              <p className="font-mono text-xs font-bold text-teal-dark">
+                Selected: {cvFile.name} ({(cvFile.size / 1024 / 1024).toFixed(2)} MB)
+              </p>
+            ) : (
+              <p className="text-xs text-text-muted">
+                Only PDF format is supported. Maximum file size 10MB.
+              </p>
+            )}
+          </div>
+        )}
       </div>
 
       {/* SECTION 5: SCREENING QUESTIONS */}

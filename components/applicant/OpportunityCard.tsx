@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import CircularGauge from "@/components/ai/CircularGauge";
+import { formatDateShort } from "@/lib/utils";
 import type { RecommendationResult } from "@/lib/ai/recommendations";
 
 /* Deterministic brand-ish logo tile for companies (no real logos available). */
@@ -351,7 +352,7 @@ export default function OpportunityCard({
               ? "Closes today"
               : `${daysLeft}d left`}
             {deadlineDate && !deadlinePassed && (
-              <span className="opacity-70">· {deadlineDate.toLocaleDateString()}</span>
+              <span className="opacity-70">· {formatDateShort(deadlineDate)}</span>
             )}
           </span>
         )}

@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import { UploadCloud, FileText, Trash2, Download, CheckCircle2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { formatDateShort } from "@/lib/utils";
 
 const CV_BUCKET = "cv-files";
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB (matches storage bucket limit)
@@ -138,7 +139,7 @@ export default function ResumeUploader({ currentCvPath, userId }: { currentCvPat
     const filenameWithTimestamp = parts[parts.length - 1];
     const match = filenameWithTimestamp.match(/^(\d+)_(.+)$/);
     if (match) {
-      uploadDate = new Date(parseInt(match[1])).toLocaleDateString();
+      uploadDate = formatDateShort(parseInt(match[1]));
       fileName = match[2];
     } else {
       fileName = filenameWithTimestamp;

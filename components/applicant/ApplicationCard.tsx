@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import { RefreshCw, ArrowLeft, ExternalLink } from "lucide-react";
 import ApplicationTimeline from "./ApplicationTimeline";
 import Tag from "@/components/ui/Tag";
+import { formatDateShort } from "@/lib/utils";
 
 export default function ApplicationCard({ app }: { app: any }) {
   const [status, setStatus] = useState(app.status);
@@ -119,7 +120,7 @@ export default function ApplicationCard({ app }: { app: any }) {
               <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600 hidden sm:inline-block"></span>
               <span className="text-sm text-text-muted dark:text-slate-500">{app.internships?.location} • {app.internships?.work_mode}</span>
             </div>
-            <p className="text-xs text-text-muted dark:text-slate-500 mt-2">Applied on {new Date(app.created_at).toLocaleDateString()}</p>
+            <p className="text-xs text-text-muted dark:text-slate-500 mt-2">Applied on {formatDateShort(app.created_at)}</p>
           </div>
         </div>
         <div className="flex gap-2">

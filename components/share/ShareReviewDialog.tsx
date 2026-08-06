@@ -254,6 +254,8 @@ export default function ShareReviewDialog({
           year: "numeric",
           month: "short",
           day: "numeric",
+          // Fixed timezone so the calendar date is identical on server + client.
+          timeZone: "UTC",
         })
       : null;
 
