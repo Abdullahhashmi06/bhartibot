@@ -17,12 +17,13 @@ export default function SavedJobCard({ job, onUnsave }: { job: any, onUnsave: (i
   const supabase = createClient();
   const router = useRouter();
 
-  if (!internship) return null;
-
   useEffect(() => {
+    if (!internship) return;
     calculateMatchScore();
     checkIfApplied();
   }, []);
+
+  if (!internship) return null;
 
   const calculateMatchScore = async () => {
     const { data: { user } } = await supabase.auth.getUser();

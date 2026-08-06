@@ -36,6 +36,9 @@ export default function CreateInternshipPage() {
   const [location, setLocation] = useState("");
   const [workMode, setWorkMode] = useState<WorkMode>("on-site");
   const [duration, setDuration] = useState("");
+  const [stipend, setStipend] = useState("");
+  const [deadline, setDeadline] = useState("");
+  const [internshipType, setInternshipType] = useState("full_time");
   const [required, setRequired] = useState<string[]>(["Python"]);
   const [preferred, setPreferred] = useState<string[]>(["Pandas"]);
   const [questions, setQuestions] = useState<
@@ -132,6 +135,9 @@ export default function CreateInternshipPage() {
       location: location.trim(),
       work_mode: workMode,
       duration: duration.trim(),
+      stipend: stipend.trim(),
+      deadline: deadline || undefined,
+      internship_type: internshipType,
       requirements,
       questions,
       github_required: githubRequired,
@@ -304,8 +310,6 @@ export default function CreateInternshipPage() {
                     </div>
                   </div>
 
-<<<<<<< Updated upstream
-=======
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div className="space-y-1.5">
                       <label className="text-xs font-semibold text-text-primary">
@@ -350,7 +354,6 @@ export default function CreateInternshipPage() {
                     </div>
                   </div>
 
->>>>>>> Stashed changes
                   <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-text-primary">
                       Description & Objectives

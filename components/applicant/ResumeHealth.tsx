@@ -103,7 +103,7 @@ export default function ResumeHealth({ profile, skills, projects, experience }: 
               <p className="text-sm font-semibold text-blue-800">Quick Wins to Boost Your Score</p>
               <ul className="mt-2 text-xs text-blue-700 space-y-1 list-disc list-inside">
                 <li>Upload a PDF resume — instant +20 points</li>
-                <li>Add measurable achievements like "Improved performance by 30%"</li>
+                <li>Add measurable achievements like &ldquo;Improved performance by 30%&rdquo;</li>
                 <li>Mention in-demand skills like Docker, Kubernetes, or AWS</li>
               </ul>
             </div>

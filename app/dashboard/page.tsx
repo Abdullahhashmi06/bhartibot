@@ -24,10 +24,6 @@ export default async function DashboardPage() {
   const fullName = (user.user_metadata?.full_name as string) || null;
   const orgName = (user.user_metadata?.organization_name as string) || null;
 
-<<<<<<< Updated upstream
-  // Fetch all analytics data
-  const { stats, recentActivity, topUniversities, topSkills } = await getDashboardAnalytics(supabase);
-=======
   // All analytics + internships + per-internship application counts come from a
   // single consolidated fetch (getDashboardAnalytics), avoiding a duplicate
   // internships query and N count queries per role.
@@ -41,18 +37,24 @@ export default async function DashboardPage() {
     weeklyApplications,
     orgResolved,
   } = await getDashboardAnalytics(supabase);
->>>>>>> Stashed changes
 
-  // Fetch internships for the list
-  const internships = await getRecruiterInternships(supabase);
-  const counts = await Promise.all(
-    internships.map((i) => getApplicationsCountByInternship(supabase, i.id))
-  );
+  // Legacy fallback: when the recruiter's organization cannot be resolved (no
+  // profile row yet), getDashboardAnalytics returns empty — re-fetch through the
+  // org/RLS-scoped helpers so the internship list still renders exactly as before.
+  let internships = analyticsInternships;
+  let counts = applicationsCountByInternship;
+  if (!orgResolved) {
+    internships = await getRecruiterInternships(supabase);
+    const countEntries = await Promise.all(
+      internships.map(async (i) => [i.id, await getApplicationsCountByInternship(supabase, i.id)] as const)
+    );
+    counts = Object.fromEntries(countEntries);
+  }
 
   // Combine internship data with counts and real AI scores from DB
-  const internshipsWithData = internships.map((internship, index) => ({
+  const internshipsWithData = internships.map((internship) => ({
     ...internship,
-    applicantCount: counts[index],
+    applicantCount: counts[internship.id] ?? 0,
     aiScoreAverage: stats.aiScoresByInternship[internship.id] ?? 0
   }));
 

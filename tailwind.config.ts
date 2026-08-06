@@ -22,8 +22,13 @@ const config: Config = {
           dark: "#0B7A70",
         },
         emerald: {
-          DEFAULT: "#10B981",
-          light: "#ECFDF5",
+          DEFAULT: "#29D391",
+          light: "#EAFBF4",
+          dark: "#0E8A6D",
+        },
+        mint: {
+          DEFAULT: "#4EE0B8",
+          light: "#E4FAF3",
         },
         purple: {
           ai: "#6F52ED",

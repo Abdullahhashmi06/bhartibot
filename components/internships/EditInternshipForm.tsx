@@ -24,6 +24,13 @@ export default function EditInternshipForm({
 
   const [title, setTitle] = useState(internship.title);
   const [description, setDescription] = useState(internship.description ?? "");
+  const [stipend, setStipend] = useState(internship.stipend ?? "");
+  const [deadline, setDeadline] = useState(
+    internship.deadline ? internship.deadline.slice(0, 10) : ""
+  );
+  const [internshipType, setInternshipType] = useState(
+    internship.internship_type || "full_time"
+  );
   const [githubRequired, setGithubRequired] = useState(
     internship.github_required ?? false
   );
@@ -87,6 +94,9 @@ export default function EditInternshipForm({
       {
         title: title.trim(),
         description: description.trim(),
+        stipend: stipend.trim(),
+        deadline: deadline ? new Date(deadline).toISOString() : null,
+        internship_type: internshipType,
         requirements,
         github_required: githubRequired,
         linkedin_required: linkedinRequired,
@@ -146,8 +156,6 @@ export default function EditInternshipForm({
         />
       </div>
 
-<<<<<<< Updated upstream
-=======
       {/* Listing metadata: stipend, deadline, type */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="space-y-1.5">
@@ -191,7 +199,6 @@ export default function EditInternshipForm({
         </div>
       </div>
 
->>>>>>> Stashed changes
       {/* GitHub & LinkedIn Required Toggles */}
       <div className="space-y-3 border-t border-border pt-6">
         <p className="text-xs font-bold text-text-primary uppercase tracking-wider font-mono">Required Profile Links from Applicants</p>

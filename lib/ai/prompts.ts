@@ -784,6 +784,85 @@ ${RECRUITER_TIPS_SCHEMA}`;
 }
 
 
+/**
+ * Applicant-portal recommendation explanations (batched).
+ * One AI call produces short "why this match" blurbs for the top internships.
+ * Results are cached in applicant_recommendations so the AI is not re-invoked
+ * on every page load.
+ */
+export const RECOMMENDATION_SYSTEM = `You are InternIQ's AI career advisor explaining why internships are recommended to a student.
+Return valid JSON only. Do not use markdown, code fences, or any commentary.
+Each explanation must be 2–3 sentences, personalized, and reference the student's actual skills, projects, or experience.
+Acknowledge ONE missing/preferred skill only when it adds value (e.g. it is compensated by strong experience).
+Reference the competition level and the student's estimated chance where relevant.
+Never mention that a score, weight, or algorithm produced the suggestion.`;
+
+export const RECOMMENDATION_SCHEMA = `{
+  "explanations": [
+    {
+      "internship_id": "<uuid>",
+      "explanation": "This internship is highly recommended because your Python, SQL and Machine Learning projects closely match the employer's requirements. Although Docker is listed as preferred, your strong AI experience compensates for this gap. Competition is currently moderate, improving your estimated interview chances."
+    }
+  ]
+}`;
+
+export interface RecommendationExplanationInput {
+  studentName: string;
+  degree: string;
+  university: string;
+  skills: string[];
+  projects: string[];
+  experience: string[];
+  internships: {
+    id: string;
+    title: string;
+    field: string | null;
+    company: string;
+    description: string | null;
+    requiredSkills: string[];
+    preferredSkills: string[];
+    matchedSkills: string[];
+    missingSkills: string[];
+    matchScore: number;
+    acceptanceProbability: number;
+    competitionLabel: string;
+    applicantCount: number;
+    strengths: string[];
+    weaknesses: string[];
+  }[];
+}
+
+export function buildRecommendationPrompt(
+  input: RecommendationExplanationInput
+): string {
+  return `Write a personalized, 2–3 sentence explanation for why each internship below is recommended to this student.
+
+STUDENT PROFILE
+Name: ${input.studentName || "Student"}
+Degree: ${input.degree || "Not listed"}
+University: ${input.university || "Not listed"}
+Skills: ${input.skills.join(", ") || "None listed"}
+Projects: ${input.projects.join("; ") || "None listed"}
+Experience: ${input.experience.join("; ") || "None listed"}
+
+INTERNSHIPS (id, title, field, company, required, preferred, matched, missing, match, acceptance, competition, applicants, strengths, weaknesses):
+${input.internships
+  .map(
+    (i) =>
+      `- ${i.id} | ${i.title} | ${i.field || "general"} | ${i.company} | required: ${i.requiredSkills.join(", ") || "-"} | preferred: ${i.preferredSkills.join(", ") || "-"} | matched: ${i.matchedSkills.join(", ") || "-"} | missing: ${i.missingSkills.join(", ") || "-"} | match: ${i.matchScore}% | acceptance: ${i.acceptanceProbability}% | competition: ${i.competitionLabel} (${i.applicantCount} applicants) | strengths: ${i.strengths.join("; ") || "-"} | weaknesses: ${i.weaknesses.join("; ") || "-"}`
+  )
+  .join("\n")}
+
+Rules:
+- Exactly one explanation per internship, same order, using the exact internship_id.
+- 2–3 sentences each, warm and specific, like a career advisor.
+- Reference real matched skills/projects; acknowledge ONE missing skill only if it adds value.
+- Mention the competition level and estimated chance only when it is genuinely informative.
+- Return JSON matching:
+${RECOMMENDATION_SCHEMA}`;
+}
+
+
 /** Strips optional markdown fences and parses JSON from model output. */
 export function parseJsonFromModelText<T>(text: string): T {
   const trimmed = text.trim();

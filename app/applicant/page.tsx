@@ -5,35 +5,134 @@ import {
   getSavedJobs,
   getApplicantSkills,
   getApplicantProjects,
-  getApplicantExperience
+  getApplicantExperience,
+  getProfileCompletionScore,
 } from "@/lib/queries/applicant";
-import { Briefcase, Bookmark, Clock, CheckCircle, XCircle, Video, Gift } from "lucide-react";
+import { getApplicantRecommendations } from "@/lib/ai/recommendations";
+import { Briefcase, Clock, ArrowRight, Sparkles } from "lucide-react";
 import ProfileCompletion from "@/components/applicant/ProfileCompletion";
-<<<<<<< Updated upstream
-import ResumeHealth from "@/components/applicant/ResumeHealth";
-import RecommendedJobs from "@/components/applicant/RecommendedJobs";
-=======
 import HomepageRecommendations from "@/components/applicant/HomepageRecommendations";
->>>>>>> Stashed changes
 import ApplicantStats from "@/components/applicant/ApplicantStats";
+import AiInsightsCard from "@/components/applicant/AiInsightsCard";
+import CircularGauge from "@/components/ai/CircularGauge";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
+import type { RecommendationResult } from "@/lib/ai/recommendations";
 
 export const dynamic = "force-dynamic";
+
+/** Deterministic AI-insights computation from the recommendation feed. */
+function buildInsights(recommendations: RecommendationResult[]): {
+  topFields: string;
+  topGapSkill: string | null;
+  gapBoost: number | null;
+  bestWorkMode: string | null;
+  strengths: string[];
+  hasSignal: boolean;
+} {
+  const hasSignal = recommendations.some(
+    (r) => r.matchedSkills.length > 0 || r.profileCompleteness >= 40
+  );
+  if (!hasSignal || recommendations.length === 0) {
+    return {
+      topFields: "",
+      topGapSkill: null,
+      gapBoost: null,
+      bestWorkMode: null,
+      strengths: [],
+      hasSignal: false,
+    };
+  }
+
+  // Fields — weighted by match score
+  const fieldScores = new Map<string, { total: number; count: number }>();
+  recommendations.forEach((r) => {
+    if (!r.field) return;
+    const cur = fieldScores.get(r.field) ?? { total: 0, count: 0 };
+    cur.total += r.matchScore;
+    cur.count += 1;
+    fieldScores.set(r.field, cur);
+  });
+  const fields = Array.from(fieldScores.entries())
+    .map(([name, v]) => ({ name, avg: v.total / v.count }))
+    .sort((a, b) => b.avg - a.avg)
+    .slice(0, 2)
+    .map((f) => f.name.replace(/\s*\/.*$/, "").trim());
+  const topFields = fields.join(" and ");
+
+  // Skill gaps — highest aggregate match gain
+  const gapAgg = new Map<string, { gain: number; count: number }>();
+  recommendations.forEach((r) => {
+    r.skillGaps.forEach((g) => {
+      const cur = gapAgg.get(g.skill) ?? { gain: 0, count: 0 };
+      cur.gain += g.matchGain;
+      cur.count += 1;
+      gapAgg.set(g.skill, cur);
+    });
+  });
+  const topGap = Array.from(gapAgg.entries())
+    .map(([skill, v]) => ({ skill, avgGain: v.gain / v.count }))
+    .sort((a, b) => b.avgGain - a.avgGain)[0];
+
+  // Best work mode — highest avg acceptance
+  const modeAgg = new Map<string, { total: number; count: number }>();
+  recommendations.forEach((r) => {
+    if (!r.work_mode) return;
+    const cur = modeAgg.get(r.work_mode) ?? { total: 0, count: 0 };
+    cur.total += r.acceptanceProbability;
+    cur.count += 1;
+    modeAgg.set(r.work_mode, cur);
+  });
+  const bestMode = Array.from(modeAgg.entries())
+    .map(([mode, v]) => ({ mode, avg: v.total / v.count }))
+    .sort((a, b) => b.avg - a.avg)[0];
+
+  // Strengths — most frequent matched skills
+  const skillCount = new Map<string, number>();
+  recommendations.forEach((r) => {
+    r.matchedSkills.forEach((s) => skillCount.set(s, (skillCount.get(s) ?? 0) + 1));
+  });
+  const strengths = Array.from(skillCount.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([s]) => s);
+
+  return {
+    topFields,
+    topGapSkill: topGap?.skill ?? null,
+    gapBoost: topGap ? Math.max(2, Math.round(topGap.avgGain * 0.55)) : null,
+    bestWorkMode: bestMode
+      ? bestMode.mode.charAt(0).toUpperCase() + bestMode.mode.slice(1).replace("-", " ")
+      : null,
+    strengths,
+    hasSignal: true,
+  };
+}
 
 export default async function ApplicantDashboardPage() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const [{ data: profile }, { data: applications }, { data: savedJobs }, { data: skills }, { data: projects }, { data: experience }] = await Promise.all([
+  const [
+    { data: profile },
+    { data: applications },
+    { data: savedJobs },
+    { data: skills },
+    { data: projects },
+    { data: experience },
+    engine,
+  ] = await Promise.all([
     getApplicantProfile(supabase, user.id),
     getApplicantApplications(supabase, user.email || ""),
     getSavedJobs(supabase, user.id),
     getApplicantSkills(supabase, user.id),
     getApplicantProjects(supabase, user.id),
-    getApplicantExperience(supabase, user.id)
+    getApplicantExperience(supabase, user.id),
+    getApplicantRecommendations(supabase, user.id, user.email || ""),
   ]);
+
+  const { recommendations, savedJobIds, appliedJobIds } = engine;
 
   const interviewCount = applications?.filter(a => a.status === 'interview').length || 0;
   const offerCount = applications?.filter(a => a.status === 'offer' || a.status === 'hired').length || 0;
@@ -48,8 +147,6 @@ export default async function ApplicantDashboardPage() {
     offers: offerCount,
   };
 
-<<<<<<< Updated upstream
-=======
   // ── Hero metrics ──────────────────────────────────────────────────────
   const profileComplete = getProfileCompletionScore(profile, skills || [], projects || [], experience || []);
   const recommendedCount = recommendations.length;
@@ -93,19 +190,70 @@ export default async function ApplicantDashboardPage() {
     .filter((r) => appliedJobIds.includes(r.id))
     .slice(0, 5);
 
->>>>>>> Stashed changes
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-display font-bold text-primary">Welcome back, {profile?.full_name?.split(" ")[0] || "Applicant"}! 👋</h1>
-        <p className="text-text-secondary mt-1">Here is what&apos;s happening with your internship applications.</p>
-      </div>
+    <div className="space-y-10">
+      {/* ══════════ PART 1 — PREMIUM HERO ══════════ */}
+      <section className="relative overflow-hidden rounded-3xl border border-teal/15 bg-gradient-to-br from-teal-light/60 via-white to-emerald-light/40 dark:from-slate-800 dark:via-slate-900 dark:to-slate-800 p-6 sm:p-10 shadow-card">
+        <div className="absolute -top-16 -right-16 h-56 w-56 rounded-full bg-teal/10 blur-3xl" />
+        <div className="absolute -bottom-20 -left-10 h-56 w-56 rounded-full bg-emerald/10 blur-3xl" />
 
+        <div className="relative flex flex-col lg:flex-row lg:items-center gap-8">
+          <div className="flex-1">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/70 dark:bg-slate-800/80 border border-teal/20 px-3 py-1 text-[11px] font-mono font-bold uppercase tracking-wider text-teal-dark dark:text-teal">
+              <Sparkles className="h-3.5 w-3.5" /> AI Career Advisor
+            </span>
+
+            <h1 className="mt-4 text-3xl sm:text-4xl lg:text-[2.75rem] font-display font-extrabold text-primary dark:text-white tracking-tight leading-[1.15]">
+              Welcome back,{" "}
+              <span className="text-gradient">
+                {profile?.full_name?.split(" ")[0] || "Applicant"}
+              </span>
+              .
+            </h1>
+
+            <p className="mt-3 text-sm sm:text-base text-text-secondary dark:text-slate-400">
+              AI has analyzed your profile — here are the internships where
+              you&apos;re currently most competitive.
+            </p>
+
+            {/* HEADLINE METRICS */}
+            <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <HeroMetric value={recommendedCount} label="Recommended Internships" tone="teal" />
+              <HeroMetric value={highAcceptanceCount} label="High Acceptance Opportunities" tone="mint" />
+              <HeroMetric value={stats.underReview} label="Applications Under Review" tone="amber" />
+            </div>
+
+            {/* CTAs */}
+            <div className="mt-7 flex flex-wrap items-center gap-3">
+              <Link href="/applicant/profile">
+                <Button variant="gradient" rightIcon={<ArrowRight className="h-4 w-4" />}>
+                  Continue improving your profile
+                </Button>
+              </Link>
+              <Link href="/applicant/internships">
+                <Button variant="outline">Explore internships</Button>
+              </Link>
+            </div>
+          </div>
+
+          {/* PROFILE RING */}
+          <div className="shrink-0 mx-auto lg:mx-0">
+            <div className="relative flex flex-col items-center rounded-3xl bg-white/80 dark:bg-slate-800/80 border border-border dark:border-slate-700 shadow-card px-8 py-6 backdrop-blur">
+              <CircularGauge score={profileComplete} size={128} strokeWidth={10} label="Profile Complete" />
+              <Link
+                href="/applicant/profile"
+                className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-teal-dark dark:text-teal hover:underline"
+              >
+                Complete it <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════ PART 2 — STATS ══════════ */}
       <ApplicantStats stats={stats} />
 
-<<<<<<< Updated upstream
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
-=======
       {/* ══════════ PART 11 — AI INSIGHTS ══════════ */}
       <AiInsightsCard data={insights} />
 
@@ -122,39 +270,43 @@ export default async function ApplicantDashboardPage() {
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:items-start">
->>>>>>> Stashed changes
         <div className="lg:col-span-2 space-y-8">
-          <div className="bg-white rounded-3xl p-6 shadow-card border border-border">
+          <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 sm:p-7 shadow-card border border-border">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-display font-bold text-primary">Recent Applications</h2>
+              <div>
+                <h2 className="text-xl font-display font-bold text-primary dark:text-white">
+                  Recent Applications
+                </h2>
+                <p className="text-xs text-text-muted mt-0.5">Track your submitted applications</p>
+              </div>
               <Link href="/applicant/applications">
                 <Button variant="ghost" size="sm" className="text-teal">View All</Button>
               </Link>
             </div>
             {applications && applications.length > 0 ? (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {applications.slice(0, 5).map((app: any) => {
                   const getStatusConfig = (status: string) => {
                     switch (status) {
-                      case "applied": case "under_review": return { color: "text-blue-700", bg: "bg-blue-50", border: "border-blue-200" };
-                      case "ai_reviewed": case "viewed": return { color: "text-amber-700", bg: "bg-amber-50", border: "border-amber-200" };
-                      case "shortlisted": case "interview": return { color: "text-teal-700", bg: "bg-teal-50", border: "border-teal-200" };
-                      case "offer": case "hired": return { color: "text-emerald-700", bg: "bg-emerald-50", border: "border-emerald-200" };
-                      case "rejected": return { color: "text-rose-700", bg: "bg-rose-50", border: "border-rose-200" };
-                      case "withdrawn": return { color: "text-slate-700", bg: "bg-slate-100", border: "border-slate-300" };
-                      default: return { color: "text-slate-700", bg: "bg-slate-100", border: "border-slate-200" };
+                      case "applied": case "under_review": return { color: "text-amber-700 dark:text-amber-300", bg: "bg-amber-50 dark:bg-amber-500/10", border: "border-amber-200 dark:border-amber-500/30" };
+                      case "ai_reviewed": case "viewed": return { color: "text-teal-dark dark:text-teal", bg: "bg-teal-light dark:bg-teal/10", border: "border-teal/20" };
+                      case "shortlisted": case "interview": return { color: "text-emerald-dark dark:text-emerald", bg: "bg-emerald-light dark:bg-emerald/10", border: "border-emerald/20" };
+                      case "offer": case "hired": return { color: "text-emerald-dark dark:text-emerald", bg: "bg-mint-light dark:bg-mint/10", border: "border-mint/25" };
+                      case "rejected": return { color: "text-danger dark:text-rose-300", bg: "bg-rose-50 dark:bg-rose-500/10", border: "border-danger/20" };
+                      case "withdrawn": return { color: "text-slate-600 dark:text-slate-400", bg: "bg-slate-100 dark:bg-slate-700", border: "border-slate-200 dark:border-slate-600" };
+                      default: return { color: "text-slate-600 dark:text-slate-400", bg: "bg-slate-100 dark:bg-slate-700", border: "border-slate-200 dark:border-slate-600" };
                     }
                   };
                   const statusConf = getStatusConfig(app.status);
 
                   return (
-                    <div key={app.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl border border-border hover:border-teal/30 hover:shadow-subtle transition-all duration-200 group gap-4">
+                    <div key={app.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl border border-border dark:border-slate-700 hover:border-teal/30 hover:shadow-subtle transition-all duration-200 group gap-4">
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-lg font-bold text-slate-700 shrink-0">
+                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-light to-emerald-light dark:from-teal/20 dark:to-emerald/15 border border-teal/15 dark:border-teal/25 flex items-center justify-center text-lg font-bold text-teal-dark dark:text-teal shrink-0">
                           {app.internships?.company_name?.charAt(0) || "C"}
                         </div>
                         <div>
-                          <h3 className="font-semibold text-primary group-hover:text-teal transition-colors">{app.internships?.title || "Internship"}</h3>
+                          <h3 className="font-semibold text-primary dark:text-white group-hover:text-teal-dark dark:group-hover:text-teal transition-colors">{app.internships?.title || "Internship"}</h3>
                           <p className="text-sm text-text-secondary">{app.internships?.company_name || "Company"}</p>
                         </div>
                       </div>
@@ -171,7 +323,7 @@ export default async function ApplicantDashboardPage() {
                 })}
               </div>
             ) : (
-              <div className="text-center py-12 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+              <div className="text-center py-14 bg-slate-50 dark:bg-slate-800 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
                 <Briefcase className="w-10 h-10 text-slate-300 mx-auto mb-3" />
                 <p className="text-text-secondary font-medium">No applications yet. Start exploring!</p>
                 <Link href="/applicant/internships">
@@ -180,14 +332,36 @@ export default async function ApplicantDashboardPage() {
               </div>
             )}
           </div>
-
-          <RecommendedJobs skills={skills || []} />
         </div>
 
         <div className="space-y-8">
           <ProfileCompletion profile={profile} skills={skills || []} projects={projects || []} experience={experience || []} />
         </div>
       </div>
+    </div>
+  );
+}
+
+function HeroMetric({
+  value,
+  label,
+  tone,
+}: {
+  value: number;
+  label: string;
+  tone: "teal" | "mint" | "amber";
+}) {
+  const tones = {
+    teal: "text-teal-dark dark:text-teal",
+    mint: "text-emerald-dark dark:text-mint",
+    amber: "text-warning dark:text-amber-300",
+  };
+  return (
+    <div className="rounded-2xl bg-white/80 dark:bg-slate-800/80 border border-border dark:border-slate-700 px-4 py-3.5 backdrop-blur">
+      <p className={`font-display text-2xl font-extrabold ${tones[tone]}`}>{value}</p>
+      <p className="text-[11px] font-semibold text-text-secondary dark:text-slate-400 mt-0.5">
+        {label}
+      </p>
     </div>
   );
 }

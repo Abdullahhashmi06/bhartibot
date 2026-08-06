@@ -35,6 +35,9 @@ export interface Internship {
   duration: string | null;
   status: InternshipStatus | string;
   public_slug: string | null;
+  stipend?: string | null;
+  deadline?: string | null;
+  internship_type?: string | null;
   created_at: string;
   github_required?: boolean;
   linkedin_required?: boolean;
@@ -47,6 +50,9 @@ export interface NewInternshipInput {
   location: string;
   work_mode: WorkMode;
   duration: string;
+  stipend?: string;
+  deadline?: string;
+  internship_type?: string;
   requirements: Requirement[];
   github_required?: boolean;
   linkedin_required?: boolean;
@@ -72,6 +78,97 @@ export interface Application {
   cv_path: string | null;
   status: ApplicationStatus | string;
   created_at: string;
+}
+
+export interface ApplicantFeedItem {
+  id: string;
+  organization_id: string;
+  title: string;
+  field: string | null;
+  description: string | null;
+  location: string | null;
+  work_mode: string | null;
+  duration: string | null;
+  stipend: string | null;
+  internship_type: string | null;
+  deadline: string | null;
+  status: string;
+  public_slug: string | null;
+  company_name: string;
+  required_skills: string[];
+  preferred_skills: string[];
+  applicant_count: number;
+  avg_applicant_match: number | null;
+  created_at: string;
+}
+
+/**
+ * Configurable recommendation-engine weights, persisted in the
+ * recommendation_settings table. The engine reads these dynamically — changing
+ * a row (and bumping `version`) instantly refreshes future recommendations
+ * without any code change.
+ */
+export interface RecommendationWeights {
+  required_skills_weight: number;
+  preferred_skills_weight: number;
+  education_weight: number;
+  experience_weight: number;
+  project_weight: number;
+  profile_weight: number;
+  competition_weight: number;
+  recency_weight: number;
+  algorithm_version: string;
+  cache_version: number;
+  version: number;
+}
+
+/** One missing skill with a priority order and estimated gains if learned. */
+export interface SkillGap {
+  skill: string;
+  priority: "High" | "Medium" | "Low";
+  matchGain: number; // estimated +match percentage points
+  acceptanceGain: number; // estimated +acceptance percentage points
+}
+
+/** Competition intelligence for one internship. */
+export interface CompetitionIntelligence {
+  count: number;
+  label: string;
+  tone: "emerald" | "amber" | "rose";
+  dot: string;
+  estimatedDifficulty: "Low" | "Moderate" | "High";
+  avgApplicantMatch: number | null;
+}
+
+/**
+ * Cached AI recommendation for one (applicant, internship) pair.
+ * Persisted in the applicant_recommendations table; the signal_hash allows
+ * cheap staleness detection (recompute only when the applicant or the
+ * internship requirements change). Extended with the v2 analytics columns.
+ */
+export interface ApplicantRecommendation {
+  id: string;
+  applicant_id: string;
+  internship_id: string;
+  match_score: number;
+  explanation: string;
+  matched_skills: string[];
+  missing_skills: string[];
+  signal_hash: string;
+  acceptance_probability: number;
+  overall_score: number;
+  skill_gaps: SkillGap[] | null;
+  strengths: string[];
+  weaknesses: string[];
+  competition_level: string;
+  avg_applicant_match: number | null;
+  reason_generated: "ai" | "computed" | "cache";
+  algorithm_version: string;
+  cache_version: number;
+  weights_snapshot: Record<string, number> | null;
+  profile_completeness: number;
+  generated_at: string;
+  updated_at: string;
 }
 
 export interface ApplicationAnswerInput {

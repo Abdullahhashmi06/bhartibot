@@ -319,13 +319,16 @@ export async function updateInternship(
     requirements?: Requirement[];
     github_required?: boolean;
     linkedin_required?: boolean;
+    stipend?: string | null;
+    deadline?: string | null;
+    internship_type?: string | null;
   }
 ): Promise<{ internship: Internship | null; error: string | null }> {
   if (!(await canAccessInternship(supabase, internshipId))) {
     return { internship: null, error: "You do not have permission to modify this internship." };
   }
 
-  const updates: Record<string, string | boolean> = {};
+  const updates: Record<string, string | boolean | null> = {};
   if (patch.title !== undefined) {
     updates.title = patch.title;
     updates.public_slug = slugify(patch.title);
@@ -333,6 +336,9 @@ export async function updateInternship(
   if (patch.description !== undefined) updates.description = patch.description;
   if (patch.github_required !== undefined) updates.github_required = patch.github_required;
   if (patch.linkedin_required !== undefined) updates.linkedin_required = patch.linkedin_required;
+  if (patch.stipend !== undefined) updates.stipend = patch.stipend;
+  if (patch.deadline !== undefined) updates.deadline = patch.deadline;
+  if (patch.internship_type !== undefined) updates.internship_type = patch.internship_type;
 
   if (Object.keys(updates).length > 0) {
     const { error } = await supabase
