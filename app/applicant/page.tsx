@@ -9,8 +9,12 @@ import {
 } from "@/lib/queries/applicant";
 import { Briefcase, Bookmark, Clock, CheckCircle, XCircle, Video, Gift } from "lucide-react";
 import ProfileCompletion from "@/components/applicant/ProfileCompletion";
+<<<<<<< Updated upstream
 import ResumeHealth from "@/components/applicant/ResumeHealth";
 import RecommendedJobs from "@/components/applicant/RecommendedJobs";
+=======
+import HomepageRecommendations from "@/components/applicant/HomepageRecommendations";
+>>>>>>> Stashed changes
 import ApplicantStats from "@/components/applicant/ApplicantStats";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
@@ -44,6 +48,52 @@ export default async function ApplicantDashboardPage() {
     offers: offerCount,
   };
 
+<<<<<<< Updated upstream
+=======
+  // ── Hero metrics ──────────────────────────────────────────────────────
+  const profileComplete = getProfileCompletionScore(profile, skills || [], projects || [], experience || []);
+  const recommendedCount = recommendations.length;
+  const highAcceptanceCount = recommendations.filter(
+    (r) => r.acceptanceProbability >= 70
+  ).length;
+
+  // ── AI insights (deterministic) ───────────────────────────────────────
+  const insights = buildInsights(recommendations);
+
+  // ── Personalized homepage sections ────────────────────────────────────
+  const topRecommended = recommendations
+    .filter((r) => r.overallScore >= 55 && r.matchScore >= 45)
+    .slice(0, 3);
+
+  const trending = [...recommendations]
+    .sort((a, b) => b.applicant_count - a.applicant_count)
+    .filter((r) => !topRecommended.some((t) => t.id === r.id))
+    .slice(0, 5);
+
+  const recentlyPosted = [...recommendations]
+    .sort(
+      (a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    )
+    .slice(0, 5);
+
+  const closingSoon = [...recommendations]
+    .filter((r) => r.deadline)
+    .sort(
+      (a, b) =>
+        new Date(a.deadline!).getTime() - new Date(b.deadline!).getTime()
+    )
+    .slice(0, 5);
+
+  const savedRecs = recommendations
+    .filter((r) => savedJobIds.includes(r.id))
+    .slice(0, 5);
+
+  const appliedRecs = recommendations
+    .filter((r) => appliedJobIds.includes(r.id))
+    .slice(0, 5);
+
+>>>>>>> Stashed changes
   return (
     <div className="space-y-8">
       <div>
@@ -53,7 +103,26 @@ export default async function ApplicantDashboardPage() {
 
       <ApplicantStats stats={stats} />
 
+<<<<<<< Updated upstream
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
+=======
+      {/* ══════════ PART 11 — AI INSIGHTS ══════════ */}
+      <AiInsightsCard data={insights} />
+
+      {/* ══════════ PERSONALIZED SECTIONS ══════════ */}
+      <HomepageRecommendations
+        top={topRecommended}
+        trending={trending}
+        recentlyPosted={recentlyPosted}
+        closingSoon={closingSoon}
+        saved={savedRecs}
+        applied={appliedRecs}
+        savedJobIds={savedJobIds}
+        appliedJobIds={appliedJobIds}
+      />
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:items-start">
+>>>>>>> Stashed changes
         <div className="lg:col-span-2 space-y-8">
           <div className="bg-white rounded-3xl p-6 shadow-card border border-border">
             <div className="flex items-center justify-between mb-6">
@@ -117,7 +186,6 @@ export default async function ApplicantDashboardPage() {
 
         <div className="space-y-8">
           <ProfileCompletion profile={profile} skills={skills || []} projects={projects || []} experience={experience || []} />
-          <ResumeHealth profile={profile} skills={skills || []} projects={projects || []} experience={experience || []} />
         </div>
       </div>
     </div>

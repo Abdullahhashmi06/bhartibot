@@ -70,8 +70,40 @@ export default function Shell({
           <div>
             <span className="font-bold text-primary dark:text-white">InternIQ</span> · Discover Potential. Create Impact.
           </div>
+<<<<<<< Updated upstream
           <div>
             © {new Date().getFullYear()} InternIQ AI Recruitment SaaS. All rights reserved.
+=======
+          <div className="flex flex-col items-center sm:items-end gap-2">
+            <div className="text-center sm:text-right space-y-1">
+              <div>
+                © {new Date().getFullYear()} InternIQ AI Recruitment SaaS. All rights reserved.
+              </div>
+              <div className="text-text-muted dark:text-slate-500">
+                Developed by{" "}
+                <span className="font-semibold text-primary dark:text-slate-200">Abdullah Hashmi</span>
+                {" "}and{" "}
+                <span className="font-semibold text-primary dark:text-slate-200">Umer Sheikh</span>
+              </div>
+            </div>
+            <nav
+              aria-label="Legal"
+              className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1 text-[11px] uppercase tracking-wider"
+            >
+              <Link href="/privacy" className="hover:text-teal-dark dark:hover:text-teal-300 transition-colors">
+                Privacy Policy
+              </Link>
+              <Link href="/terms" className="hover:text-teal-dark dark:hover:text-teal-300 transition-colors">
+                Terms &amp; Conditions
+              </Link>
+              <Link href="/ai-disclaimer" className="hover:text-teal-dark dark:hover:text-teal-300 transition-colors">
+                Responsible AI
+              </Link>
+              <Link href="/contact" className="hover:text-teal-dark dark:hover:text-teal-300 transition-colors">
+                Contact
+              </Link>
+            </nav>
+>>>>>>> Stashed changes
           </div>
         </div>
       </footer>

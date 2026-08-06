@@ -24,8 +24,24 @@ export default async function DashboardPage() {
   const fullName = (user.user_metadata?.full_name as string) || null;
   const orgName = (user.user_metadata?.organization_name as string) || null;
 
+<<<<<<< Updated upstream
   // Fetch all analytics data
   const { stats, recentActivity, topUniversities, topSkills } = await getDashboardAnalytics(supabase);
+=======
+  // All analytics + internships + per-internship application counts come from a
+  // single consolidated fetch (getDashboardAnalytics), avoiding a duplicate
+  // internships query and N count queries per role.
+  const {
+    stats,
+    recentActivity,
+    topUniversities,
+    topSkills,
+    internships: analyticsInternships,
+    applicationsCountByInternship,
+    weeklyApplications,
+    orgResolved,
+  } = await getDashboardAnalytics(supabase);
+>>>>>>> Stashed changes
 
   // Fetch internships for the list
   const internships = await getRecruiterInternships(supabase);
@@ -81,6 +97,7 @@ export default async function DashboardPage() {
           recentActivity={recentActivity}
           topUniversities={topUniversities}
           topSkills={topSkills}
+          weeklyApplications={weeklyApplications}
         />
       </div>
     </Shell>

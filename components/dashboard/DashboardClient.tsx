@@ -22,6 +22,7 @@ interface DashboardClientProps {
   recentActivity: ActivityItem[];
   topUniversities: { university: string; applicants: number; avgScore: number }[];
   topSkills: { skill: string; count: number }[];
+  weeklyApplications: { name: string; count: number }[];
 }
 
 export default function DashboardClient({
@@ -29,7 +30,8 @@ export default function DashboardClient({
   internships,
   recentActivity,
   topUniversities,
-  topSkills
+  topSkills,
+  weeklyApplications
 }: DashboardClientProps) {
   const [filters, setFilters] = useState<FilterState>({
     search: "",
@@ -41,6 +43,10 @@ export default function DashboardClient({
     sortBy: "Newest"
   });
 
+  /** True when an internship's application deadline has already passed. */
+  const isDeadlinePassed = (i: Internship) =>
+    i.deadline ? new Date(i.deadline).getTime() < Date.now() : false;
+
   // Extract unique values for filter dropdowns
   const departments = useMemo(() => Array.from(new Set(internships.map(i => i.field).filter(Boolean))) as string[], [internships]);
   const locations = useMemo(() => Array.from(new Set(internships.map(i => i.location).filter(Boolean))) as string[], [internships]);
@@ -49,8 +55,15 @@ export default function DashboardClient({
   const filteredInternships = useMemo(() => {
     return internships
       .filter(i => {
-        // Tab filter
-        if (filters.tab === "Active" && (i.status === "archived" || i.status === "closed")) return false;
+        const expired = isDeadlinePassed(i);
+
+        // Tab filter — deadline-aware
+        if (filters.tab === "Active") {
+          if (i.status === "archived" || i.status === "closed" || expired) return false;
+        }
+        if (filters.tab === "Deadline Passed" && !expired) return false;
+        if (filters.tab === "Draft" && i.status !== "draft") return false;
+        if (filters.tab === "Published" && i.status !== "published") return false;
         if (filters.tab === "Archived" && i.status !== "archived" && i.status !== "closed") return false;
         
         // Dropdown filters
@@ -149,7 +162,7 @@ export default function DashboardClient({
         {/* Left Column (Charts) */}
         <div className="lg:col-span-2 space-y-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <WeeklyApplicationsChart />
+            <WeeklyApplicationsChart data={weeklyApplications} />
             <AiDistributionChart distribution={stats.scoreDistribution} />
           </div>
           

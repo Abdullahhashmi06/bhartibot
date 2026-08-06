@@ -48,7 +48,10 @@ export async function updateStatusServerAction(
     revalidatePath("/dashboard/applications", "layout");
     revalidatePath("/dashboard/applications/shortlisted", "layout");
     if (preFetched?.internshipId) {
+      // Revalidate the internship applications page (covers all tab variants because
+      // Next.js revalidates the entire route segment, regardless of searchParams)
       revalidatePath(`/dashboard/applications/${preFetched.internshipId}`, "layout");
+      revalidatePath(`/dashboard/applications/${preFetched.internshipId}`, "page");
     }
 
     // Fire rejection email (fire-and-forget, never blocks)

@@ -159,7 +159,8 @@ export default function ApplicantList({
   }
 
   async function handleQuickAction(id: string, status: "shortlisted" | "rejected") {
-    const prevStatus = applications.find((a) => a.id === id)?.status as ApplicationStatus | string;
+    const appData = applications.find((a) => a.id === id);
+    const prevStatus = appData?.status as ApplicationStatus | string;
 
     // Optimistic local update
     setApplications((prev) =>
@@ -170,6 +171,8 @@ export default function ApplicantList({
 
     const { error } = await updateStatusServerAction(id, status, prevStatus, {
       internshipId,
+      applicantEmail: appData?.email,
+      applicantName: appData?.applicant_name,
     });
 
     if (error) {

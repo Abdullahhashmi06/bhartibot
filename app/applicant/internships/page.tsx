@@ -1,4 +1,11 @@
+<<<<<<< Updated upstream
 "use client";
+=======
+import { createClient } from "@/lib/supabase/server";
+import { getApplicantRecommendations } from "@/lib/ai/recommendations";
+import InternshipExplorer from "@/components/applicant/InternshipExplorer";
+import type { ApplicantFeedItem } from "@/lib/types";
+>>>>>>> Stashed changes
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -30,10 +37,24 @@ export default function InternshipsPage() {
     fetchData();
   }, []);
 
+<<<<<<< Updated upstream
   const fetchData = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+=======
+  // Recently-expired internships (deadline passed within the last 15 days).
+  // Shown under a separate "Deadline Passed" filter — applicants can browse
+  // but can no longer apply.
+  const { data: expiredFeed } = await supabase.rpc(
+    "get_expired_applicant_feed"
+  );
+  const expired: ApplicantFeedItem[] = (expiredFeed ?? []) as ApplicantFeedItem[];
+
+  // Split into "Recommended For You" (strong overall fit, acceptance-aware)
+  // vs "Other Opportunities". The engine already sorts by overallScore.
+  const RECOMMENDED_THRESHOLD = 55;
+>>>>>>> Stashed changes
 
       const [internshipsRes, savedRes, applicationsRes, skillsRes] = await Promise.all([
         supabase.from("internships").select("*").eq("status", "published"),
@@ -195,6 +216,7 @@ export default function InternshipsPage() {
   const hasActiveFilters = filterWorkMode || filterLocation || filterField;
 
   return (
+<<<<<<< Updated upstream
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-display font-bold text-primary">Discover Internships</h1>
@@ -385,6 +407,16 @@ export default function InternshipsPage() {
             </Button>
           )}
         </div>
+=======
+    <InternshipExplorer
+      recommended={recommended}
+      others={others}
+      expired={expired}
+      savedJobIds={savedJobIds}
+      appliedJobIds={appliedJobIds}
+      hasProfileSignal={recommendations.some(
+        (r) => r.matchedSkills.length > 0 || r.profileCompleteness >= 40
+>>>>>>> Stashed changes
       )}
     </div>
   );

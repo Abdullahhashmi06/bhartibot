@@ -37,6 +37,17 @@ export default function EditInternshipForm({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
+  /** Today's date as YYYY-MM-DD in local time. */
+  const todayIso = new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
+    .toISOString()
+    .split("T")[0];
+  /** The originally-stored deadline (YYYY-MM-DD) — may be historical (past). */
+  const originalDeadline = internship.deadline
+    ? internship.deadline.slice(0, 10)
+    : "";
+  /** Allow keeping an existing historical deadline, but never a new past date. */
+  const deadlineMin = originalDeadline && originalDeadline < todayIso ? originalDeadline : todayIso;
+
   function addRequirement(type: RequirementType) {
     setRequirements((prev) => [...prev, { requirement: "", type }]);
   }
@@ -58,6 +69,13 @@ export default function EditInternshipForm({
 
     if (!title.trim()) {
       setError("Title is required.");
+      return;
+    }
+
+    // Deadline validation — prevent NEW past deadlines, but allow keeping the
+    // existing historical value when editing legacy data.
+    if (deadline && deadline < todayIso && deadline !== originalDeadline) {
+      setError("The application deadline cannot be in the past.");
       return;
     }
 
@@ -128,6 +146,52 @@ export default function EditInternshipForm({
         />
       </div>
 
+<<<<<<< Updated upstream
+=======
+      {/* Listing metadata: stipend, deadline, type */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="space-y-1.5">
+          <label className="text-xs font-semibold text-text-primary">Stipend (if any)</label>
+          <input
+            type="text"
+            value={stipend}
+            onChange={(e) => setStipend(e.target.value)}
+            className={inputClass}
+            placeholder="e.g. PKR 25,000/month"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <label className="text-xs font-semibold text-text-primary">Application Deadline</label>
+          <input
+            type="date"
+            value={deadline}
+            min={deadlineMin}
+            onChange={(e) => setDeadline(e.target.value)}
+            className={inputClass}
+          />
+          {originalDeadline && originalDeadline < todayIso && (
+            <p className="text-[11px] text-text-muted">
+              This internship already passed its deadline (historical data) — you
+              can keep it, but new dates cannot be in the past.
+            </p>
+          )}
+        </div>
+        <div className="space-y-1.5">
+          <label className="text-xs font-semibold text-text-primary">Internship Type</label>
+          <select
+            value={internshipType}
+            onChange={(e) => setInternshipType(e.target.value)}
+            className={inputClass}
+          >
+            <option value="full_time">Full-time</option>
+            <option value="part_time">Part-time</option>
+            <option value="contract">Contract</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+      </div>
+
+>>>>>>> Stashed changes
       {/* GitHub & LinkedIn Required Toggles */}
       <div className="space-y-3 border-t border-border pt-6">
         <p className="text-xs font-bold text-text-primary uppercase tracking-wider font-mono">Required Profile Links from Applicants</p>

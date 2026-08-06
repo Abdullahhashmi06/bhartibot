@@ -55,9 +55,22 @@ export default function CreateInternshipPage() {
   const [githubRequired, setGithubRequired] = useState(false);
   const [linkedinRequired, setLinkedinRequired] = useState(false);
 
+  /** Today's date as YYYY-MM-DD in the recruiter's local timezone. */
+  const todayIso = new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
+    .toISOString()
+    .split("T")[0];
+
   function validateStep1() {
     if (!title.trim() || !location.trim() || !duration.trim()) {
       setError("Role Title, Location, and Duration are required.");
+      return false;
+    }
+    if (!deadline) {
+      setError("An Application Deadline is required so applicants know when to apply by.");
+      return false;
+    }
+    if (deadline < todayIso) {
+      setError("The application deadline cannot be in the past.");
       return false;
     }
     setError(null);
@@ -86,6 +99,17 @@ export default function CreateInternshipPage() {
 
     if (!title.trim() || !location.trim() || !duration.trim()) {
       setError("Title, location, and duration are required.");
+      setStep(1);
+      return;
+    }
+
+    if (!deadline) {
+      setError("An Application Deadline is required so applicants know when to apply by.");
+      setStep(1);
+      return;
+    }
+    if (deadline < todayIso) {
+      setError("The application deadline cannot be in the past.");
       setStep(1);
       return;
     }
@@ -280,6 +304,53 @@ export default function CreateInternshipPage() {
                     </div>
                   </div>
 
+<<<<<<< Updated upstream
+=======
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-text-primary">
+                        Stipend (if any)
+                      </label>
+                      <input
+                        type="text"
+                        value={stipend}
+                        onChange={(e) => setStipend(e.target.value)}
+                        placeholder="e.g. PKR 25,000/month"
+                        className="w-full rounded-xl border border-border bg-slate-50/50 px-4 py-2.5 text-sm text-text-primary focus:border-teal focus:bg-white focus:outline-none transition-all"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-text-primary">
+                        Application Deadline <span className="text-danger">*</span>
+                      </label>
+                      <input
+                        type="date"
+                        value={deadline}
+                        min={todayIso}
+                        onChange={(e) => setDeadline(e.target.value)}
+                        className="w-full rounded-xl border border-border bg-slate-50/50 px-4 py-2.5 text-sm text-text-primary focus:border-teal focus:bg-white focus:outline-none transition-all"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-text-primary">
+                        Internship Type
+                      </label>
+                      <select
+                        value={internshipType}
+                        onChange={(e) => setInternshipType(e.target.value)}
+                        className="w-full rounded-xl border border-border bg-slate-50/50 px-3.5 py-2.5 text-sm text-text-primary focus:border-teal focus:bg-white focus:outline-none"
+                      >
+                        <option value="full_time">Full-time</option>
+                        <option value="part_time">Part-time</option>
+                        <option value="contract">Contract</option>
+                        <option value="other">Other</option>
+                      </select>
+                    </div>
+                  </div>
+
+>>>>>>> Stashed changes
                   <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-text-primary">
                       Description & Objectives

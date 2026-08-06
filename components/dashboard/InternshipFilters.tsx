@@ -6,13 +6,22 @@ import { motion, AnimatePresence } from "framer-motion";
 
 export type FilterState = {
   search: string;
-  tab: "Active" | "Archived" | "All";
+  tab: "Active" | "Deadline Passed" | "Draft" | "Published" | "Archived" | "All";
   status: "" | "draft" | "published" | "closed";
   department: string;
   location: string;
   workMode: string;
   sortBy: "Newest" | "Oldest" | "Most Applications" | "Highest AI Score";
 };
+
+export const INTERNSHIP_TABS: FilterState["tab"][] = [
+  "Active",
+  "Deadline Passed",
+  "Draft",
+  "Published",
+  "Archived",
+  "All",
+];
 
 interface InternshipFiltersProps {
   filters: FilterState;
@@ -40,8 +49,8 @@ export default function InternshipFilters({ filters, setFilters, departments, lo
       <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
         
         {/* Tabs */}
-        <div className="flex p-1 bg-slate-100 rounded-xl w-full sm:w-auto">
-          {["Active", "Archived", "All"].map((tab) => (
+        <div className="flex p-1 bg-slate-100 rounded-xl w-full sm:w-auto flex-wrap">
+          {INTERNSHIP_TABS.map((tab) => (
             <button
               key={tab}
               onClick={() => setFilters({ ...filters, tab: tab as any })}

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Users, ArrowRight, Copy, Archive, ArchiveRestore, MoreVertical } from "lucide-react";
+import { Users, ArrowRight, Copy, Archive, ArchiveRestore, MoreVertical, Calendar } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Tag from "@/components/ui/Tag";
 import { Internship } from "@/lib/types";
@@ -58,6 +58,14 @@ export default function InternshipCard({ internship }: InternshipCardProps) {
     return "amber";
   };
 
+  // Deadline display — recruiters always see the deadline, and see a
+  // "Deadline Passed" marker once it expires (internship is never deleted).
+  const deadlineDate = internship.deadline ? new Date(internship.deadline) : null;
+  const deadlinePassed = deadlineDate ? deadlineDate.getTime() < Date.now() : false;
+  const daysLeft = deadlineDate
+    ? Math.ceil((deadlineDate.getTime() - Date.now()) / 86400000)
+    : null;
+
   return (
     <motion.div
       layout
@@ -83,6 +91,14 @@ export default function InternshipCard({ internship }: InternshipCardProps) {
           <Tag tone={getTone(internship.status)}>
             {internship.status}
           </Tag>
+          {deadlinePassed ? (
+            <Tag tone="rose">Deadline Passed</Tag>
+          ) : deadlineDate ? (
+            <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 px-2.5 py-0.5 font-mono text-[11px] font-medium uppercase tracking-wider text-warning dark:text-amber-300">
+              <Calendar className="h-3 w-3" />
+              {daysLeft !== null && daysLeft <= 7 ? `${daysLeft}d left` : deadlineDate.toLocaleDateString()}
+            </span>
+          ) : null}
         </div>
         <p className="text-xs text-text-secondary font-medium truncate">
           {[internship.field, internship.location, internship.work_mode, internship.duration]

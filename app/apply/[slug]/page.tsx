@@ -8,7 +8,7 @@ import {
   getPublishedInternshipBySlug,
 } from "@/lib/queries/internships";
 import { getInternshipQuestions } from "@/lib/queries/questions";
-import { Sparkles, Briefcase, MapPin, Clock } from "lucide-react";
+import { Sparkles, Briefcase, MapPin, Clock, CalendarClock, Lock } from "lucide-react";
 
 export default async function ApplyPage({
   params,
@@ -33,15 +33,24 @@ export default async function ApplyPage({
   const required = requirements.filter((r) => r.type === "required");
   const preferred = requirements.filter((r) => r.type === "preferred");
 
+  // Deadline passed → the drive is closed for new applications. Recruiters
+  // still see the role; the public form is replaced with an "Applications
+  // Closed" notice (no data is deleted).
+  const deadlinePassed = internship.deadline
+    ? new Date(internship.deadline).getTime() < Date.now()
+    : false;
+
   return (
     <Shell>
       <div className="mx-auto max-w-3xl space-y-8 py-8 px-4 sm:px-6">
         {/* PUBLIC APPLICATION HEADER */}
         <div className="rounded-3xl border border-border bg-white p-6 sm:p-8 shadow-card space-y-4">
           <div className="flex items-center gap-2">
-            <Tag tone="teal">Open Internship Drive</Tag>
+            <Tag tone={deadlinePassed ? "rose" : "teal"}>
+              {deadlinePassed ? "Applications Closed" : "Open Internship Drive"}
+            </Tag>
             <span className="font-mono text-xs text-text-muted font-medium">
-              No account required
+              {deadlinePassed ? "Deadline has passed" : "No account required"}
             </span>
           </div>
 
@@ -70,6 +79,17 @@ export default async function ApplyPage({
                 <Clock className="h-3.5 w-3.5" /> {internship.duration}
               </span>
             )}
+            {internship.deadline && (
+              <span
+                className={`flex items-center gap-1 font-mono text-xs ${
+                  deadlinePassed ? "text-danger" : "text-text-muted"
+                }`}
+              >
+                <CalendarClock className="h-3.5 w-3.5" />
+                Deadline: {new Date(internship.deadline).toLocaleDateString()}
+                {deadlinePassed ? " (closed)" : ""}
+              </span>
+            )}
           </div>
 
           {internship.description && (
@@ -92,14 +112,30 @@ export default async function ApplyPage({
           </div>
         )}
 
-        {/* APPLICATION FORM */}
-        <ApplicationForm
-          internshipId={internship.id}
-          slug={params.slug}
-          questions={questions}
-          githubRequired={internship.github_required ?? false}
-          linkedinRequired={internship.linkedin_required ?? false}
-        />
+        {/* APPLICATION FORM — replaced by a closed notice once the deadline passes */}
+        {deadlinePassed ? (
+          <div className="rounded-3xl border border-dashed border-danger/30 bg-rose-50/60 dark:bg-rose-500/5 p-8 text-center space-y-3">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-100 dark:bg-rose-500/15 text-danger">
+              <Lock className="h-7 w-7" />
+            </div>
+            <h2 className="font-display font-bold text-xl text-primary dark:text-white">
+              Applications Closed
+            </h2>
+            <p className="mx-auto max-w-md text-sm text-text-secondary">
+              The application deadline for this internship has passed, so new
+              applications are no longer being accepted. Please check back for
+              future opportunities.
+            </p>
+          </div>
+        ) : (
+          <ApplicationForm
+            internshipId={internship.id}
+            slug={params.slug}
+            questions={questions}
+            githubRequired={internship.github_required ?? false}
+            linkedinRequired={internship.linkedin_required ?? false}
+          />
+        )}
       </div>
     </Shell>
   );
