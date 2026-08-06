@@ -13,9 +13,11 @@ import {
   Info,
   BadgeCheck,
   Calendar,
+  Clock,
   Flame,
   Sparkles,
   Target,
+  Lock,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import CircularGauge from "@/components/ai/CircularGauge";
@@ -57,6 +59,19 @@ function competitionClasses(tone: string) {
   return "bg-indigo-50 dark:bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 border-indigo-500/20";
 }
 
+export type CardTone = "teal" | "rose" | "amber" | "emerald" | "violet" | "indigo";
+
+/* Per-category accent identity — a gradient top bar + hover border that lets
+   each home section read as a distinct color family. */
+const TONES: Record<CardTone, { bar: string; hoverBorder: string }> = {
+  teal: { bar: "from-teal-400 to-emerald-400", hoverBorder: "hover:border-teal/40" },
+  rose: { bar: "from-rose-400 to-orange-300", hoverBorder: "hover:border-rose-400/40" },
+  amber: { bar: "from-amber-400 to-orange-300", hoverBorder: "hover:border-amber-400/40" },
+  emerald: { bar: "from-emerald-400 to-teal-300", hoverBorder: "hover:border-emerald-400/40" },
+  violet: { bar: "from-violet-400 to-purple-300", hoverBorder: "hover:border-violet-400/40" },
+  indigo: { bar: "from-indigo-400 to-sky-300", hoverBorder: "hover:border-indigo-400/40" },
+};
+
 interface OpportunityCardProps {
   job: RecommendationResult;
   index?: number;
@@ -68,6 +83,8 @@ interface OpportunityCardProps {
   onWhyThisMatch: () => void;
   /** "full" = rich grid card; "compact" = horizontal carousel card. */
   variant?: "full" | "compact";
+  /** Section accent identity (drives top bar + hover border). */
+  tone?: CardTone;
 }
 
 export default function OpportunityCard({
@@ -80,8 +97,10 @@ export default function OpportunityCard({
   onApply,
   onWhyThisMatch,
   variant = "full",
+  tone = "teal",
 }: OpportunityCardProps) {
   const competition = job.competitionIntelligence;
+  const toneStyle = TONES[tone];
   const deadlineDate = job.deadline ? new Date(job.deadline) : null;
   const daysLeft = deadlineDate
     ? Math.ceil((deadlineDate.getTime() - Date.now()) / 86400000)
@@ -97,8 +116,11 @@ export default function OpportunityCard({
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: Math.min(index * 0.04, 0.2) }}
-        className="flex flex-col bg-white dark:bg-slate-800 rounded-2xl shadow-card border border-border dark:border-slate-700 p-5 hover:border-teal/40 hover:shadow-hover hover:-translate-y-1 transition-all duration-300 h-full"
+        className={`relative flex flex-col overflow-hidden bg-white dark:bg-slate-800 rounded-2xl shadow-card border border-border dark:border-slate-700 p-5 ${toneStyle.hoverBorder} hover:shadow-hover hover:-translate-y-1 transition-all duration-300 h-full`}
       >
+        {/* Section accent bar */}
+        <div aria-hidden className={`absolute top-0 inset-x-0 h-1 bg-gradient-to-r ${toneStyle.bar}`} />
+
         {/* COMPANY + TITLE */}
         <div className="flex items-start gap-3 mb-3">
           <div
@@ -111,7 +133,12 @@ export default function OpportunityCard({
               <span className="truncate">{job.company_name}</span>
               <BadgeCheck className="h-3.5 w-3.5 text-teal shrink-0" />
             </div>
-            <h3 className="font-display font-bold text-[15px] text-primary dark:text-white leading-snug line-clamp-2">
+            <p className="mt-1 inline-flex items-center gap-1 text-[10px] font-medium text-text-muted dark:text-slate-400">
+              <Clock className="h-3 w-3 text-teal/80" />
+              Posted {timeAgo(job.created_at)}
+            </p>
+            <h3 className="font-display font-bold text-[15px] text-primary dark:text-white leading-snug line-clamp-2 mt-1.5">
+
               {job.title}
             </h3>
           </div>
@@ -177,6 +204,10 @@ export default function OpportunityCard({
               </>
             ) : applying ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : deadlinePassed ? (
+              <>
+                <Lock className="h-3.5 w-3.5 mr-1" /> Application Closed
+              </>
             ) : (
               "Apply"
             )}
@@ -204,8 +235,12 @@ export default function OpportunityCard({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.97 }}
       transition={{ delay: Math.min(index * 0.05, 0.3), duration: 0.4 }}
-      className="flex flex-col bg-white dark:bg-slate-800 rounded-3xl shadow-card border border-border dark:border-slate-700 p-6 hover:border-teal/30 hover:shadow-hover hover:-translate-y-1 transition-all duration-300 group h-full"
+      className={`relative flex flex-col overflow-hidden bg-white dark:bg-slate-800 rounded-3xl shadow-card border border-border dark:border-slate-700 p-6 ${toneStyle.hoverBorder} hover:shadow-hover hover:-translate-y-1 transition-all duration-300 group h-full`}
     >
+      {/* Section accent bar */}
+      <div aria-hidden className={`absolute top-0 inset-x-0 h-1 bg-gradient-to-r ${toneStyle.bar}`} />
+
+
       {/* COMPANY BLOCK + COMPACT METRICS ROW */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-3 min-w-0">
@@ -221,9 +256,6 @@ export default function OpportunityCard({
               </span>
               <BadgeCheck className="h-4 w-4 text-teal shrink-0" />
             </div>
-            <p className="text-[11px] text-text-muted dark:text-slate-500 mt-0.5">
-              Posted {timeAgo(job.created_at)}
-            </p>
           </div>
         </div>
 
@@ -239,8 +271,15 @@ export default function OpportunityCard({
         </div>
       </div>
 
+      {/* POSTED — its own row directly under the avatar, never overlaps the dials */}
+      <p className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-text-muted dark:text-slate-400 whitespace-nowrap">
+        <Clock className="h-3.5 w-3.5 shrink-0 text-teal/80" />
+        Posted {timeAgo(job.created_at)}
+      </p>
+
       {/* TITLE — primary focus */}
-      <h3 className="mt-5 font-display font-bold text-xl text-primary dark:text-white leading-snug group-hover:text-teal-dark dark:group-hover:text-teal transition-colors">
+      <h3 className="mt-4 font-display font-bold text-xl text-primary dark:text-white leading-snug group-hover:text-teal-dark dark:group-hover:text-teal transition-colors">
+
         {job.title}
       </h3>
 
@@ -332,6 +371,7 @@ export default function OpportunityCard({
           <Flame className="h-3 w-3" />
           {job.applicant_count} applicants · {competition.dot} {competition.label}
         </span>
+
         <span className="inline-flex items-center gap-1 rounded-lg bg-mint-light dark:bg-mint/10 border border-mint/25 px-2.5 py-1 text-[11px] font-semibold text-emerald-dark dark:text-mint">
           <Target className="h-3 w-3" /> Difficulty: {competition.estimatedDifficulty}
         </span>
@@ -384,11 +424,15 @@ export default function OpportunityCard({
             <Button variant="secondary" disabled className="bg-slate-100 dark:bg-slate-700 text-slate-500 text-xs">
               <Check className="h-4 w-4 mr-1" /> Applied
             </Button>
+          ) : deadlinePassed ? (
+            <Button variant="secondary" disabled className="bg-slate-100 dark:bg-slate-700 text-slate-500 text-xs">
+              <Lock className="h-4 w-4 mr-1" /> Application Closed
+            </Button>
           ) : (
             <Button
               variant="gradient"
               onClick={onApply}
-              disabled={applying || deadlinePassed}
+              disabled={applying}
               rightIcon={
                 job.public_slug ? (
                   <ExternalLink className="h-4 w-4" />

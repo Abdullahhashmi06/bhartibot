@@ -12,6 +12,13 @@ import { logEmailFailure } from "./logger";
 import {
   sendInterviewInvitationEmail,
   sendRejectedEmail,
+  sendInterviewAcceptedEmail as tplInterviewAccepted,
+  sendInterviewDeclinedEmail as tplInterviewDeclined,
+  sendRescheduleRequestedEmail as tplRescheduleRequested,
+  sendRescheduleApprovedEmail as tplRescheduleApproved,
+  sendRescheduleRejectedEmail as tplRescheduleRejected,
+  sendInterviewCancelledEmail as tplInterviewCancelled,
+  sendInterviewCompletedEmail as tplInterviewCompleted,
   type InterviewEmailDetails,
 } from "@/lib/email/emails";
 
@@ -28,6 +35,10 @@ export interface InterviewEmailParams {
   venue?: string | null;
   notes?: string | null;
   interviewerName?: string | null;
+  /** True when this invitation replaces an earlier slot (updated schedule). */
+  reschedule?: boolean;
+  /** Primary CTA destination (recruiter application page / applicant dashboard). */
+  ctaUrl?: string | null;
 }
 
 export interface EmailSendResult {
@@ -60,41 +71,124 @@ function mapResult(r: {
   };
 }
 
+function buildDetails(params: InterviewEmailParams): InterviewEmailDetails {
+  return {
+    to: params.to,
+    applicantName: params.applicantName,
+    internshipTitle: params.internshipTitle,
+    organizationName: params.organizationName,
+    interviewDate: params.interviewDate,
+    interviewTime: params.interviewTime,
+    timezone: params.timezone,
+    interviewType: params.interviewType,
+    meetingLink: params.meetingLink,
+    venue: params.venue,
+    notes: params.notes,
+    interviewerName: params.interviewerName,
+    ctaUrl: params.ctaUrl ?? null,
+  };
+}
+
+async function sendWithLog(
+  to: string,
+  label: string,
+  send: () => Promise<{
+    success: boolean;
+    error?: string;
+    skipped?: boolean;
+    messageId?: string;
+  }>
+): Promise<EmailSendResult> {
+  try {
+    const result = await send();
+    if (!result.success) {
+      logEmailFailure(to, `${label} failed: ${result.error || "Unknown"}`);
+    }
+    return mapResult(result);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown email error";
+    console.error(`[EMAIL] ${label} exception:`, message);
+    logEmailFailure(to, `${label} exception: ${message}`);
+    return { success: false, error: message };
+  }
+}
+
 /**
  * Send a branded interview invitation (with .ics attachment) to an applicant.
  */
 export async function sendInterviewEmail(
   params: InterviewEmailParams
 ): Promise<EmailSendResult> {
-  try {
-    const details: InterviewEmailDetails = {
-      to: params.to,
-      applicantName: params.applicantName,
-      internshipTitle: params.internshipTitle,
-      organizationName: params.organizationName,
-      interviewDate: params.interviewDate,
-      interviewTime: params.interviewTime,
-      timezone: params.timezone,
-      interviewType: params.interviewType,
-      meetingLink: params.meetingLink,
-      venue: params.venue,
-      notes: params.notes,
-      interviewerName: params.interviewerName,
-    };
+  return sendWithLog(params.to, "Interview email", () =>
+    sendInterviewInvitationEmail(buildDetails(params), {
+      reschedule: params.reschedule === true,
+    })
+  );
+}
 
-    const result = await sendInterviewInvitationEmail(details);
+/** Applicant accepted the interview — sent to the recruiter. */
+export async function sendInterviewAcceptedEmail(
+  params: InterviewEmailParams
+): Promise<EmailSendResult> {
+  return sendWithLog(params.to, "Accepted email", () =>
+    tplInterviewAccepted(buildDetails(params))
+  );
+}
 
-    if (!result.success) {
-      logEmailFailure(params.to, "Interview email failed: " + (result.error || "Unknown"));
-    }
+/** Applicant declined the interview — sent to the recruiter (with reason). */
+export async function sendInterviewDeclinedEmail(
+  params: InterviewEmailParams,
+  reason?: string | null
+): Promise<EmailSendResult> {
+  return sendWithLog(params.to, "Declined email", () =>
+    tplInterviewDeclined(buildDetails(params), reason)
+  );
+}
 
-    return mapResult(result);
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown email error";
-    console.error("[EMAIL] Failed to send interview notification:", message);
-    logEmailFailure(params.to, "Interview email exception: " + message);
-    return { success: false, error: message };
-  }
+/** Applicant requested a reschedule — sent to the recruiter. */
+export async function sendRescheduleRequestedEmail(
+  params: InterviewEmailParams,
+  requested: { date: string; time: string; note?: string | null }
+): Promise<EmailSendResult> {
+  return sendWithLog(params.to, "Reschedule-request email", () =>
+    tplRescheduleRequested(buildDetails(params), requested)
+  );
+}
+
+/** Reschedule approved — sent to the applicant (new slot). */
+export async function sendRescheduleApprovedEmail(
+  params: InterviewEmailParams
+): Promise<EmailSendResult> {
+  return sendWithLog(params.to, "Reschedule-approved email", () =>
+    tplRescheduleApproved(buildDetails(params))
+  );
+}
+
+/** Reschedule rejected — sent to the applicant (original slot retained). */
+export async function sendRescheduleRejectedEmail(
+  params: InterviewEmailParams
+): Promise<EmailSendResult> {
+  return sendWithLog(params.to, "Reschedule-rejected email", () =>
+    tplRescheduleRejected(buildDetails(params))
+  );
+}
+
+/** Interview cancelled — sent to the applicant. */
+export async function sendInterviewCancelledEmail(
+  params: InterviewEmailParams
+): Promise<EmailSendResult> {
+  return sendWithLog(params.to, "Cancelled email", () =>
+    tplInterviewCancelled(buildDetails(params))
+  );
+}
+
+/** Interview completed — sent to the applicant. */
+export async function sendInterviewCompletedEmail(
+  params: InterviewEmailParams
+): Promise<EmailSendResult> {
+  return sendWithLog(params.to, "Completed email", () =>
+    tplInterviewCompleted(buildDetails(params))
+  );
 }
 
 /**
@@ -104,23 +198,12 @@ export async function sendInterviewEmail(
 export async function sendRejectionEmail(
   params: RejectionEmailParams
 ): Promise<EmailSendResult> {
-  try {
-    const result = await sendRejectedEmail({
+  return sendWithLog(params.to, "Rejection email", () =>
+    sendRejectedEmail({
       to: params.to,
       applicantName: params.applicantName,
       internshipTitle: params.internshipTitle,
       organizationName: params.organizationName,
-    });
-
-    if (!result.success) {
-      logEmailFailure(params.to, "Rejection email failed: " + (result.error || "Unknown"));
-    }
-
-    return mapResult(result);
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown email error";
-    console.error("[EMAIL] Failed to send rejection notification:", message);
-    logEmailFailure(params.to, "Rejection email exception: " + message);
-    return { success: false, error: message };
-  }
+    })
+  );
 }

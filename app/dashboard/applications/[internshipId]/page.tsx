@@ -43,7 +43,7 @@ export default async function InternshipApplicantsPage({
   ).length;
   const rejected = allApplications.filter((a) => a.status === "rejected").length;
 
-  const currentTab = searchParams.tab || "new";
+  const currentTab = searchParams.tab || "all";
   let displayedApplications = allApplications;
   
   if (currentTab === "all") {
@@ -138,18 +138,18 @@ export default async function InternshipApplicantsPage({
         {/* TABS */}
         <div className="flex flex-wrap gap-2 border-b border-border">
           {[
+            { id: "all", label: "All", count: allApplications.length },
             { id: "new", label: "New Applicants", count: newCount },
             { id: "under_review", label: "Under Review", count: underReview },
             { id: "shortlisted", label: "Shortlisted", count: shortlisted },
             { id: "rejected", label: "Rejected", count: rejected },
             { id: "archived", label: "Archived", count: allApplications.filter((a) => a.status === "archived").length },
-            { id: "all", label: "All", count: allApplications.length },
           ].map((tab) => {
             const isActive = currentTab === tab.id;
             return (
               <Link
                 key={tab.id}
-                href={`/dashboard/applications/${params.internshipId}${tab.id === "all" ? "" : `?tab=${tab.id}`}`}
+                href={`/dashboard/applications/${params.internshipId}?tab=${tab.id}`}
                 className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition-colors ${
                   isActive
                     ? "border-teal text-teal-dark dark:text-teal"

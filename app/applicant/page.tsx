@@ -9,6 +9,9 @@ import {
   getProfileCompletionScore,
 } from "@/lib/queries/applicant";
 import { getApplicantRecommendations } from "@/lib/ai/recommendations";
+import { getApplicantInterviews } from "@/lib/queries/interview";
+import ApplicantInterviews from "@/components/applicant/ApplicantInterviews";
+import NotificationsPanel from "@/components/notifications/NotificationsPanel";
 import { Briefcase, Clock, ArrowRight, Sparkles } from "lucide-react";
 import ProfileCompletion from "@/components/applicant/ProfileCompletion";
 import ResumeHealth from "@/components/applicant/ResumeHealth";
@@ -123,6 +126,7 @@ export default async function ApplicantDashboardPage() {
     { data: skills },
     { data: projects },
     { data: experience },
+    { data: interviews },
     engine,
   ] = await Promise.all([
     getApplicantProfile(supabase, user.id),
@@ -131,6 +135,7 @@ export default async function ApplicantDashboardPage() {
     getApplicantSkills(supabase, user.id),
     getApplicantProjects(supabase, user.id),
     getApplicantExperience(supabase, user.id),
+    getApplicantInterviews(supabase, user.email || ""),
     getApplicantRecommendations(supabase, user.id, user.email || ""),
   ]);
 
@@ -258,6 +263,9 @@ export default async function ApplicantDashboardPage() {
       {/* ══════════ PART 2 — STATS ══════════ */}
       <ApplicantStats stats={stats} />
 
+      {/* ══════════ INTERVIEW INVITATIONS ══════════ */}
+      <ApplicantInterviews interviews={interviews || []} />
+
       {/* ══════════ PART 11 — AI INSIGHTS ══════════ */}
       <AiInsightsCard data={insights} />
 
@@ -273,7 +281,7 @@ export default async function ApplicantDashboardPage() {
         appliedJobIds={appliedJobIds}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:items-start">
         <div className="lg:col-span-2 space-y-8">
           <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 sm:p-7 shadow-card border border-border">
             <div className="flex items-center justify-between mb-6">
@@ -339,6 +347,7 @@ export default async function ApplicantDashboardPage() {
         </div>
 
         <div className="space-y-8">
+          <NotificationsPanel />
           <ProfileCompletion profile={profile} skills={skills || []} projects={projects || []} experience={experience || []} />
           <ResumeHealth profile={profile} skills={skills || []} projects={projects || []} experience={experience || []} />
         </div>

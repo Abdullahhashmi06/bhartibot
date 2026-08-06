@@ -10,6 +10,26 @@ export async function createApplication(
   supabase: SupabaseClient,
   input: NewApplicationInput
 ): Promise<{ application: Application | null; error: string | null }> {
+  // ── Deadline guard ────────────────────────────────────────────────────────
+  // Applicants cannot apply once the internship deadline has passed (the DB
+  // trigger enforces this too; this check gives a clean, immediate message).
+  const { data: internshipRow } = await supabase
+    .from("internships")
+    .select("deadline")
+    .eq("id", input.internship_id)
+    .maybeSingle();
+
+  if (internshipRow?.deadline) {
+    const deadline = new Date(internshipRow.deadline);
+    if (!Number.isNaN(deadline.getTime()) && deadline.getTime() < Date.now()) {
+      return {
+        application: null,
+        error: "Applications for this internship are closed — the application deadline has passed.",
+      };
+    }
+  }
+  // ──────────────────────────────────────────────────────────────────────────
+
   // ── Duplicate guard ────────────────────────────────────────────────────────
   // Prevent the same email from submitting more than once per internship.
   const { data: existingApp } = await supabase

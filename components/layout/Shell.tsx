@@ -88,20 +88,17 @@ export default function Shell({
               className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1 text-[11px] uppercase tracking-wider"
             >
               <Link href="/privacy" className="hover:text-teal-dark dark:hover:text-teal-300 transition-colors">
-                Privacy
+                Privacy Policy
               </Link>
               <Link href="/terms" className="hover:text-teal-dark dark:hover:text-teal-300 transition-colors">
-                Terms
+                Terms &amp; Conditions
               </Link>
               <Link href="/ai-disclaimer" className="hover:text-teal-dark dark:hover:text-teal-300 transition-colors">
                 Responsible AI
               </Link>
-              <a
-                href="mailto:interniq26@gmail.com"
-                className="hover:text-teal-dark dark:hover:text-teal-300 transition-colors"
-              >
+              <Link href="/contact" className="hover:text-teal-dark dark:hover:text-teal-300 transition-colors">
                 Contact
-              </a>
+              </Link>
             </nav>
           </div>
         </div>

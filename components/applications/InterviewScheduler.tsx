@@ -69,25 +69,45 @@ export default function InterviewScheduler({
       return;
     }
 
+    // Reject past dates — an interview must be scheduled in the future.
+    const scheduledAt = new Date(`${date}T${time}`);
+    if (Number.isNaN(scheduledAt.getTime()) || scheduledAt.getTime() <= Date.now()) {
+      toast.error("Interview date and time must be in the future");
+      return;
+    }
+
+    // Lightweight timezone validation (IANA zone names are accepted by Intl).
+    try {
+      new Intl.DateTimeFormat("en-US", { timeZone: timezone });
+    } catch {
+      toast.error("Please enter a valid timezone (e.g. America/New_York)");
+      return;
+    }
+
     // No hard meeting link validation - allows scheduling first and providing link later
 
     setIsPending(true);
-    const { error } = await upsertInterviewSchedule(supabase, applicationId, recruiterId, {
+    const { error, updated } = await upsertInterviewSchedule(supabase, applicationId, recruiterId, {
       interview_date: date,
       interview_time: time,
+      timezone,
       interview_type: type,
       interviewer_name: interviewerName.trim(),
       meeting_link: meetingLink.trim() || undefined,
+      venue: venue.trim() || undefined,
       notes: notes.trim() || undefined,
     });
 
-    // Fire-and-forget email notification (do not block on failure)
+    // Fire-and-forget email notification (do not block on failure).
+    // When an existing interview was updated (reschedule), use the
+    // "updated schedule" variant so the email_logs dedup doesn't skip it.
     if (!error) {
       sendInterviewEmailAction({
         applicationId,
         interviewDate: date,
         interviewTime: time,
         timezone,
+        isReschedule: updated === true,
         interviewType: type,
         meetingLink: meetingLink.trim() || null,
         venue: venue.trim() || null,
@@ -137,9 +157,18 @@ export default function InterviewScheduler({
             initial={{ opacity: 0, scale: 0.92, y: 12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.92, y: 12 }}
-            className="fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 px-4"
+            className="fixed inset-0 z-50 overflow-y-auto overscroll-contain"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Schedule Interview"
+            onClick={(e) => {
+              // Close when clicking outside the modal card (the scroll
+              // container sits above the backdrop, so handle it here).
+              if (e.target === e.currentTarget) onClose();
+            }}
           >
-            <div className="rounded-3xl border border-border bg-white dark:bg-slate-900 p-6 shadow-hover space-y-5">
+            <div className="flex min-h-full items-center justify-center px-4 py-6">
+              <div className="w-full max-w-lg rounded-3xl border border-border bg-white dark:bg-slate-900 p-6 shadow-hover space-y-5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-light text-purple-ai border border-purple-ai/20 dark:bg-purple-ai/20">
@@ -173,6 +202,7 @@ export default function InterviewScheduler({
                       <input
                         id="interview-date"
                         type="date"
+                        min={new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split("T")[0]}
                         value={date}
                         onChange={(e) => setDate(e.target.value)}
                         className="w-full pl-9 pr-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-border dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal/20 focus:border-teal dark:text-white"
@@ -237,6 +267,7 @@ export default function InterviewScheduler({
                       value={interviewerName}
                       onChange={(e) => setInterviewerName(e.target.value)}
                       placeholder="e.g., Sarah Ahmed"
+                      maxLength={120}
                       className="w-full pl-9 pr-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-border dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal/20 focus:border-teal dark:text-white"
                     />
                   </div>
@@ -255,6 +286,7 @@ export default function InterviewScheduler({
                       value={timezone}
                       onChange={(e) => setTimezone(e.target.value)}
                       placeholder="e.g., America/New_York"
+                      maxLength={64}
                       className="w-full pl-9 pr-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-border dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal/20 focus:border-teal dark:text-white"
                     />
                   </div>
@@ -272,6 +304,7 @@ export default function InterviewScheduler({
                       value={meetingLink}
                       onChange={(e) => setMeetingLink(e.target.value)}
                       placeholder="https://meet.google.com/..."
+                      maxLength={2048}
                       className="w-full pl-9 pr-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-border dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal/20 focus:border-teal dark:text-white"
                     />
                   </div>
@@ -291,6 +324,7 @@ export default function InterviewScheduler({
                         value={venue}
                         onChange={(e) => setVenue(e.target.value)}
                         placeholder="e.g., Room 401, Main Office"
+                        maxLength={300}
                         className="w-full pl-9 pr-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-border dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal/20 focus:border-teal dark:text-white"
                       />
                     </div>
@@ -309,6 +343,7 @@ export default function InterviewScheduler({
                       onChange={(e) => setNotes(e.target.value)}
                       placeholder="Any additional notes for the interview..."
                       rows={3}
+                      maxLength={2000}
                       className="w-full pl-9 pr-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-border dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal/20 focus:border-teal dark:text-white resize-none"
                     />
                   </div>
@@ -331,6 +366,7 @@ export default function InterviewScheduler({
                 >
                   Schedule Interview
                 </Button>
+              </div>
               </div>
             </div>
           </motion.div>

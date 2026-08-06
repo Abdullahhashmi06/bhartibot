@@ -320,6 +320,7 @@ export default function ApplicationForm({
             value={applicantName}
             onChange={(e) => setApplicantName(e.target.value)}
             placeholder="Ayesha Khan"
+            maxLength={120}
             className={inputClass}
           />
         </Field>
@@ -331,6 +332,7 @@ export default function ApplicationForm({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="ayesha@university.edu"
+              maxLength={254}
               className={inputClass}
             />
           </Field>
@@ -340,6 +342,7 @@ export default function ApplicationForm({
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="+92 300 1234567"
+              maxLength={40}
               className={inputClass}
             />
           </Field>
@@ -361,6 +364,7 @@ export default function ApplicationForm({
             value={university}
             onChange={(e) => setUniversity(e.target.value)}
             placeholder="National University of Sciences and Technology"
+            maxLength={200}
             className={inputClass}
           />
         </Field>
@@ -372,6 +376,7 @@ export default function ApplicationForm({
               value={degree}
               onChange={(e) => setDegree(e.target.value)}
               placeholder="BS Computer Science"
+              maxLength={150}
               className={inputClass}
             />
           </Field>
@@ -381,6 +386,7 @@ export default function ApplicationForm({
               value={semester}
               onChange={(e) => setSemester(e.target.value)}
               placeholder="6th"
+              maxLength={30}
               className={inputClass}
             />
           </Field>
@@ -393,6 +399,8 @@ export default function ApplicationForm({
               value={cgpa}
               onChange={(e) => handleCgpaChange(e.target.value)}
               placeholder="3.85 or N/A"
+              maxLength={4}
+              aria-invalid={cgpaError ? true : undefined}
               className={`${inputClass} ${cgpaError ? "border-danger" : ""}`}
             />
             {cgpaError ? (
@@ -437,6 +445,7 @@ export default function ApplicationForm({
                 value={linkedinUrl}
                 onChange={(e) => setLinkedinUrl(e.target.value)}
                 placeholder={linkedinRequired ? "https://linkedin.com/in/username or N/A" : "https://linkedin.com/in/username"}
+                maxLength={500}
                 className={`${inputClass} pl-9`}
               />
             </div>
@@ -453,6 +462,7 @@ export default function ApplicationForm({
                 value={githubUrl}
                 onChange={(e) => setGithubUrl(e.target.value)}
                 placeholder={githubRequired ? "https://github.com/username or N/A" : "https://github.com/username"}
+                maxLength={500}
                 className={`${inputClass} pl-9`}
               />
             </div>
@@ -465,6 +475,7 @@ export default function ApplicationForm({
             value={portfolioUrl}
             onChange={(e) => setPortfolioUrl(e.target.value)}
             placeholder="https://yourportfolio.com"
+            maxLength={500}
             className={inputClass}
           />
         </Field>
@@ -607,6 +618,7 @@ export default function ApplicationForm({
                     }
                     rows={3}
                     placeholder="Type your response here..."
+                    maxLength={3000}
                     className={inputClass}
                   />
                 )}

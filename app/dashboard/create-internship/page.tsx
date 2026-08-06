@@ -58,9 +58,22 @@ export default function CreateInternshipPage() {
   const [githubRequired, setGithubRequired] = useState(false);
   const [linkedinRequired, setLinkedinRequired] = useState(false);
 
+  /** Today's date as YYYY-MM-DD in the recruiter's local timezone. */
+  const todayIso = new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
+    .toISOString()
+    .split("T")[0];
+
   function validateStep1() {
     if (!title.trim() || !location.trim() || !duration.trim()) {
       setError("Role Title, Location, and Duration are required.");
+      return false;
+    }
+    if (!deadline) {
+      setError("An Application Deadline is required so applicants know when to apply by.");
+      return false;
+    }
+    if (deadline < todayIso) {
+      setError("The application deadline cannot be in the past.");
       return false;
     }
     setError(null);
@@ -89,6 +102,17 @@ export default function CreateInternshipPage() {
 
     if (!title.trim() || !location.trim() || !duration.trim()) {
       setError("Title, location, and duration are required.");
+      setStep(1);
+      return;
+    }
+
+    if (!deadline) {
+      setError("An Application Deadline is required so applicants know when to apply by.");
+      setStep(1);
+      return;
+    }
+    if (deadline < todayIso) {
+      setError("The application deadline cannot be in the past.");
       setStep(1);
       return;
     }
@@ -302,11 +326,12 @@ export default function CreateInternshipPage() {
 
                     <div className="space-y-1.5">
                       <label className="text-xs font-semibold text-text-primary">
-                        Application Deadline
+                        Application Deadline <span className="text-danger">*</span>
                       </label>
                       <input
                         type="date"
                         value={deadline}
+                        min={todayIso}
                         onChange={(e) => setDeadline(e.target.value)}
                         className="w-full rounded-xl border border-border bg-slate-50/50 px-4 py-2.5 text-sm text-text-primary focus:border-teal focus:bg-white focus:outline-none transition-all"
                       />

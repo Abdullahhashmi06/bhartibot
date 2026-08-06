@@ -8,6 +8,7 @@ export async function getDashboardAnalytics(supabase: SupabaseClient): Promise<{
   topSkills: { skill: string; count: number }[];
   internships: Internship[];
   applicationsCountByInternship: Record<string, number>;
+  weeklyApplications: { name: string; count: number }[];
   orgResolved: boolean;
 }> {
   // 1. Get all internships for the organization
@@ -40,6 +41,7 @@ export async function getDashboardAnalytics(supabase: SupabaseClient): Promise<{
       topSkills: [],
       internships: [],
       applicationsCountByInternship: {},
+      weeklyApplications: [],
       orgResolved: false,
     };
   }
@@ -154,6 +156,22 @@ export async function getDashboardAnalytics(supabase: SupabaseClient): Promise<{
   const weeklyApplicationTrend = lastWeekApps === 0
     ? (thisWeekApps > 0 ? 100 : null)
     : Math.round(((thisWeekApps - lastWeekApps) / lastWeekApps) * 100);
+
+  // Weekly chart series — real application counts bucketed into the last 7
+  // 7-day windows (oldest → newest), replacing the previously hardcoded graph.
+  const weeklyApplications: { name: string; count: number }[] = [];
+  for (let i = 6; i >= 0; i--) {
+    const windowStart = new Date(now.getTime() - (i + 1) * 7 * 24 * 60 * 60 * 1000);
+    const windowEnd = new Date(now.getTime() - i * 7 * 24 * 60 * 60 * 1000);
+    const count = applications.filter((a) => {
+      const t = new Date(a.created_at).getTime();
+      return t >= windowStart.getTime() && t < windowEnd.getTime();
+    }).length;
+    weeklyApplications.push({
+      name: windowStart.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+      count,
+    });
+  }
 
   // AI scores by internship (for stable sorting instead of Math.random)
   const aiScoresByInternship: Record<string, number> = {};
@@ -278,6 +296,7 @@ export async function getDashboardAnalytics(supabase: SupabaseClient): Promise<{
     recentActivity: recentActivity.slice(0, 10),
     internships: (internships as Internship[]) ?? [],
     applicationsCountByInternship,
+    weeklyApplications,
     orgResolved: true,
   };
 }

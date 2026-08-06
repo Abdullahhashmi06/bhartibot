@@ -3,16 +3,23 @@
 import { useMemo } from "react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
-export default function WeeklyApplicationsChart() {
-  const data = useMemo(() => [
-    { name: "Week 1", count: 12 },
-    { name: "Week 2", count: 19 },
-    { name: "Week 3", count: 15 },
-    { name: "Week 4", count: 28 },
-    { name: "Week 5", count: 22 },
-    { name: "Week 6", count: 45 },
-    { name: "Week 7", count: 38 },
-  ], []);
+interface WeeklyApplicationsChartProps {
+  /** Real weekly application counts (oldest → newest), from getDashboardAnalytics. */
+  data: { name: string; count: number }[];
+}
+
+export default function WeeklyApplicationsChart({ data }: WeeklyApplicationsChartProps) {
+  const chartData = useMemo(
+    () =>
+      data && data.length > 0
+        ? data
+        : [
+            { name: "No data", count: 0 },
+            { name: "No data", count: 0 },
+          ],
+    [data]
+  );
+  const hasData = data && data.length > 0;
 
   return (
     <div className="rounded-2xl border border-border bg-white p-6 shadow-card space-y-4">
@@ -24,9 +31,9 @@ export default function WeeklyApplicationsChart() {
           Applications received over the last 7 weeks.
         </p>
       </div>
-      <div className="h-64 w-full">
+      <div className="h-64 w-full relative">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+          <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
             <defs>
               <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="#17C6B5" stopOpacity={0.3} />
@@ -49,6 +56,11 @@ export default function WeeklyApplicationsChart() {
             <Area type="monotone" dataKey="count" stroke="#17C6B5" strokeWidth={3} fillOpacity={1} fill="url(#colorCount)" />
           </AreaChart>
         </ResponsiveContainer>
+        {!hasData && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <span className="text-sm text-text-secondary">No applications yet</span>
+          </div>
+        )}
       </div>
     </div>
   );

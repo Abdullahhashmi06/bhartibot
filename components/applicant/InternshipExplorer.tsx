@@ -18,10 +18,15 @@ import { Button } from "@/components/ui/Button";
 import OpportunityCard from "@/components/applicant/OpportunityCard";
 import MatchDrawer from "@/components/applicant/MatchDrawer";
 import type { RecommendationResult } from "@/lib/ai/recommendations";
+import type { ApplicantFeedItem } from "@/lib/types";
+import { formatDateShort } from "@/lib/utils";
+import { CalendarClock, Lock } from "lucide-react";
 
 interface InternshipExplorerProps {
   recommended: RecommendationResult[];
   others: RecommendationResult[];
+  /** Published internships whose deadline passed within the last 15 days. */
+  expired?: ApplicantFeedItem[];
   savedJobIds: string[];
   appliedJobIds: string[];
   hasProfileSignal: boolean;
@@ -31,6 +36,7 @@ interface InternshipExplorerProps {
 export default function InternshipExplorer({
   recommended,
   others,
+  expired = [],
   savedJobIds,
   appliedJobIds,
   hasProfileSignal,
@@ -44,6 +50,7 @@ export default function InternshipExplorer({
   const [filterLocation, setFilterLocation] = useState("");
   const [filterField, setFilterField] = useState("");
   const [showFilters, setShowFilters] = useState(false);
+  const [showExpired, setShowExpired] = useState(false);
   const [saved, setSaved] = useState<Set<string>>(new Set(savedJobIds));
   const [applied, setApplied] = useState<Set<string>>(new Set(appliedJobIds));
   const [applying, setApplying] = useState<string | null>(null);
@@ -77,13 +84,14 @@ export default function InternshipExplorer({
   const filteredOthers = others.filter(matchesQuery);
 
   const hasActiveFilters =
-    filterWorkMode || filterLocation || filterField || searchQuery;
+    filterWorkMode || filterLocation || filterField || searchQuery || showExpired;
 
   const clearFilters = () => {
     setSearchQuery("");
     setFilterWorkMode("");
     setFilterLocation("");
     setFilterField("");
+    setShowExpired(false);
   };
 
   const toggleSave = async (internshipId: string) => {
@@ -117,6 +125,14 @@ export default function InternshipExplorer({
   };
 
   const handleApply = async (item: RecommendationResult) => {
+    // Never allow applying to an internship whose deadline has passed.
+    if (item.deadline && new Date(item.deadline).getTime() < Date.now()) {
+      toast.error(
+        "Applications for this internship are closed — the deadline has passed."
+      );
+      return;
+    }
+
     // Prefer the polished public apply flow when a slug exists.
     if (item.public_slug) {
       router.push(`/apply/${item.public_slug}`);
@@ -299,6 +315,30 @@ export default function InternshipExplorer({
                     </select>
                   </div>
                 </div>
+
+                {/* Deadline Passed filter (recently expired, 15-day window) —
+                    always available so applicants can explicitly browse closed roles. */}
+                <label className="flex items-center justify-between gap-3 rounded-xl border border-border bg-slate-50/70 dark:bg-slate-700/50 px-4 py-3 cursor-pointer hover:border-teal/40 transition-colors">
+                  <span className="flex items-center gap-2.5 text-sm">
+                    <CalendarClock className="h-4 w-4 text-warning" />
+                    <span>
+                      <span className="font-semibold text-primary dark:text-white block">
+                        Deadline Passed
+                      </span>
+                      <span className="text-[11px] text-text-muted">
+                        {expired.length > 0
+                          ? `${expired.length} recently closed — viewing only, no applications`
+                          : "No internships have passed their deadline in the last 15 days"}
+                      </span>
+                    </span>
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={showExpired}
+                    onChange={(e) => setShowExpired(e.target.checked)}
+                    className="h-4 w-4 rounded border-border text-teal focus:ring-teal"
+                  />
+                </label>
               </div>
             </motion.div>
           )}
@@ -397,6 +437,45 @@ export default function InternshipExplorer({
         </section>
       )}
 
+      {/* DEADLINE PASSED — recently expired internships (view-only) */}
+      {showExpired && expired.length > 0 && (
+        <section className="space-y-5 animate-fade-up">
+          <div className="flex items-center justify-between border-t border-border dark:border-slate-700 pt-8">
+            <div>
+              <h2 className="text-2xl font-display font-bold text-primary dark:text-white flex items-center gap-2">
+                <CalendarClock className="h-6 w-6 text-warning" /> Deadline Passed
+              </h2>
+              <p className="text-xs text-text-muted mt-0.5">
+                These internships closed recently and are no longer accepting
+                applications.
+              </p>
+            </div>
+            <span className="font-mono text-xs text-text-muted font-semibold">
+              {expired.length} closed role{expired.length !== 1 ? "s" : ""}
+            </span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+            {expired.map((job) => (
+              <ExpiredOpportunityCard key={job.id} job={job} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* DEADLINE PASSED EMPTY STATE — option enabled but nothing expired */}
+      {showExpired && expired.length === 0 && (
+        <div className="animate-fade-up text-center py-16 bg-white dark:bg-slate-800 rounded-3xl border border-dashed border-border shadow-subtle">
+          <CalendarClock className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+          <p className="text-base font-bold text-primary dark:text-white">
+            No internships here
+          </p>
+          <p className="text-xs text-text-secondary mt-1">
+            No internships have passed their application deadline in the last 15
+            days. Check back soon!
+          </p>
+        </div>
+      )}
+
       {/* EMPTY STATE */}
       {totalCount === 0 && (
         <div className="animate-fade-up text-center py-20 bg-white dark:bg-slate-800 rounded-3xl border border-dashed border-border shadow-subtle">
@@ -442,4 +521,42 @@ export default function InternshipExplorer({
       />
     </div>
   );
+}function ExpiredOpportunityCard({ job }: { job: ApplicantFeedItem }) {
+  const deadlineDate = job.deadline ? new Date(job.deadline) : null;
+  return (
+    <div className="flex flex-col bg-white dark:bg-slate-800 rounded-3xl shadow-card border border-border dark:border-slate-700 p-6 h-full opacity-80">
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-slate-400 to-slate-600 dark:from-slate-600 dark:to-slate-700 text-white flex items-center justify-center font-display font-bold text-xl shrink-0">
+            {job.company_name?.charAt(0) || "C"}
+          </div>
+          <div className="min-w-0">
+            <span className="font-semibold text-sm text-text-secondary dark:text-slate-400 truncate block">
+              {job.company_name}
+            </span>
+            <h3 className="font-display font-bold text-lg text-primary dark:text-white leading-snug line-clamp-2">
+              {job.title}
+            </h3>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2 text-xs text-text-muted dark:text-slate-400 mt-3">
+        {job.location && <span>📍 {job.location}</span>}
+        {job.work_mode && (
+          <span className="capitalize">· {job.work_mode.replace("-", " ")}</span>
+        )}
+        {deadlineDate && (
+          <span>· Closed {formatDateShort(deadlineDate)}</span>
+        )}
+      </div>
+
+      <div className="flex items-center gap-2 mt-auto pt-5">
+        <span className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 px-3.5 py-2 text-xs font-semibold text-slate-500 dark:text-slate-300 w-full justify-center">
+          <Lock className="h-3.5 w-3.5" /> Application Closed
+        </span>
+      </div>
+    </div>
+  );
 }
+

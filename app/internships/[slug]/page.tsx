@@ -76,6 +76,14 @@ export default async function InternshipDetailPage({
             <Tag tone={isPublished ? "teal" : "neutral"}>
               {internship.status}
             </Tag>
+            {internship.deadline &&
+              new Date(internship.deadline).getTime() < Date.now() ? (
+              <Tag tone="rose">Deadline Passed</Tag>
+            ) : internship.deadline ? (
+              <Tag tone="amber">
+                Closes {new Date(internship.deadline).toLocaleDateString()}
+              </Tag>
+            ) : null}
           </div>
           <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-primary tracking-tight">
             {internship.title}

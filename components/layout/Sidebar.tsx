@@ -8,15 +8,12 @@ import {
   Briefcase,
   Users,
   PlusCircle,
-  Sparkles,
   Menu,
   X,
   LogOut,
   ChevronRight,
   Star,
   Search,
-  Command,
-  HelpCircle,
   UserCheck,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -242,17 +239,6 @@ export default function Sidebar({
           <div className={cn("flex", collapsed ? "flex-col items-center gap-2" : "justify-between")}>
             <LogoutButton collapsed={collapsed} />
           </div>
-
-          {/* Keyboard shortcut hint */}
-          {!collapsed && (
-            <div className="flex items-center justify-center gap-1.5 text-[10px] text-slate-600 pt-1">
-              <Command className="h-3 w-3" />
-              <span>K to search</span>
-              <span className="mx-1">·</span>
-              <HelpCircle className="h-3 w-3" />
-              <span>? shortcuts</span>
-            </div>
-          )}
         </div>
       </aside>
     </>

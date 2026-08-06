@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { getApplicantRecommendations } from "@/lib/ai/recommendations";
 import InternshipExplorer from "@/components/applicant/InternshipExplorer";
+import type { ApplicantFeedItem } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +16,14 @@ export default async function InternshipsPage() {
   // probability, cached + batched AI explanations, one feed RPC.
   const { recommendations, savedJobIds, appliedJobIds } =
     await getApplicantRecommendations(supabase, user.id, user.email || "");
+
+  // Recently-expired internships (deadline passed within the last 15 days).
+  // Shown under a separate "Deadline Passed" filter — applicants can browse
+  // but can no longer apply.
+  const { data: expiredFeed } = await supabase.rpc(
+    "get_expired_applicant_feed"
+  );
+  const expired: ApplicantFeedItem[] = (expiredFeed ?? []) as ApplicantFeedItem[];
 
   // Split into "Recommended For You" (strong overall fit, acceptance-aware)
   // vs "Other Opportunities". The engine already sorts by overallScore.
@@ -32,6 +41,7 @@ export default async function InternshipsPage() {
     <InternshipExplorer
       recommended={recommended}
       others={others}
+      expired={expired}
       savedJobIds={savedJobIds}
       appliedJobIds={appliedJobIds}
       hasProfileSignal={recommendations.some(

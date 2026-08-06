@@ -8,6 +8,7 @@ import { getRecruiterInternships } from "@/lib/queries/internships";
 import { getApplicationsCountByInternship } from "@/lib/queries/applications";
 import { getDashboardAnalytics } from "@/lib/queries/dashboard";
 import DashboardClient from "@/components/dashboard/DashboardClient";
+import NotificationsPanel from "@/components/notifications/NotificationsPanel";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +35,7 @@ export default async function DashboardPage() {
     topSkills,
     internships: analyticsInternships,
     applicationsCountByInternship,
+    weeklyApplications,
     orgResolved,
   } = await getDashboardAnalytics(supabase);
 
@@ -92,12 +94,17 @@ export default async function DashboardPage() {
       </div>
 
       <div className="mt-4">
+        <NotificationsPanel />
+      </div>
+
+      <div className="mt-4">
         <DashboardClient 
           stats={stats}
           internships={internshipsWithData}
           recentActivity={recentActivity}
           topUniversities={topUniversities}
           topSkills={topSkills}
+          weeklyApplications={weeklyApplications}
         />
       </div>
     </Shell>

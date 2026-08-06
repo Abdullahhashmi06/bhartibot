@@ -16,7 +16,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
-import OpportunityCard from "@/components/applicant/OpportunityCard";
+import OpportunityCard, { type CardTone } from "@/components/applicant/OpportunityCard";
 import MatchDrawer from "@/components/applicant/MatchDrawer";
 import type { RecommendationResult } from "@/lib/ai/recommendations";
 
@@ -39,7 +39,44 @@ interface SectionDef {
   jobs: RecommendationResult[];
   emptyText: string;
   emptyHint: string;
+  tone: CardTone;
+  iconTile: string;
+  pill: string;
 }
+
+/* One distinct accent per home category so the four sections never blur
+   together — rose (trending), teal (fresh), amber (closing), emerald
+   (applied), violet (saved). */
+const SECTION_THEMES: Record<
+  string,
+  { tone: CardTone; iconTile: string; pill: string }
+> = {
+  trending: {
+    tone: "rose",
+    iconTile: "bg-rose-500/10 dark:bg-rose-500/15 border-rose-500/25 dark:border-rose-500/30",
+    pill: "bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-300 border-rose-500/20 dark:border-rose-500/30",
+  },
+  recent: {
+    tone: "teal",
+    iconTile: "bg-teal-light/70 dark:bg-teal/10 border-teal/25 dark:border-teal/30",
+    pill: "bg-teal-light/70 dark:bg-teal/10 text-teal-dark dark:text-teal border-teal/25 dark:border-teal/30",
+  },
+  closing: {
+    tone: "amber",
+    iconTile: "bg-amber-50 dark:bg-amber-500/10 border-amber-500/25 dark:border-amber-500/30",
+    pill: "bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-300 border-amber-500/20 dark:border-amber-500/30",
+  },
+  saved: {
+    tone: "violet",
+    iconTile: "bg-violet-50 dark:bg-violet-500/10 border-violet-500/25 dark:border-violet-500/30",
+    pill: "bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-300 border-violet-500/20 dark:border-violet-500/30",
+  },
+  applied: {
+    tone: "emerald",
+    iconTile: "bg-emerald-50 dark:bg-emerald-500/10 border-emerald-500/25 dark:border-emerald-500/30",
+    pill: "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20 dark:border-emerald-500/30",
+  },
+};
 
 export default function HomepageRecommendations({
   top,
@@ -68,6 +105,7 @@ export default function HomepageRecommendations({
       jobs: trending,
       emptyText: "No trending roles yet",
       emptyHint: "New internships appear here as applicants engage with them.",
+      ...SECTION_THEMES.trending,
     },
     {
       key: "recent",
@@ -77,6 +115,7 @@ export default function HomepageRecommendations({
       jobs: recentlyPosted,
       emptyText: "No fresh roles this week",
       emptyHint: "Recruiters post new internships regularly — check back soon.",
+      ...SECTION_THEMES.recent,
     },
     {
       key: "closing",
@@ -86,15 +125,17 @@ export default function HomepageRecommendations({
       jobs: closingSoon,
       emptyText: "Nothing closing soon",
       emptyHint: "You're safe for now — deadlines are a few weeks out.",
+      ...SECTION_THEMES.closing,
     },
     {
       key: "saved",
       title: "Your Saved Jobs",
       subtitle: "Bookmarked for later",
-      icon: <Bookmark className="h-4 w-4 text-teal" />,
+      icon: <Bookmark className="h-4 w-4 text-violet-500" />,
       jobs: saved,
       emptyText: "No saved internships yet",
       emptyHint: "Tap the bookmark icon on any opportunity to save it here.",
+      ...SECTION_THEMES.saved,
     },
     {
       key: "applied",
@@ -104,6 +145,7 @@ export default function HomepageRecommendations({
       jobs: applied,
       emptyText: "No applications yet",
       emptyHint: "Apply to your top matches to start tracking progress here.",
+      ...SECTION_THEMES.applied,
     },
   ].filter((s) => s.jobs.length > 0);
 
@@ -213,6 +255,7 @@ export default function HomepageRecommendations({
                 key={job.id}
                 job={job}
                 index={idx}
+                tone="indigo"
                 saved={savedSet.has(job.id)}
                 applied={appliedSet.has(job.id)}
                 applying={applying === job.id}
@@ -225,59 +268,63 @@ export default function HomepageRecommendations({
         </section>
       )}
 
-      {/* RESPONSIVE SECTIONS — vertical grids, no horizontal scroll */}
-      {sections.map((section, sectionIdx) => (
-        <section key={section.key} className="animate-fade-up" style={{ animationDelay: `${sectionIdx * 0.06}s` }}>
-          <div className="flex items-end justify-between mb-5">
-            <div>
-              <h2 className="text-xl font-display font-bold text-primary dark:text-white flex items-center gap-2.5">
-                <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-white dark:bg-slate-800 border border-border dark:border-slate-700 shadow-subtle">
+      {/* RESPONSIVE SECTIONS — side by side on desktop so there is no
+          wasted vertical blank space; the role count sits inline next to
+          the title instead of floating far right. */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-10">
+        {sections.map((section, sectionIdx) => (
+          <section key={section.key} className="animate-fade-up min-w-0" style={{ animationDelay: `${sectionIdx * 0.06}s` }}>
+            <div className="mb-4">
+              <h2 className="text-lg font-display font-bold text-primary dark:text-white flex items-center gap-2.5">
+                <span className={`inline-flex h-8 w-8 items-center justify-center rounded-xl border shadow-subtle shrink-0 ${section.iconTile}`}>
                   {section.icon}
                 </span>
-                {section.title}
+                <span className="min-w-0 truncate">{section.title}</span>
+                <span className={`ml-auto shrink-0 rounded-full border px-2 py-0.5 font-mono text-[10px] font-bold ${section.pill}`}>
+                  {section.jobs.length} role{section.jobs.length === 1 ? "" : "s"}
+                </span>
               </h2>
               <p className="text-xs text-text-muted dark:text-slate-500 mt-1 pl-[42px]">
                 {section.subtitle}
               </p>
             </div>
-            <span className="font-mono text-[11px] text-text-muted shrink-0">
-              {section.jobs.length} roles
-            </span>
-          </div>
 
-          {/* Grid — 1 mobile → 2 tablet/medium desktop → 3 desktop. Vertical only. */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-            {section.jobs.slice(0, 6).map((job, idx) => (
-              <OpportunityCard
-                key={job.id}
-                job={job}
-                index={idx}
-                saved={savedSet.has(job.id)}
-                applied={appliedSet.has(job.id)}
-                applying={applying === job.id}
-                onToggleSave={() => toggleSave(job.id)}
-                onApply={() => handleApply(job)}
-                onWhyThisMatch={() => setDrawerJob(job)}
-              />
-            ))}
-            {/* End-of-rail CTA card */}
-            {section.jobs.length > 3 && (
-              <Link
-                href="/applicant/internships"
-                className="rounded-3xl border-2 border-dashed border-border dark:border-slate-700 flex flex-col items-center justify-center gap-2 p-6 text-center hover:border-teal/40 hover:bg-teal-light/30 dark:hover:bg-teal/5 transition-colors min-h-[200px]"
-              >
-                <Compass className="h-6 w-6 text-teal" />
-                <span className="text-sm font-semibold text-primary dark:text-white">
-                  Explore all internships
-                </span>
-                <span className="text-[11px] text-text-muted">
-                  See every open opportunity
-                </span>
-              </Link>
-            )}
-          </div>
-        </section>
-      ))}
+            {/* Grid — 1 mobile → 2 within each half-width desktop section */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              {section.jobs.slice(0, 4).map((job, idx) => (
+                <OpportunityCard
+                  key={job.id}
+                  job={job}
+                  index={idx}
+                  tone={section.tone}
+                  saved={savedSet.has(job.id)}
+                  applied={appliedSet.has(job.id)}
+                  applying={applying === job.id}
+                  onToggleSave={() => toggleSave(job.id)}
+                  onApply={() => handleApply(job)}
+                  onWhyThisMatch={() => setDrawerJob(job)}
+                />
+              ))}
+              {/* End-of-rail CTA card */}
+              {section.jobs.length > 2 && (
+                <Link
+                  href="/applicant/internships"
+                  className="rounded-3xl border-2 border-dashed border-border dark:border-slate-700 flex flex-col items-center justify-center gap-2 p-6 text-center hover:border-teal/40 hover:bg-teal-light/30 dark:hover:bg-teal/5 transition-colors min-h-[160px]"
+                >
+                  <Compass className="h-6 w-6 text-teal" />
+                  <span className="text-sm font-semibold text-primary dark:text-white">
+                    Explore all internships
+                  </span>
+                  <span className="text-[11px] text-text-muted">
+                    See every open opportunity
+                  </span>
+                </Link>
+              )}
+            </div>
+          </section>
+        ))}
+      </div>
+
 
       {/* EMPTY STATE */}
       {top.length === 0 && sections.length === 0 && (

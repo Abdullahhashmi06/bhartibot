@@ -11,11 +11,16 @@ import {
   XCircle,
   CalendarPlus,
   ClipboardCheck,
+  CheckCircle2,
+  Ban,
+  PhoneMissed,
 } from "lucide-react";
+import { toast } from "sonner";
 import {
   Interview,
   InterviewStatus as InterviewStatusType,
 } from "@/lib/queries/interview";
+import { recruiterInterviewAction } from "@/app/dashboard/applications/interviewActions";
 import Tag from "@/components/ui/Tag";
 import InterviewScheduler from "./InterviewScheduler";
 import InterviewFeedback from "./InterviewFeedback";
@@ -52,9 +57,24 @@ export const INTERVIEW_STATUS_CONFIG: Record<
     icon: Calendar,
   },
   scheduled: {
-    label: "Scheduled",
+    label: "Pending Response",
     tone: "amber",
     icon: CalendarCheck,
+  },
+  accepted: {
+    label: "Accepted",
+    tone: "teal",
+    icon: CheckCircle2,
+  },
+  declined: {
+    label: "Declined",
+    tone: "rose",
+    icon: XCircle,
+  },
+  reschedule_requested: {
+    label: "Reschedule Requested",
+    tone: "amber",
+    icon: Calendar,
   },
   completed: {
     label: "Completed",
@@ -65,6 +85,11 @@ export const INTERVIEW_STATUS_CONFIG: Record<
     label: "Cancelled",
     tone: "rose",
     icon: CalendarX,
+  },
+  missed: {
+    label: "Missed",
+    tone: "neutral",
+    icon: PhoneMissed,
   },
   offer_sent: {
     label: "Offer Sent",
@@ -91,9 +116,37 @@ export default function InterviewStatusComponent({
 
   const [showScheduler, setShowScheduler] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
+  const [pendingAction, setPendingAction] = useState<string | null>(null);
 
   const handleUpdate = () => {
     router.refresh();
+  };
+
+  const runRecruiterAction = async (
+    action: "approve_reschedule" | "reject_reschedule" | "cancel" | "complete" | "missed"
+  ) => {
+    if (!interview) return;
+    // Cancelling emails the applicant — confirm before doing it.
+    if (action === "cancel") {
+      const ok = window.confirm(
+        "Cancel this interview? The applicant will be notified by email."
+      );
+      if (!ok) return;
+    }
+    setPendingAction(action);
+    try {
+      const res = await recruiterInterviewAction(interview.id, action);
+      if (res.success) {
+        toast.success("Interview updated");
+        handleUpdate();
+      } else {
+        toast.error(res.error || "Could not update the interview");
+      }
+    } catch (err) {
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setPendingAction(null);
+    }
   };
 
   const status: InterviewStatusType =
@@ -118,7 +171,7 @@ export default function InterviewStatusComponent({
           <Tag tone={config.tone}>{config.label}</Tag>
         </div>
 
-        {interview && status === "scheduled" && (
+        {interview && (status === "scheduled" || status === "accepted") && (
           <motion.div
             initial={{ opacity: 0, y: -5 }}
             animate={{ opacity: 1, y: 0 }}
@@ -151,6 +204,36 @@ export default function InterviewStatusComponent({
               </p>
             )}
           </motion.div>
+        )}
+
+        {status === "reschedule_requested" && interview && (
+          <motion.div
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-1.5 rounded-xl border border-amber/30 bg-amber-50/60 dark:bg-amber/10 p-3"
+          >
+            <p className="text-xs font-semibold text-warning dark:text-amber-300">
+              Applicant requested a new slot:
+            </p>
+            <p className="text-xs text-text-primary">
+              {interview.reschedule_requested_date} at{" "}
+              {interview.reschedule_requested_time}
+            </p>
+            {interview.reschedule_request_note && (
+              <p className="text-xs text-text-muted italic">
+                “{interview.reschedule_request_note}”
+              </p>
+            )}
+            <p className="text-[11px] text-text-muted">
+              Current slot: {formatDate(interview)}
+            </p>
+          </motion.div>
+        )}
+
+        {status === "declined" && interview?.decline_reason && (
+          <p className="text-xs text-text-muted italic pl-1">
+            Reason: {interview.decline_reason}
+          </p>
         )}
 
         {interview &&
@@ -219,7 +302,28 @@ export default function InterviewStatusComponent({
             </button>
           )}
 
-          {status === "scheduled" && (
+          {status === "reschedule_requested" && (
+            <>
+              <button
+                onClick={() => runRecruiterAction("approve_reschedule")}
+                disabled={pendingAction !== null}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-teal/30 bg-teal-light px-3 py-1.5 text-[11px] font-semibold text-teal-dark hover:bg-teal/20 transition-colors dark:bg-teal/20 dark:text-teal disabled:opacity-60"
+              >
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                {pendingAction === "approve_reschedule" ? "Approving..." : "Approve"}
+              </button>
+              <button
+                onClick={() => runRecruiterAction("reject_reschedule")}
+                disabled={pendingAction !== null}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-danger/30 bg-rose-50 px-3 py-1.5 text-[11px] font-semibold text-danger hover:bg-rose-100 transition-colors dark:bg-rose-500/10 dark:text-rose-300 disabled:opacity-60"
+              >
+                <Ban className="h-3.5 w-3.5" />
+                {pendingAction === "reject_reschedule" ? "Rejecting..." : "Reject"}
+              </button>
+            </>
+          )}
+
+          {(status === "scheduled" || status === "accepted") && (
             <>
               <button
                 onClick={() => setShowScheduler(true)}
@@ -230,13 +334,42 @@ export default function InterviewStatusComponent({
               </button>
 
               <button
-                onClick={() => setShowFeedback(true)}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-purple-ai/30 bg-purple-light px-3 py-1.5 text-[11px] font-semibold text-purple-ai hover:bg-purple-ai/20 transition-colors dark:bg-purple-ai/20"
+                onClick={() => runRecruiterAction("complete")}
+                disabled={pendingAction !== null}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-emerald/30 bg-emerald-light px-3 py-1.5 text-[11px] font-semibold text-emerald-dark hover:bg-emerald/20 transition-colors dark:bg-emerald/15 dark:text-emerald disabled:opacity-60"
               >
                 <ClipboardCheck className="h-3.5 w-3.5" />
-                Add Feedback
+                {pendingAction === "complete" ? "Completing..." : "Complete"}
+              </button>
+
+              <button
+                onClick={() => runRecruiterAction("missed")}
+                disabled={pendingAction !== null}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-white dark:bg-slate-800 px-3 py-1.5 text-[11px] font-semibold text-text-secondary hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors dark:text-slate-300 disabled:opacity-60"
+              >
+                <PhoneMissed className="h-3.5 w-3.5" />
+                Mark Missed
+              </button>
+
+              <button
+                onClick={() => runRecruiterAction("cancel")}
+                disabled={pendingAction !== null}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-danger/30 bg-rose-50 px-3 py-1.5 text-[11px] font-semibold text-danger hover:bg-rose-100 transition-colors dark:bg-rose-500/10 dark:text-rose-300 disabled:opacity-60"
+              >
+                <XCircle className="h-3.5 w-3.5" />
+                {pendingAction === "cancel" ? "Cancelling..." : "Cancel"}
               </button>
             </>
+          )}
+
+          {(status === "scheduled" || status === "accepted") && (
+            <button
+              onClick={() => setShowFeedback(true)}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-purple-ai/30 bg-purple-light px-3 py-1.5 text-[11px] font-semibold text-purple-ai hover:bg-purple-ai/20 transition-colors dark:bg-purple-ai/20"
+            >
+              <ClipboardCheck className="h-3.5 w-3.5" />
+              Add Feedback
+            </button>
           )}
         </div>
       </div>

@@ -20,6 +20,8 @@ export interface InterviewEmailDetails {
   venue?: string | null;
   notes?: string | null;
   interviewerName?: string | null;
+  /** Where the primary CTA button points (recruiter application / applicant dashboard). */
+  ctaUrl?: string | null;
 }
 
 /**
@@ -117,7 +119,11 @@ function escapeIcs(text: string): string {
 
 /* ── INTERVIEW INVITATION ────────────────────────────────────────────── */
 
-export function buildInterviewInvitationEmailHtml(details: InterviewEmailDetails): string {
+export function buildInterviewInvitationEmailHtml(
+  details: InterviewEmailDetails,
+  opts?: { reschedule?: boolean }
+): string {
+  const reschedule = opts?.reschedule === true;
   const typeLabel =
     details.interviewType === "online"
       ? "Online"
@@ -136,7 +142,7 @@ export function buildInterviewInvitationEmailHtml(details: InterviewEmailDetails
     <tr>
       <td style="padding-bottom:16px;border-bottom:1px solid #e2e8f0;">
         <h1 style="margin:0;font-size:22px;font-weight:700;color:#0b1f3a;letter-spacing:-0.3px;">
-          Interview Invitation 🎤
+          ${reschedule ? "Interview Schedule Updated 🔁" : "Interview Invitation 🎤"}
         </h1>
         <p style="margin:8px 0 0;font-size:14px;color:#475569;">
           ${escapeHtml(details.internshipTitle)} · ${escapeHtml(details.organizationName)}
@@ -147,7 +153,11 @@ export function buildInterviewInvitationEmailHtml(details: InterviewEmailDetails
       <td style="padding:20px 0;">
         <p style="margin:0 0 12px;font-size:14px;color:#475569;line-height:1.6;">
           Dear ${escapeHtml(details.applicantName)},<br/><br/>
-          We're pleased to invite you to an interview for
+          ${
+            reschedule
+              ? "Your interview schedule has been updated. Here are the new details for"
+              : "We're pleased to invite you to an interview for"
+          }
           <strong style="color:#0b1f3a;">${escapeHtml(details.internshipTitle)}</strong> at
           <strong style="color:#0b1f3a;">${escapeHtml(details.organizationName)}</strong>.
         </p>
@@ -188,18 +198,24 @@ export function buildInterviewInvitationEmailHtml(details: InterviewEmailDetails
       </td>
     </tr>`;
 
-  return baseLayout({ title: `Interview Invitation — ${details.internshipTitle}`, content });
+  return baseLayout({ title: `${reschedule ? "Interview Schedule Updated" : "Interview Invitation"} — ${details.internshipTitle}`, content });
 }
 
 /** Sends a branded interview invitation with an .ics attachment. */
 export async function sendInterviewInvitationEmail(
-  details: InterviewEmailDetails
+  details: InterviewEmailDetails,
+  opts?: { reschedule?: boolean }
 ): Promise<SendEmailResult> {
+  const reschedule = opts?.reschedule === true;
   return sendEmail({
     to: details.to,
-    subject: `Interview Invitation — ${details.internshipTitle}`,
-    html: buildInterviewInvitationEmailHtml(details),
-    text: `Dear ${details.applicantName}, you're invited to an interview for ${details.internshipTitle} at ${details.organizationName} on ${details.interviewDate} at ${details.interviewTime} (${details.timezone}). A calendar invite is attached.`,
+    subject: reschedule
+      ? `Interview Schedule Updated — ${details.internshipTitle}`
+      : `Interview Invitation — ${details.internshipTitle}`,
+    html: buildInterviewInvitationEmailHtml(details, { reschedule }),
+    text: reschedule
+      ? `Dear ${details.applicantName}, your interview for ${details.internshipTitle} at ${details.organizationName} has been rescheduled to ${details.interviewDate} at ${details.interviewTime} (${details.timezone}). A calendar invite is attached.`
+      : `Dear ${details.applicantName}, you're invited to an interview for ${details.internshipTitle} at ${details.organizationName} on ${details.interviewDate} at ${details.interviewTime} (${details.timezone}). A calendar invite is attached.`,
     attachments: [buildIcsAttachment(details)],
   });
 }
@@ -261,5 +277,238 @@ export async function sendInterviewReminderEmail(
     subject: `Reminder: Interview for ${details.internshipTitle}`,
     html: buildInterviewReminderEmailHtml(details),
     text: `Hi ${details.applicantName}, this is a reminder about your interview for ${details.internshipTitle} on ${details.interviewDate} at ${details.interviewTime} (${details.timezone}).`,
+  });
+}
+
+/* ── INTERVIEW WORKFLOW EVENTS ─────────────────────────────────────────── */
+
+/** Shared slot table used by the workflow event emails. */
+function slotTable(details: InterviewEmailDetails, extraRows: string[] = []): string {
+  const typeLabel =
+    details.interviewType === "online"
+      ? "Online"
+      : details.interviewType === "on_site"
+        ? "On-site"
+        : "Phone";
+
+  const locationInfo =
+    details.interviewType === "online" && details.meetingLink
+      ? `<p style="margin:0 0 4px;font-size:13px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.4px;">Location</p><p style="margin:0 0 12px;font-size:15px;font-weight:600;color:#0b1f3a;">Online — meeting link in this email</p>`
+      : details.interviewType === "on_site" && details.venue
+        ? `<p style="margin:0 0 4px;font-size:13px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.4px;">Location</p><p style="margin:0 0 12px;font-size:15px;font-weight:600;color:#0b1f3a;">${escapeHtml(details.venue)}</p>`
+        : "";
+
+  return `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;margin:20px 0;">
+      <tr><td style="padding:18px 22px;">
+        <p style="margin:0 0 4px;font-size:13px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.4px;">Date</p>
+        <p style="margin:0 0 12px;font-size:15px;font-weight:600;color:#0b1f3a;">${escapeHtml(details.interviewDate)}</p>
+        <p style="margin:0 0 4px;font-size:13px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.4px;">Time</p>
+        <p style="margin:0 0 12px;font-size:15px;font-weight:600;color:#0b1f3a;">${escapeHtml(details.interviewTime)} (${escapeHtml(details.timezone)})</p>
+        <p style="margin:0 0 4px;font-size:13px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.4px;">Type</p>
+        <p style="margin:0 0 12px;font-size:15px;font-weight:600;color:#0b1f3a;">${typeLabel}</p>
+        ${locationInfo}
+        ${details.interviewerName ? `<p style="margin:12px 0 0;font-size:14px;color:#475569;"><strong style="color:#0b1f3a;">Interviewer:</strong> ${escapeHtml(details.interviewerName)}</p>` : ""}
+        ${extraRows.join("")}
+      </td></tr>
+    </table>`;
+}
+
+function buildEventEmail(
+  details: InterviewEmailDetails,
+  opts: {
+    heading: string;
+    intro: string;
+    rows?: string[];
+    cta?: { label: string; url: string } | null;
+    closing?: string;
+    /** Show the "Join Meeting" button when a meeting link exists (applicant-facing only). */
+    showJoin?: boolean;
+  }
+): string {
+  const content = `
+    <tr>
+      <td style="padding-bottom:16px;border-bottom:1px solid #e2e8f0;">
+        <h1 style="margin:0;font-size:22px;font-weight:700;color:#0b1f3a;letter-spacing:-0.3px;">${opts.heading}</h1>
+        <p style="margin:8px 0 0;font-size:14px;color:#475569;">
+          ${escapeHtml(details.internshipTitle)} · ${escapeHtml(details.organizationName)}
+        </p>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding:20px 0;">
+        <p style="margin:0 0 12px;font-size:14px;color:#475569;line-height:1.6;">${opts.intro}</p>
+        ${slotTable(details, opts.rows ?? [])}
+        ${opts.cta ? button(opts.cta.url, opts.cta.label) : ""}
+        ${opts.showJoin !== false && details.meetingLink && details.interviewType === "online" ? button(details.meetingLink, "Join Meeting") : ""}
+        ${opts.closing ? `<p style="margin:16px 0 0;font-size:12px;color:#94a3b8;line-height:1.6;">${opts.closing}</p>` : ""}
+      </td>
+    </tr>
+    ${divider()}
+    <tr><td><p style="margin:0;font-size:12px;color:#94a3b8;line-height:1.6;">You're receiving this because of your InternIQ activity.</p></td></tr>`;
+
+  return baseLayout({ title: `${opts.heading} — ${details.internshipTitle}`, content });
+}
+
+/** Applicant accepted — sent to the recruiter. */
+export function buildInterviewAcceptedEmailHtml(details: InterviewEmailDetails): string {
+  return buildEventEmail(details, {
+    heading: "Interview Accepted ✅",
+    intro: `Good news — <strong style="color:#0b1f3a;">${escapeHtml(details.applicantName)}</strong> has accepted the interview invitation for <strong style="color:#0b1f3a;">${escapeHtml(details.internshipTitle)}</strong>.`,
+    cta: details.ctaUrl ? { label: "View Application", url: details.ctaUrl } : null,
+    showJoin: false,
+  });
+}
+
+export async function sendInterviewAcceptedEmail(
+  details: InterviewEmailDetails
+): Promise<SendEmailResult> {
+  return sendEmail({
+    to: details.to,
+    subject: `Interview Accepted — ${details.applicantName}`,
+    html: buildInterviewAcceptedEmailHtml(details),
+    text: `${details.applicantName} accepted the interview invitation for ${details.internshipTitle} on ${details.interviewDate} at ${details.interviewTime} (${details.timezone}).`,
+  });
+}
+
+/** Applicant declined — sent to the recruiter (with optional reason). */
+export function buildInterviewDeclinedEmailHtml(
+  details: InterviewEmailDetails,
+  reason?: string | null
+): string {
+  return buildEventEmail(details, {
+    heading: "Interview Declined",
+    intro: `<strong style="color:#0b1f3a;">${escapeHtml(details.applicantName)}</strong> has declined the interview invitation for <strong style="color:#0b1f3a;">${escapeHtml(details.internshipTitle)}</strong>.`,
+    rows: reason
+      ? [`<p style="margin:12px 0 0;font-size:14px;color:#475569;"><strong style="color:#0b1f3a;">Reason:</strong> ${escapeHtml(reason)}</p>`]
+      : [],
+    cta: details.ctaUrl ? { label: "View Application", url: details.ctaUrl } : null,
+    showJoin: false,
+  });
+}
+
+export async function sendInterviewDeclinedEmail(
+  details: InterviewEmailDetails,
+  reason?: string | null
+): Promise<SendEmailResult> {
+  return sendEmail({
+    to: details.to,
+    subject: `Interview Declined — ${details.applicantName}`,
+    html: buildInterviewDeclinedEmailHtml(details, reason),
+    text: `${details.applicantName} declined the interview invitation for ${details.internshipTitle}.${reason ? ` Reason: ${reason}` : ""}`,
+  });
+}
+
+/** Applicant requested a reschedule — sent to the recruiter. */
+export function buildRescheduleRequestedEmailHtml(
+  details: InterviewEmailDetails,
+  requested: { date: string; time: string; note?: string | null }
+): string {
+  return buildEventEmail(details, {
+    heading: "Reschedule Requested 🔁",
+    intro: `<strong style="color:#0b1f3a;">${escapeHtml(details.applicantName)}</strong> has requested to reschedule the interview for <strong style="color:#0b1f3a;">${escapeHtml(details.internshipTitle)}</strong>.`,
+    rows: [
+      `<p style="margin:12px 0 0;font-size:14px;color:#475569;"><strong style="color:#0b1f3a;">Requested date:</strong> ${escapeHtml(requested.date)}</p>`,
+      `<p style="margin:2px 0 0;font-size:14px;color:#475569;"><strong style="color:#0b1f3a;">Requested time:</strong> ${escapeHtml(requested.time)}</p>`,
+      ...(requested.note
+        ? [`<p style="margin:2px 0 0;font-size:14px;color:#475569;"><strong style="color:#0b1f3a;">Message:</strong> ${escapeHtml(requested.note)}</p>`]
+        : []),
+    ],
+    cta: details.ctaUrl
+      ? { label: "Review & Respond", url: details.ctaUrl }
+      : null,
+    showJoin: false,
+  });
+}
+
+export async function sendRescheduleRequestedEmail(
+  details: InterviewEmailDetails,
+  requested: { date: string; time: string; note?: string | null }
+): Promise<SendEmailResult> {
+  return sendEmail({
+    to: details.to,
+    subject: `Reschedule Requested — ${details.applicantName}`,
+    html: buildRescheduleRequestedEmailHtml(details, requested),
+    text: `${details.applicantName} requested to reschedule the interview for ${details.internshipTitle} to ${requested.date} at ${requested.time}.${requested.note ? ` Message: ${requested.note}` : ""}`,
+  });
+}
+
+/** Reschedule approved — sent to the applicant (details carry the NEW slot). */
+export function buildRescheduleApprovedEmailHtml(details: InterviewEmailDetails): string {
+  return buildEventEmail(details, {
+    heading: "Interview Rescheduled ✅",
+    intro: `Your interview for <strong style="color:#0b1f3a;">${escapeHtml(details.internshipTitle)}</strong> at <strong style="color:#0b1f3a;">${escapeHtml(details.organizationName)}</strong> has been rescheduled. Your new slot is below.`,
+    closing: "📅 An updated calendar invite (.ics) is attached to this email.",
+  });
+}
+
+export async function sendRescheduleApprovedEmail(
+  details: InterviewEmailDetails
+): Promise<SendEmailResult> {
+  return sendEmail({
+    to: details.to,
+    subject: `Your Interview Has Been Rescheduled — ${details.internshipTitle}`,
+    html: buildRescheduleApprovedEmailHtml(details),
+    text: `Your interview for ${details.internshipTitle} at ${details.organizationName} has been rescheduled to ${details.interviewDate} at ${details.interviewTime} (${details.timezone}).`,
+    attachments: [buildIcsAttachment(details)],
+  });
+}
+
+/** Reschedule rejected — sent to the applicant (original slot retained). */
+export function buildRescheduleRejectedEmailHtml(details: InterviewEmailDetails): string {
+  return buildEventEmail(details, {
+    heading: "Reschedule Request Declined",
+    intro: `We're sorry — your request to reschedule the interview for <strong style="color:#0b1f3a;">${escapeHtml(details.internshipTitle)}</strong> was not approved. Your interview remains scheduled for the slot below.`,
+  });
+}
+
+export async function sendRescheduleRejectedEmail(
+  details: InterviewEmailDetails
+): Promise<SendEmailResult> {
+  return sendEmail({
+    to: details.to,
+    subject: `Update on Your Reschedule Request — ${details.internshipTitle}`,
+    html: buildRescheduleRejectedEmailHtml(details),
+    text: `Your reschedule request for ${details.internshipTitle} was not approved. The interview remains on ${details.interviewDate} at ${details.interviewTime} (${details.timezone}).`,
+  });
+}
+
+/** Interview cancelled — sent to the applicant. */
+export function buildInterviewCancelledEmailHtml(details: InterviewEmailDetails): string {
+  return buildEventEmail(details, {
+    heading: "Interview Cancelled",
+    intro: `The interview for <strong style="color:#0b1f3a;">${escapeHtml(details.internshipTitle)}</strong> at <strong style="color:#0b1f3a;">${escapeHtml(details.organizationName)}</strong> has been cancelled. We appreciate your interest — the team will be in touch if a new slot opens up.`,
+    rows: [],
+  });
+}
+
+export async function sendInterviewCancelledEmail(
+  details: InterviewEmailDetails
+): Promise<SendEmailResult> {
+  return sendEmail({
+    to: details.to,
+    subject: `Interview Cancelled — ${details.internshipTitle}`,
+    html: buildInterviewCancelledEmailHtml(details),
+    text: `Your interview for ${details.internshipTitle} at ${details.organizationName} has been cancelled.`,
+  });
+}
+
+/** Interview completed — sent to the applicant. */
+export function buildInterviewCompletedEmailHtml(details: InterviewEmailDetails): string {
+  return buildEventEmail(details, {
+    heading: "Interview Completed 🎉",
+    intro: `Thank you for attending your interview for <strong style="color:#0b1f3a;">${escapeHtml(details.internshipTitle)}</strong> at <strong style="color:#0b1f3a;">${escapeHtml(details.organizationName)}</strong>. The team will review your performance and get back to you with the next steps.`,
+    rows: [],
+  });
+}
+
+export async function sendInterviewCompletedEmail(
+  details: InterviewEmailDetails
+): Promise<SendEmailResult> {
+  return sendEmail({
+    to: details.to,
+    subject: `Interview Completed — ${details.internshipTitle}`,
+    html: buildInterviewCompletedEmailHtml(details),
+    text: `Thank you for attending your interview for ${details.internshipTitle} at ${details.organizationName}. We'll be in touch with next steps.`,
   });
 }

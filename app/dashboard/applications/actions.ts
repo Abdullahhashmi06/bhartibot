@@ -15,6 +15,8 @@ type InterviewEmailParams = {
   venue?: string | null;
   notes?: string | null;
   interviewerName?: string | null;
+  /** True when this invitation replaces an earlier slot (updated schedule). */
+  isReschedule?: boolean;
 };
 
 type RejectionEmailParams = {
@@ -106,12 +108,20 @@ export async function sendInterviewEmailAction(params: InterviewEmailParams & {
       return { success: false, error: "Could not resolve applicant details" };
     }
 
+    // Distinct email types prevent the email_logs dedup from blocking a
+    // legitimate follow-up (an updated schedule for the same application).
+    const emailType = params.isReschedule
+      ? "interview_rescheduled"
+      : "interview_invitation";
+
     const supabase = createClient();
     const result = await sendEmailWithLog(supabase, {
       applicationId: params.applicationId,
-      emailType: "interview_invitation",
+      emailType,
       recipientEmail: details.to,
-      subject: `Interview Invitation — ${details.internshipTitle}`,
+      subject: params.isReschedule
+        ? `Interview Schedule Updated — ${details.internshipTitle}`
+        : `Interview Invitation — ${details.internshipTitle}`,
       internshipId: details.internshipId ?? null,
       metadata: {
         interviewDate: params.interviewDate,
@@ -133,6 +143,7 @@ export async function sendInterviewEmailAction(params: InterviewEmailParams & {
           venue: params.venue,
           notes: params.notes,
           interviewerName: params.interviewerName,
+          reschedule: params.isReschedule === true,
         }),
     });
 
