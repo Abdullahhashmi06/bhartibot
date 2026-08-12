@@ -11,6 +11,7 @@ import Tag from "@/components/ui/Tag";
 import { Button } from "@/components/ui/Button";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getSharedReviewDataByToken } from "@/lib/queries/share";
+import { getAppBaseUrl } from "@/lib/utils";
 import type { SharedSection } from "@/lib/types";
 
 /**
@@ -47,7 +48,7 @@ export async function generateMetadata({
   }
 
   const review = result.data;
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://interniq.ai";
+  const appUrl = getAppBaseUrl();
   const pageUrl = `${appUrl}/share/review/${params.token}`;
 
   const ogTitle = `${review.applicant_name} — ${review.internship_title} @ ${review.organization_name}`;

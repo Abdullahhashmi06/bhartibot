@@ -72,5 +72,9 @@ export async function POST(request: Request) {
     console.warn("[recaptcha] verification rejected:", result.reason);
   }
 
-  return NextResponse.json({ ok: result.ok });
+  // `reason` is a stable, non-sensitive machine-readable code (e.g.
+  // "hostname_mismatch", "score_too_low", "invalid_token") intended for
+  // diagnostics. It is never displayed to the user — the client logs it to
+  // the console so the exact failure cause is identifiable from DevTools.
+  return NextResponse.json({ ok: result.ok, reason: result.reason });
 }

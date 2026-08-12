@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getAppBaseUrl } from "@/lib/utils";
 import { sendEmailWithLog } from "@/lib/email/log";
 import {
   sendInterviewAcceptedEmail,
@@ -133,7 +134,23 @@ function emailParams(ctx: InterviewContext, to: string): InterviewEmailParams {
     venue: ctx.row.venue,
     notes: ctx.row.notes,
     interviewerName: ctx.row.interviewer_name,
-    ctaUrl: `/dashboard/applications/${ctx.internshipId}/${ctx.applicationId}`,
+    ctaUrl: `${getAppBaseUrl()}/dashboard/applications/${ctx.internshipId}/${ctx.applicationId}`,
+  };
+}
+
+/**
+ * CTA for applicant-facing emails: the applicant's own dashboard. They have no
+ * access to the recruiter's /dashboard path, so a link there would bounce them
+ * through middleware — point at /applicant directly. Absolute URL required
+ * (relative hrefs inside emails resolve against the recipient's mail client).
+ */
+function applicantEmailParams(
+  ctx: InterviewContext,
+  to: string
+): InterviewEmailParams {
+  return {
+    ...emailParams(ctx, to),
+    ctaUrl: `${getAppBaseUrl()}/applicant`,
   };
 }
 
@@ -429,7 +446,7 @@ export async function recruiterInterviewAction(
         subject: `Your Interview Has Been Rescheduled — ${ctx.internshipTitle}`,
         internshipId: ctx.internshipId,
         metadata: { interviewId },
-        send: () => sendRescheduleApprovedEmail(emailParams(ctx, ctx.applicantEmail)),
+        send: () => sendRescheduleApprovedEmail(applicantEmailParams(ctx, ctx.applicantEmail)),
       });
       break;
     case "reject_reschedule":
@@ -446,7 +463,7 @@ export async function recruiterInterviewAction(
         subject: `Update on Your Reschedule Request — ${ctx.internshipTitle}`,
         internshipId: ctx.internshipId,
         metadata: { interviewId },
-        send: () => sendRescheduleRejectedEmail(emailParams(ctx, ctx.applicantEmail)),
+        send: () => sendRescheduleRejectedEmail(applicantEmailParams(ctx, ctx.applicantEmail)),
       });
       break;
     case "cancel":
@@ -463,7 +480,7 @@ export async function recruiterInterviewAction(
         subject: `Interview Cancelled — ${ctx.internshipTitle}`,
         internshipId: ctx.internshipId,
         metadata: { interviewId },
-        send: () => sendInterviewCancelledEmail(emailParams(ctx, ctx.applicantEmail)),
+        send: () => sendInterviewCancelledEmail(applicantEmailParams(ctx, ctx.applicantEmail)),
       });
       break;
     case "complete":
@@ -480,7 +497,7 @@ export async function recruiterInterviewAction(
         subject: `Interview Completed — ${ctx.internshipTitle}`,
         internshipId: ctx.internshipId,
         metadata: { interviewId },
-        send: () => sendInterviewCompletedEmail(emailParams(ctx, ctx.applicantEmail)),
+        send: () => sendInterviewCompletedEmail(applicantEmailParams(ctx, ctx.applicantEmail)),
       });
       break;
     case "missed":

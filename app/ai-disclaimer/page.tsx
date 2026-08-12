@@ -185,14 +185,14 @@ export default function AiDisclaimerPage() {
         />
         <LegalParagraph>
           We welcome feedback from both recruiters and applicants to help us
-          improve. Contact us at{" "}
+          improve. Please use the{" "}
           <a
-            href="mailto:interniq26@gmail.com"
-            className="font-semibold text-teal-dark dark:text-teal-300"
+            href="/contact"
+            className="font-semibold text-teal-dark dark:text-teal-300 underline decoration-teal/40 underline-offset-2 hover:decoration-teal"
           >
-            interniq26@gmail.com
-          </a>
-          .
+            contact form
+          </a>{" "}
+          on our website.
         </LegalParagraph>
       </LegalSection>
     </LegalShell>

@@ -151,10 +151,18 @@ export async function verifyRecaptcha(action: string): Promise<{
     });
 
     if (!res.ok) {
+      // HTTP 429 (rate limited) or a 4xx/5xx — log for diagnosis, fail closed.
+      console.warn(
+        `[recaptcha] verification endpoint responded ${res.status}`
+      );
       return { ok: false };
     }
 
-    const data = (await res.json()) as { ok: boolean };
+    const data = (await res.json()) as { ok: boolean; reason?: string };
+    if (!data.ok && data.reason) {
+      // Diagnostic only — the reason is never shown to the user.
+      console.warn(`[recaptcha] verification rejected: ${data.reason}`);
+    }
     return { ok: data.ok === true };
   } catch {
     return { ok: false };

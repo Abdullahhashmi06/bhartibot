@@ -41,11 +41,14 @@ const nextConfig = {
               // Next.js injects inline styles; Google Fonts is a stylesheet.
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com data:",
-              // DiceBear avatars + Supabase storage signed-URL images.
-              "img-src 'self' data: blob: https://*.supabase.co https://api.dicebear.com",
-              // Supabase REST/realtime, reCAPTCHA client + verification, and
-              // the reCAPTCHA host used by the invisible v3 token flow.
-              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.google.com https://recaptcha.google.com",
+              // DiceBear avatars + Supabase storage signed-URL images. gstatic
+              // serves the reCAPTCHA badge logo (v2/v3 anchor).
+              "img-src 'self' data: blob: https://*.supabase.co https://api.dicebear.com https://www.gstatic.com",
+              // Supabase REST/realtime, reCAPTCHA client + verification, the
+              // reCAPTCHA host used by the invisible v3 token flow, and Google
+              // Fonts preconnect (the stylesheet/font fetches themselves are
+              // governed by style-src / font-src above).
+              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.google.com https://recaptcha.google.com https://fonts.googleapis.com https://fonts.gstatic.com",
               // CV preview iframes render Supabase signed URLs.
               "frame-src 'self' https://*.supabase.co https://www.google.com https://accounts.google.com",
               "worker-src 'self'",

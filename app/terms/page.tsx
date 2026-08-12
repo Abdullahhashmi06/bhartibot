@@ -311,18 +311,19 @@ export default function TermsOfServicePage() {
 
       <LegalSection id="contact" title="15. Contact">
         <LegalParagraph>
-          For questions about these Terms, contact us at:
+          For questions about these Terms, please use the{" "}
+          <a
+            href="/contact"
+            className="font-semibold text-teal-dark dark:text-teal-300 underline decoration-teal/40 underline-offset-2 hover:decoration-teal"
+          >
+            contact form
+          </a>{" "}
+          on our website.
         </LegalParagraph>
         <LegalNote>
           <LegalStrong>InternIQ</LegalStrong>
           <br />
-          Email:{" "}
-          <a
-            href="mailto:interniq26@gmail.com"
-            className="font-semibold text-teal-dark dark:text-teal-300"
-          >
-            interniq26@gmail.com
-          </a>
+          Reach our team through the contact form on our website.
         </LegalNote>
       </LegalSection>
     </LegalShell>

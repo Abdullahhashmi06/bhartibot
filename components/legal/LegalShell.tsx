@@ -9,13 +9,11 @@ import {
   Clock,
 } from "lucide-react";
 
-const CONTACT_EMAIL = "interniq26@gmail.com";
-
 const FOOTER_LINKS = [
   { href: "/privacy", label: "Privacy Policy" },
   { href: "/terms", label: "Terms of Service" },
   { href: "/ai-disclaimer", label: "Responsible AI" },
-  { href: `mailto:${CONTACT_EMAIL}`, label: "Contact" },
+  { href: "/contact", label: "Contact" },
 ];
 
 const PAGE_META: Record<
@@ -111,13 +109,13 @@ export default function LegalShell({
             If you have any questions about this policy or how InternIQ handles
             your data, reach out to our team and we&apos;ll be happy to help.
           </p>
-          <a
-            href={`mailto:${CONTACT_EMAIL}`}
+          <Link
+            href="/contact"
             className="inline-flex items-center gap-2 rounded-xl bg-gradient-primary px-5 py-2.5 text-xs font-semibold text-white shadow-teal hover:opacity-95 transition-all"
           >
             <Mail className="h-4 w-4" />
-            {CONTACT_EMAIL}
-          </a>
+            Contact Our Team
+          </Link>
         </section>
       </main>
 

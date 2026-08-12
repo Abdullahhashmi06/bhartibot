@@ -8,7 +8,7 @@ export interface ContactFormState {
   message: string;
 }
 
-/** Contact inbox — matches the public footer / legal pages. */
+/** Contact inbox — delivery target for contact form submissions. Not shown in the UI; override with CONTACT_EMAIL. */
 const CONTACT_INBOX = process.env.CONTACT_EMAIL || "interniq26@gmail.com";
 
 function isValidEmail(value: string): boolean {

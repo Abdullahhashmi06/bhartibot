@@ -20,6 +20,24 @@ export function getAvatarUrl(seed: string, avatarPath?: string | null): string {
 }
 
 /**
+ * Canonical production origin used for absolute links in emails, share URLs,
+ * and Open Graph metadata.
+ *
+ * Normalizes NEXT_PUBLIC_APP_URL (which may be configured WITHOUT a scheme,
+ * e.g. "www.interniq.pk") to a full https:// origin, and strips any trailing
+ * slash. Without this, `${env}/share/review/<token>` would emit a scheme-less
+ * "www.interniq.pk/..." string that browsers/email clients/OG scrapers treat
+ * as a RELATIVE path — silently broken links.
+ */
+export function getAppBaseUrl(): string {
+  const raw = process.env.NEXT_PUBLIC_APP_URL || "https://www.interniq.pk";
+  const trimmed = raw.trim().replace(/\/+$/, "");
+  if (!trimmed) return "https://www.interniq.pk";
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  return `https://${trimmed}`;
+}
+
+/**
  * Shared CGPA validation used by every form that collects a CGPA.
  * Accepts an empty value (not yet provided), a numeric value from 0–4,
  * or the literal "N/A" (case-insensitive).

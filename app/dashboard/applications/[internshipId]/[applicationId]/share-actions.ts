@@ -2,6 +2,7 @@ import { scryptSync, randomBytes } from "crypto";
 import { createClient } from "@/lib/supabase/server";
 import { createShareToken, revokeShareToken, getShareTokensByApplication } from "@/lib/queries/share";
 import { sendShareReviewEmail, buildShareReviewEmailHtml } from "@/lib/email/share-review";
+import { getAppBaseUrl } from "@/lib/utils";
 import type { SharedSection, ShareExpiration, ShareToken } from "@/lib/types";
 
 /**
@@ -109,7 +110,7 @@ export async function createShareLink(
     return { success: false, error: error ?? "Failed to create share link." };
   }
 
-  const origin = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const origin = getAppBaseUrl();
   const shareUrl = `${origin}/share/review/${token.token}`;
 
   return { success: true, token, shareUrl };

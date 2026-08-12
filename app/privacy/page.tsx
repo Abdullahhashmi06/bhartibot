@@ -299,14 +299,14 @@ export default function PrivacyPolicyPage() {
           ]}
         />
         <LegalParagraph>
-          To exercise any of these rights, contact us at{" "}
+          To exercise any of these rights, please use the{" "}
           <a
-            href="mailto:interniq26@gmail.com"
-            className="font-semibold text-teal-dark dark:text-teal-300"
+            href="/contact"
+            className="font-semibold text-teal-dark dark:text-teal-300 underline decoration-teal/40 underline-offset-2 hover:decoration-teal"
           >
-            interniq26@gmail.com
-          </a>
-          .
+            contact form
+          </a>{" "}
+          on our website.
         </LegalParagraph>
       </LegalSection>
 
@@ -334,18 +334,19 @@ export default function PrivacyPolicyPage() {
       <LegalSection id="contact" title="13. Contact Us">
         <LegalParagraph>
           If you have any questions about this Privacy Policy or how your data
-          is handled, please contact us at:
+          is handled, please use the{" "}
+          <a
+            href="/contact"
+            className="font-semibold text-teal-dark dark:text-teal-300 underline decoration-teal/40 underline-offset-2 hover:decoration-teal"
+          >
+            contact form
+          </a>{" "}
+          on our website.
         </LegalParagraph>
         <LegalNote>
           <LegalStrong>InternIQ</LegalStrong>
           <br />
-          Email:{" "}
-          <a
-            href="mailto:interniq26@gmail.com"
-            className="font-semibold text-teal-dark dark:text-teal-300"
-          >
-            interniq26@gmail.com
-          </a>
+          Reach our team through the contact form on our website.
         </LegalNote>
       </LegalSection>
     </LegalShell>
