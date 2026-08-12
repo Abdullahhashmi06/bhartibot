@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { KeyRound, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import FormNotice from "@/components/ui/FormNotice";
@@ -8,6 +8,8 @@ import {
   verifyRecaptcha,
   recaptchaErrorMessage,
 } from "@/lib/recaptcha/client";
+
+const RESEND_COOLDOWN_SECONDS = 60;
 
 export default function OtpVerifyForm({
   email,
@@ -28,6 +30,19 @@ export default function OtpVerifyForm({
   );
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
+  const [cooldownRemaining, setCooldownRemaining] = useState(
+    RESEND_COOLDOWN_SECONDS
+  );
+
+  // A passcode was just issued before this form rendered — hold the resend
+  // button for a short cooldown so a fresh request can't immediately
+  // invalidate the code currently on screen.
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCooldownRemaining((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   async function handleVerify(e: FormEvent) {
     e.preventDefault();
@@ -71,8 +86,13 @@ export default function OtpVerifyForm({
       return;
     }
 
+    // A fresh code was issued — restart the cooldown so the user isn't
+    // tempted to request yet another code that would invalidate this one.
+    setCooldownRemaining(RESEND_COOLDOWN_SECONDS);
     setInfo("A new 6-digit passcode has been sent to your inbox.");
   }
+
+  const resendLocked = status !== "idle" || cooldownRemaining > 0;
 
   return (
     <form onSubmit={handleVerify} className="space-y-4">
@@ -116,12 +136,22 @@ export default function OtpVerifyForm({
         <button
           type="button"
           onClick={handleResend}
-          disabled={status !== "idle"}
-          className="inline-flex items-center gap-1.5 text-xs font-mono text-text-secondary hover:text-teal transition-colors disabled:opacity-50"
+          disabled={resendLocked}
+          className="inline-flex items-center gap-1.5 text-xs font-mono text-text-secondary enabled:hover:text-teal transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <RefreshCw className={`h-3.5 w-3.5 ${status === "resending" ? "animate-spin text-teal" : ""}`} />
-          <span>{status === "resending" ? "Sending..." : "Resend new passcode"}</span>
+          <span>
+            {status === "resending"
+              ? "Sending..."
+              : cooldownRemaining > 0
+                ? `Resend new passcode (${cooldownRemaining}s)`
+                : "Resend new passcode"}
+          </span>
         </button>
+        <p className="mt-2 text-xs text-text-secondary leading-relaxed">
+          Each new code invalidates the previous one. Use the code from the
+          most recent email.
+        </p>
       </div>
     </form>
   );

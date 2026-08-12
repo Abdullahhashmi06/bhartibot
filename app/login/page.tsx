@@ -51,6 +51,10 @@ function LoginForm() {
 
   async function handleSendCode(e: FormEvent) {
     e.preventDefault();
+    // Guard against double-click / Enter+click / rapid resubmits: a second
+    // signInWithOtp() call would issue a fresh code and invalidate the one
+    // already in the user's inbox.
+    if (status === "loading") return;
     setError(null);
 
     const trimmed = email.trim();
@@ -88,7 +92,13 @@ function LoginForm() {
     });
 
     if (verifyError) {
-      return verifyError.message;
+      // GoTrue returns "Token has expired or is invalid" for any code that no
+      // longer matches the latest one — usually a stale/superseded code rather
+      // than a genuinely expired one. Give a clearer explanation without
+      // changing backend behavior.
+      return /expired or is invalid/i.test(verifyError.message)
+        ? "That code is invalid or has already been replaced. Check the most recent email or request a new code."
+        : verifyError.message;
     }
 
     const next = safeRedirectPath(searchParams.get("next"), "/dashboard");
