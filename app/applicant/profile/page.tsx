@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getUserFromHeaders } from "@/lib/supabase/server";
 import { getApplicantProfile, getApplicantSkills, getApplicantProjects, getApplicantExperience } from "@/lib/queries/applicant";
 import ProfileHeader from "@/components/applicant/ProfileHeader";
 import PersonalInfoEditor from "@/components/applicant/PersonalInfoEditor";
@@ -11,14 +11,14 @@ export const dynamic = "force-dynamic";
 
 export default async function ProfilePage() {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return null;
+  const headerUser = getUserFromHeaders();
+  if (!headerUser) return null;
 
   const [{ data: profile }, { data: skills }, { data: projects }, { data: experience }] = await Promise.all([
-    getApplicantProfile(supabase, user.id),
-    getApplicantSkills(supabase, user.id),
-    getApplicantProjects(supabase, user.id),
-    getApplicantExperience(supabase, user.id)
+    getApplicantProfile(supabase, headerUser.id),
+    getApplicantSkills(supabase, headerUser.id),
+    getApplicantProjects(supabase, headerUser.id),
+    getApplicantExperience(supabase, headerUser.id)
   ]);
 
   return (

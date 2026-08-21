@@ -47,7 +47,7 @@ export function ProgressBar({
         )}
       </div>
 
-      <div className={cn("w-full overflow-hidden rounded-full bg-slate-100 p-0.5 border border-slate-200/60", heightStyles[height])}>
+      <div className={cn("w-full overflow-hidden rounded-full bg-slate-100 p-0.5 border border-slate-200/60 dark:bg-slate-800 dark:border-slate-700", heightStyles[height])}>
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${normalized}%` }}

@@ -1,5 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 
 /**
  * Supabase client for use in Server Components, Server Actions, and
@@ -32,4 +32,24 @@ export function createClient() {
       },
     }
   );
+}
+
+/**
+ * Lightweight user identity extracted from the x-user-id / x-user-email
+ * headers set by middleware.  Returns `null` when the headers are absent
+ * (e.g. public pages that bypass auth).
+ *
+ * Use this in Server Components and Server Actions instead of calling
+ * `supabase.auth.getUser()` again — the middleware already verified the
+ * session and injected the identity.
+ */
+export function getUserFromHeaders(): {
+  id: string;
+  email: string;
+} | null {
+  const h = headers();
+  const id = h.get("x-user-id");
+  const email = h.get("x-user-email");
+  if (!id) return null;
+  return { id, email: email ?? "" };
 }

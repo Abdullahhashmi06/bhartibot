@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getUserFromHeaders } from "@/lib/supabase/server";
 import { getApplicantRecommendations } from "@/lib/ai/recommendations";
 import { Bookmark } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -9,16 +9,14 @@ export const dynamic = "force-dynamic";
 
 export default async function SavedJobsPage() {
   const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
+  const headerUser = getUserFromHeaders();
+  if (!headerUser) return null;
 
   // Engine-driven — saved jobs are enriched with real match/acceptance data.
   const { recommendations, savedJobIds } = await getApplicantRecommendations(
     supabase,
-    user.id,
-    user.email || ""
+    headerUser.id,
+    headerUser.email
   );
 
   const savedJobs = recommendations.filter((r) => savedJobIds.includes(r.id));

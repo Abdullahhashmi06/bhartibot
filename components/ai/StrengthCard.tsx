@@ -19,7 +19,7 @@ export function StrengthCard({
   return (
     <div
       className={cn(
-        "rounded-2xl border border-emerald/30 bg-emerald-light/40 p-5 shadow-subtle space-y-3",
+        "rounded-2xl border border-emerald/30 bg-emerald-light/40 p-5 shadow-subtle space-y-3 dark:bg-emerald/10 dark:border-emerald-400/25",
         className
       )}
     >
@@ -30,7 +30,7 @@ export function StrengthCard({
         <h4 className="font-display text-sm font-semibold text-text-primary">
           {title}
         </h4>
-        <span className="ml-auto font-mono text-[10px] font-bold text-emerald uppercase tracking-wider bg-white/80 px-2 py-0.5 rounded-full border border-emerald/20">
+        <span className="ml-auto font-mono text-[10px] font-bold text-emerald uppercase tracking-wider bg-white/80 px-2 py-0.5 rounded-full border border-emerald/20 dark:bg-slate-800 dark:border-emerald-400/30">
           {items.length} Matched
         </span>
       </div>

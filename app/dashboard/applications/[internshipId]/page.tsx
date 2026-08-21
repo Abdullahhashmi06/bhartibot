@@ -5,8 +5,9 @@ import Shell from "@/components/layout/Shell";
 import Tag from "@/components/ui/Tag";
 import MetricCard from "@/components/ai/MetricCard";
 import ApplicantList from "@/components/applications/ApplicantList";
-import ExportActions from "@/components/applications/ExportActions";
-import { createClient } from "@/lib/supabase/server";
+import dynamicImport from "next/dynamic";
+const ExportActions = dynamicImport(() => import("@/components/applications/ExportActions"), { ssr: false });
+import { createClient, getUserFromHeaders } from "@/lib/supabase/server";
 import { getApplicationsWithScores } from "@/lib/queries/applications";
 import { getRecruiterInternships } from "@/lib/queries/internships";
 
@@ -20,10 +21,8 @@ export default async function InternshipApplicantsPage({
   searchParams: { tab?: string };
 }) {
   const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  const headerUser = getUserFromHeaders();
+  if (!headerUser) redirect("/login");
 
   const internships = await getRecruiterInternships(supabase);
   const internship = internships.find((i) => i.id === params.internshipId);
@@ -61,7 +60,7 @@ export default async function InternshipApplicantsPage({
   }
 
   return (
-    <Shell userEmail={user.email}>
+    <Shell userEmail={headerUser.email}>
       <div className="space-y-6">
         {/* Breadcrumb Navigation */}
         <div className="flex items-center justify-between border-b border-border pb-4">

@@ -34,7 +34,7 @@ export default function ComparisonAnswers({ answersByCandidate, candidateIds }: 
           <div key={idx} className="border border-border rounded-xl bg-white shadow-sm overflow-hidden">
             <button 
               onClick={() => setExpandedIndex(isExpanded ? null : idx)}
-              className="w-full flex items-center justify-between p-4 bg-background/30 hover:bg-background/80 transition-colors text-left"
+              className="w-full flex items-center justify-between p-4 bg-background/30 hover:bg-background/80 transition-colors text-left dark:bg-slate-800/40 dark:hover:bg-slate-700/50"
             >
               <h4 className="font-medium text-primary text-sm md:text-base pr-4">
                 {q}
@@ -54,7 +54,7 @@ export default function ComparisonAnswers({ answersByCandidate, candidateIds }: 
                   exit={{ height: 0, opacity: 0 }}
                   className="grid grid-cols-1 md:grid-cols-5 divide-y md:divide-y-0 md:divide-x divide-border border-t border-border"
                 >
-                  <div className="hidden md:block bg-background/20">
+                  <div className="hidden md:block bg-background/20 dark:bg-slate-800/30">
                     {/* Empty spacer for alignment */}
                   </div>
                   {candidateIds.map(cid => {

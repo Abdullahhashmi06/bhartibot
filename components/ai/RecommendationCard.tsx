@@ -41,6 +41,7 @@ export function RecommendationCard({
       animate={{ opacity: 1, y: 0 }}
       className={cn(
         "relative overflow-hidden rounded-2xl border border-purple-ai/20 bg-gradient-to-br from-white via-purple-light/20 to-teal-light/20 p-6 shadow-ai space-y-5",
+        "dark:bg-[#1A2438] dark:from-purple-ai/15 dark:via-transparent dark:to-teal/10 dark:border-purple-ai/30",
         className
       )}
     >
@@ -68,7 +69,7 @@ export function RecommendationCard({
       </div>
 
       {/* Probability Metrics Row */}
-      <div className="grid grid-cols-2 gap-4 rounded-xl border border-border bg-white/80 backdrop-blur p-4">
+      <div className="grid grid-cols-2 gap-4 rounded-xl border border-border bg-white/80 backdrop-blur p-4 dark:bg-slate-800/80 dark:border-slate-700">
         <div className="space-y-1">
           <div className="flex items-center gap-1.5 text-xs text-text-secondary font-medium">
             <Award className="h-3.5 w-3.5 text-purple-ai" /> Interview Probability
@@ -93,7 +94,7 @@ export function RecommendationCard({
           <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-text-secondary">
             AI Executive Summary
           </span>
-          <p className="text-xs sm:text-sm text-text-primary leading-relaxed bg-white/60 p-4 rounded-xl border border-slate-200/80">
+          <p className="text-xs sm:text-sm text-text-primary leading-relaxed bg-white/60 p-4 rounded-xl border border-slate-200/80 dark:bg-slate-800/70 dark:border-slate-700">
             {reasoning}
           </p>
         </div>

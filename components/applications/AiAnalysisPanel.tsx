@@ -202,7 +202,7 @@ export default function AiAnalysisPanel({
 
       {/* LOADING EXPERIENCE STEPPER */}
       {isPending && (
-        <div className="rounded-3xl border border-teal/30 bg-teal-light/40 p-6 space-y-4 text-center">
+        <div className="rounded-3xl border border-teal/30 bg-teal-light/40 p-6 space-y-4 text-center dark:bg-teal/10">
           <div className="flex items-center justify-center gap-2 text-teal-dark font-bold font-mono text-sm">
             <RefreshCw className="h-4 w-4 animate-spin" /> Live AI Engine Active
           </div>
@@ -225,7 +225,7 @@ export default function AiAnalysisPanel({
           {/* TOP SYNTHESIS GRID: RADIAL GAUGE & RECOMMENDATION CARD */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
             {/* LARGE RADIAL SCORE GAUGE */}
-            <div className="rounded-3xl border border-border bg-white p-6 shadow-card flex flex-col items-center justify-center text-center space-y-4">
+            <div className="rounded-3xl border border-border bg-white p-6 shadow-card flex flex-col items-center justify-center text-center space-y-4 dark:bg-gradient-radial-ai">
               <span className="font-mono text-xs font-bold uppercase tracking-wider text-text-secondary">
                 Overall AI Candidate Match Score
               </span>
@@ -265,14 +265,14 @@ export default function AiAnalysisPanel({
               </div>
 
               {analysis.candidate_summary && (
-                <div className="text-xs sm:text-sm text-text-secondary leading-relaxed bg-slate-50/70 rounded-2xl p-4 border border-slate-100">
+                <div className="text-xs sm:text-sm text-text-secondary leading-relaxed bg-slate-50/70 rounded-2xl p-4 border border-slate-100 dark:bg-slate-800/70 dark:border-slate-700">
                   {analysis.candidate_summary}
                 </div>
               )}
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {analysis.strength_summary && (
-                  <div className="rounded-2xl border border-emerald-300/40 bg-emerald-50/50 p-4 space-y-2 shadow-subtle">
+                  <div className="rounded-2xl border border-emerald-300/40 bg-emerald-50/50 p-4 space-y-2 shadow-subtle dark:bg-emerald/10 dark:border-emerald-400/25">
                     <div className="flex items-center gap-1.5 text-emerald-700">
                       <TrendingUp className="h-4 w-4" />
                       <h4 className="font-display font-bold text-xs uppercase tracking-wider">
@@ -286,7 +286,7 @@ export default function AiAnalysisPanel({
                 )}
 
                 {analysis.risk_summary && (
-                  <div className="rounded-2xl border border-amber-300/40 bg-amber-50/50 p-4 space-y-2 shadow-subtle">
+                  <div className="rounded-2xl border border-amber-300/40 bg-amber-50/50 p-4 space-y-2 shadow-subtle dark:bg-amber-500/10 dark:border-amber-400/25">
                     <div className="flex items-center gap-1.5 text-warning">
                       <AlertTriangle className="h-4 w-4" />
                       <h4 className="font-display font-bold text-xs uppercase tracking-wider">
@@ -461,7 +461,7 @@ export default function AiAnalysisPanel({
 
           {/* POTENTIAL RISKS & SUGGESTED NEXT STEPS */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="rounded-3xl border border-amber-300/40 bg-amber-50/40 p-6 space-y-3 shadow-subtle">
+            <div className="rounded-3xl border border-amber-300/40 bg-amber-50/40 p-6 space-y-3 shadow-subtle dark:bg-amber-500/10 dark:border-amber-400/25">
               <div className="flex items-center gap-2 text-warning">
                 <AlertTriangle className="h-5 w-5" />
                 <h4 className="font-display font-bold text-base text-primary">
@@ -480,7 +480,7 @@ export default function AiAnalysisPanel({
               </ul>
             </div>
 
-            <div className="rounded-3xl border border-teal/30 bg-teal-light/40 p-6 space-y-3 shadow-subtle">
+            <div className="rounded-3xl border border-teal/30 bg-teal-light/40 p-6 space-y-3 shadow-subtle dark:bg-teal/10">
               <div className="flex items-center gap-2 text-teal-dark">
                 <CheckCircle2 className="h-5 w-5" />
                 <h4 className="font-display font-bold text-base text-primary">

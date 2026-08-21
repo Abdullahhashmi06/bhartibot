@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getUserFromHeaders } from "@/lib/supabase/server";
 import { getApplicantRecommendations } from "@/lib/ai/recommendations";
 import InternshipExplorer from "@/components/applicant/InternshipExplorer";
 import type { ApplicantFeedItem } from "@/lib/types";
@@ -7,15 +7,13 @@ export const dynamic = "force-dynamic";
 
 export default async function InternshipsPage() {
   const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
+  const headerUser = getUserFromHeaders();
+  if (!headerUser) return null;
 
   // AI recommendation engine v2 — configurable weights, acceptance
   // probability, cached + batched AI explanations, one feed RPC.
   const { recommendations, savedJobIds, appliedJobIds } =
-    await getApplicantRecommendations(supabase, user.id, user.email || "");
+    await getApplicantRecommendations(supabase, headerUser.id, headerUser.email);
 
   // Recently-expired internships (deadline passed within the last 15 days).
   // Shown under a separate "Deadline Passed" filter — applicants can browse

@@ -1,19 +1,19 @@
 import { redirect } from "next/navigation";
 import { Users, Sparkles } from "lucide-react";
 import Shell from "@/components/layout/Shell";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getUserFromHeaders } from "@/lib/supabase/server";
 import { getTalentPool } from "@/lib/queries/talent-pool";
 import TalentPoolClient from "./TalentPoolClient";
 
 export default async function TalentPoolPage() {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  const headerUser = getUserFromHeaders();
+  if (!headerUser) redirect("/login");
 
-  const entries = await getTalentPool(supabase, user.id);
+  const entries = await getTalentPool(supabase, headerUser.id);
 
   return (
-    <Shell userEmail={user.email}>
+    <Shell userEmail={headerUser.email}>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-border pb-6">
@@ -38,7 +38,7 @@ export default async function TalentPoolPage() {
           </div>
         </div>
 
-        <TalentPoolClient entries={entries} recruiterId={user.id} />
+        <TalentPoolClient entries={entries} recruiterId={headerUser.id} />
       </div>
     </Shell>
   );

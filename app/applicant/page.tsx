@@ -1,4 +1,5 @@
-import { createClient } from "@/lib/supabase/server";
+import { Suspense } from "react";
+import { createClient, getUserFromHeaders } from "@/lib/supabase/server";
 import {
   getApplicantProfile,
   getApplicantApplications,
@@ -116,9 +117,12 @@ function buildInsights(recommendations: RecommendationResult[]): {
 
 export default async function ApplicantDashboardPage() {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return null;
+  const headerUser = getUserFromHeaders();
+  if (!headerUser) return null;
+  const userId = headerUser.id;
+  const userEmail = headerUser.email;
 
+  // ── Fast queries (run in parallel, ~200-500ms total) ────────────────
   const [
     { data: profile },
     { data: applications },
@@ -127,19 +131,15 @@ export default async function ApplicantDashboardPage() {
     { data: projects },
     { data: experience },
     { data: interviews },
-    engine,
   ] = await Promise.all([
-    getApplicantProfile(supabase, user.id),
-    getApplicantApplications(supabase, user.email || ""),
-    getSavedJobs(supabase, user.id),
-    getApplicantSkills(supabase, user.id),
-    getApplicantProjects(supabase, user.id),
-    getApplicantExperience(supabase, user.id),
-    getApplicantInterviews(supabase, user.email || ""),
-    getApplicantRecommendations(supabase, user.id, user.email || ""),
+    getApplicantProfile(supabase, userId),
+    getApplicantApplications(supabase, userEmail),
+    getSavedJobs(supabase, userId),
+    getApplicantSkills(supabase, userId),
+    getApplicantProjects(supabase, userId),
+    getApplicantExperience(supabase, userId),
+    getApplicantInterviews(supabase, userEmail),
   ]);
-
-  const { recommendations, savedJobIds, appliedJobIds } = engine;
 
   const interviewCount = applications?.filter(a => a.status === 'interview').length || 0;
   const offerCount = applications?.filter(a => a.status === 'offer' || a.status === 'hired').length || 0;
@@ -154,132 +154,45 @@ export default async function ApplicantDashboardPage() {
     offers: offerCount,
   };
 
-  // ── Hero metrics ──────────────────────────────────────────────────────
   const profileComplete = getProfileCompletionScore(profile, skills || [], projects || [], experience || []);
-  const recommendedCount = recommendations.length;
-  const highAcceptanceCount = recommendations.filter(
-    (r) => r.acceptanceProbability >= 70
-  ).length;
-
-  // ── AI insights (deterministic) ───────────────────────────────────────
-  const insights = buildInsights(recommendations);
-
-  // ── Personalized homepage sections ────────────────────────────────────
-  const topRecommended = recommendations
-    .filter((r) => r.overallScore >= 55 && r.matchScore >= 45)
-    .slice(0, 3);
-
-  const trending = [...recommendations]
-    .sort((a, b) => b.applicant_count - a.applicant_count)
-    .filter((r) => !topRecommended.some((t) => t.id === r.id))
-    .slice(0, 5);
-
-  const recentlyPosted = [...recommendations]
-    .sort(
-      (a, b) =>
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    )
-    .filter((r) => !topRecommended.some((t) => t.id === r.id))
-    .slice(0, 5);
-
-  const closingSoon = [...recommendations]
-    .filter((r) => r.deadline)
-    .sort(
-      (a, b) =>
-        new Date(a.deadline!).getTime() - new Date(b.deadline!).getTime()
-    )
-    .filter((r) => !topRecommended.some((t) => t.id === r.id))
-    .slice(0, 5);
-
-  const savedRecs = recommendations
-    .filter((r) => savedJobIds.includes(r.id))
-    .slice(0, 5);
-
-  const appliedRecs = recommendations
-    .filter((r) => appliedJobIds.includes(r.id))
-    .slice(0, 5);
 
   return (
     <div className="space-y-10">
-      {/* ══════════ PART 1 — PREMIUM HERO ══════════ */}
-      <section className="relative overflow-hidden rounded-3xl border border-teal/15 bg-gradient-to-br from-teal-light/60 via-white to-emerald-light/40 dark:from-slate-800 dark:via-slate-900 dark:to-slate-800 p-6 sm:p-10 shadow-card">
-        <div className="absolute -top-16 -right-16 h-56 w-56 rounded-full bg-teal/10 blur-3xl" />
-        <div className="absolute -bottom-20 -left-10 h-56 w-56 rounded-full bg-emerald/10 blur-3xl" />
-
-        <div className="relative flex flex-col lg:flex-row lg:items-center gap-8">
-          <div className="flex-1">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/70 dark:bg-slate-800/80 border border-teal/20 px-3 py-1 text-[11px] font-mono font-bold uppercase tracking-wider text-teal-dark dark:text-teal">
-              <Sparkles className="h-3.5 w-3.5" /> AI Career Advisor
-            </span>
-
-            <h1 className="mt-4 text-3xl sm:text-4xl lg:text-[2.75rem] font-display font-extrabold text-primary dark:text-white tracking-tight leading-[1.15]">
-              Welcome back,{" "}
-              <span className="text-gradient">
-                {profile?.full_name?.split(" ")[0] || "Applicant"}
-              </span>
-              .
-            </h1>
-
-            <p className="mt-3 text-sm sm:text-base text-text-secondary dark:text-slate-400">
-              AI has analyzed your profile — here are the internships where
-              you&apos;re currently most competitive.
-            </p>
-
-            {/* HEADLINE METRICS */}
-            <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <HeroMetric value={recommendedCount} label="Recommended Internships" tone="teal" />
-              <HeroMetric value={highAcceptanceCount} label="High Acceptance Opportunities" tone="mint" />
-              <HeroMetric value={stats.underReview} label="Applications Under Review" tone="amber" />
+      {/* ══════════ HERO — renders immediately with fast queries ══════════ */}
+      <Suspense fallback={
+        <section className="rounded-3xl border border-border bg-white dark:bg-slate-800 p-6 sm:p-10 shadow-card">
+          <div className="flex flex-col lg:flex-row lg:items-center gap-8">
+            <div className="flex-1 space-y-4">
+              <div className="animate-shimmer h-6 w-40 rounded-full bg-slate-200 dark:bg-slate-700" />
+              <div className="animate-shimmer h-10 w-3/4 rounded-xl bg-slate-200 dark:bg-slate-700" />
+              <div className="animate-shimmer h-4 w-2/3 rounded-lg bg-slate-200 dark:bg-slate-700" />
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
+                {[0, 1, 2].map((i) => (
+                  <div key={i} className="animate-shimmer h-20 rounded-2xl bg-slate-200 dark:bg-slate-700" />
+                ))}
+              </div>
             </div>
-
-            {/* CTAs */}
-            <div className="mt-7 flex flex-wrap items-center gap-3">
-              <Link href="/applicant/profile">
-                <Button variant="gradient" rightIcon={<ArrowRight className="h-4 w-4" />}>
-                  Continue improving your profile
-                </Button>
-              </Link>
-              <Link href="/applicant/internships">
-                <Button variant="outline">Explore internships</Button>
-              </Link>
+            <div className="shrink-0 mx-auto lg:mx-0">
+              <div className="animate-shimmer h-40 w-48 rounded-3xl bg-slate-200 dark:bg-slate-700" />
             </div>
           </div>
+        </section>
+      }>
+        <DeferredHeroAndRecommendations
+          supabase={supabase}
+          userId={userId}
+          userEmail={userEmail}
+          profile={profile}
+          profileComplete={profileComplete}
+          underReview={stats.underReview}
+        />
+      </Suspense>
 
-          {/* PROFILE RING */}
-          <div className="shrink-0 mx-auto lg:mx-0">
-            <div className="relative flex flex-col items-center rounded-3xl bg-white/80 dark:bg-slate-800/80 border border-border dark:border-slate-700 shadow-card px-8 py-6 backdrop-blur">
-              <CircularGauge score={profileComplete} size={128} strokeWidth={10} label="Profile Complete" />
-              <Link
-                href="/applicant/profile"
-                className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-teal-dark dark:text-teal hover:underline"
-              >
-                Complete it <ArrowRight className="h-3.5 w-3.5" />
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ══════════ PART 2 — STATS ══════════ */}
+      {/* ══════════ STATS — renders immediately ══════════ */}
       <ApplicantStats stats={stats} />
 
-      {/* ══════════ INTERVIEW INVITATIONS ══════════ */}
+      {/* ══════════ INTERVIEWS — renders immediately ══════════ */}
       <ApplicantInterviews interviews={interviews || []} />
-
-      {/* ══════════ PART 11 — AI INSIGHTS ══════════ */}
-      <AiInsightsCard data={insights} />
-
-      {/* ══════════ PERSONALIZED SECTIONS ══════════ */}
-      <HomepageRecommendations
-        top={topRecommended}
-        trending={trending}
-        recentlyPosted={recentlyPosted}
-        closingSoon={closingSoon}
-        saved={savedRecs}
-        applied={appliedRecs}
-        savedJobIds={savedJobIds}
-        appliedJobIds={appliedJobIds}
-      />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:items-start">
         <div className="lg:col-span-2 space-y-8">
@@ -377,5 +290,118 @@ function HeroMetric({
         {label}
       </p>
     </div>
+  );
+}
+
+/**
+ * Deferred section: runs the expensive recommendations pipeline AFTER the
+ * core dashboard (stats, interviews, recent applications) has already rendered.
+ * Wrapped in <Suspense> in the parent — shows a skeleton while loading.
+ */
+async function DeferredHeroAndRecommendations({
+  supabase,
+  userId,
+  userEmail,
+  profile,
+  profileComplete,
+  underReview,
+}: {
+  supabase: any;
+  userId: string;
+  userEmail: string;
+  profile: any;
+  profileComplete: number;
+  underReview: number;
+}) {
+  const engine = await getApplicantRecommendations(supabase, userId, userEmail);
+  const { recommendations, savedJobIds, appliedJobIds } = engine;
+
+  const recommendedCount = recommendations.length;
+  const highAcceptanceCount = recommendations.filter(
+    (r) => r.acceptanceProbability >= 70
+  ).length;
+
+  const insights = buildInsights(recommendations);
+
+  const topRecommended = recommendations
+    .filter((r) => r.overallScore >= 55 && r.matchScore >= 45)
+    .slice(0, 3);
+
+  const trending = [...recommendations]
+    .sort((a, b) => b.applicant_count - a.applicant_count)
+    .filter((r) => !topRecommended.some((t) => t.id === r.id))
+    .slice(0, 5);
+
+  const recentlyPosted = [...recommendations]
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .filter((r) => !topRecommended.some((t) => t.id === r.id))
+    .slice(0, 5);
+
+  const closingSoon = [...recommendations]
+    .filter((r) => r.deadline)
+    .sort((a, b) => new Date(a.deadline!).getTime() - new Date(b.deadline!).getTime())
+    .filter((r) => !topRecommended.some((t) => t.id === r.id))
+    .slice(0, 5);
+
+  const savedRecs = recommendations.filter((r) => savedJobIds.includes(r.id)).slice(0, 5);
+  const appliedRecs = recommendations.filter((r) => appliedJobIds.includes(r.id)).slice(0, 5);
+
+  return (
+    <>
+      {/* Hero with recommendation metrics */}
+      <section className="relative overflow-hidden rounded-3xl border border-teal/15 bg-gradient-to-br from-teal-light/60 via-white to-emerald-light/40 dark:from-slate-800 dark:via-slate-900 dark:to-slate-800 p-6 sm:p-10 shadow-card">
+        <div className="absolute -top-16 -right-16 h-56 w-56 rounded-full bg-teal/10 blur-3xl" />
+        <div className="absolute -bottom-20 -left-10 h-56 w-56 rounded-full bg-emerald/10 blur-3xl" />
+        <div className="relative flex flex-col lg:flex-row lg:items-center gap-8">
+          <div className="flex-1">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/70 dark:bg-slate-800/80 border border-teal/20 px-3 py-1 text-[11px] font-mono font-bold uppercase tracking-wider text-teal-dark dark:text-teal">
+              <Sparkles className="h-3.5 w-3.5" /> AI Career Advisor
+            </span>
+            <h1 className="mt-4 text-3xl sm:text-4xl lg:text-[2.75rem] font-display font-extrabold text-primary dark:text-white tracking-tight leading-[1.15]">
+              Welcome back, <span className="text-gradient">{profile?.full_name?.split(" ")[0] || "Applicant"}</span>.
+            </h1>
+            <p className="mt-3 text-sm sm:text-base text-text-secondary dark:text-slate-400">
+              AI has analyzed your profile — here are the internships where you&apos;re currently most competitive.
+            </p>
+            <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <HeroMetric value={recommendedCount} label="Recommended Internships" tone="teal" />
+              <HeroMetric value={highAcceptanceCount} label="High Acceptance Opportunities" tone="mint" />
+              <HeroMetric value={underReview} label="Applications Under Review" tone="amber" />
+            </div>
+            <div className="mt-7 flex flex-wrap items-center gap-3">
+              <Link href="/applicant/profile">
+                <Button variant="gradient" rightIcon={<ArrowRight className="h-4 w-4" />}>Continue improving your profile</Button>
+              </Link>
+              <Link href="/applicant/internships">
+                <Button variant="outline">Explore internships</Button>
+              </Link>
+            </div>
+          </div>
+          <div className="shrink-0 mx-auto lg:mx-0">
+            <div className="relative flex flex-col items-center rounded-3xl bg-white/80 dark:bg-slate-800/80 border border-border dark:border-slate-700 shadow-card px-8 py-6 backdrop-blur">
+              <CircularGauge score={profileComplete} size={128} strokeWidth={10} label="Profile Complete" />
+              <Link href="/applicant/profile" className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-teal-dark dark:text-teal hover:underline">
+                Complete it <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* AI Insights */}
+      <AiInsightsCard data={insights} />
+
+      {/* Personalized recommendation sections */}
+      <HomepageRecommendations
+        top={topRecommended}
+        trending={trending}
+        recentlyPosted={recentlyPosted}
+        closingSoon={closingSoon}
+        saved={savedRecs}
+        applied={appliedRecs}
+        savedJobIds={savedJobIds}
+        appliedJobIds={appliedJobIds}
+      />
+    </>
   );
 }

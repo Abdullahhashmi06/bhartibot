@@ -26,7 +26,7 @@ export default function ComparisonMetric({ label, values, highlight = false }: P
       initial={{ opacity: 0, y: 10 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      className="grid grid-cols-1 md:grid-cols-5 gap-4 py-4 border-b border-border/50 hover:bg-background/50 transition-colors"
+      className="grid grid-cols-1 md:grid-cols-5 gap-4 py-4 border-b border-border/50 hover:bg-background/50 transition-colors dark:hover:bg-slate-800/40"
     >
       <div className="font-medium text-text-secondary flex items-center md:pl-2">
         {label}
@@ -41,8 +41,8 @@ export default function ComparisonMetric({ label, values, highlight = false }: P
             <span className="md:hidden text-xs text-text-muted mb-1 uppercase tracking-wider">{label}</span>
             <div className={`
               inline-block px-3 py-2 rounded-lg text-sm font-medium
-              ${isMax ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm' : ''}
-              ${isMin ? 'bg-rose-50 text-rose-700 border border-rose-200' : ''}
+              ${isMax ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm dark:bg-emerald/10 dark:text-emerald-300 dark:border-emerald-400/25' : ''}
+              ${isMin ? 'bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-500/10 dark:text-rose-300 dark:border-rose-400/25' : ''}
               ${!isMax && !isMin ? 'text-primary' : ''}
             `}>
               {v.value !== null && v.value !== undefined && v.value !== "" ? v.value : "—"}

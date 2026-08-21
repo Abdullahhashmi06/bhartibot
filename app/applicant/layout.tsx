@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getUserFromHeaders } from "@/lib/supabase/server";
 import ApplicantSidebar from "@/components/applicant/ApplicantSidebar";
 
 export const dynamic = "force-dynamic";
@@ -30,6 +30,12 @@ export default async function ApplicantLayout({
 }) {
   const supabase = createClient();
 
+  // Use middleware-injected identity — avoids a redundant getUser() round-trip
+  const headerUser = getUserFromHeaders();
+  if (!headerUser) {
+    redirect("/applicant-auth");
+  }
+  // Still call getUser() once to get the full user object for profile creation
   const {
     data: { user },
   } = await supabase.auth.getUser();

@@ -1,18 +1,18 @@
 import { redirect } from "next/navigation";
 import { Sparkles, GraduationCap } from "lucide-react";
 import Shell from "@/components/layout/Shell";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getUserFromHeaders } from "@/lib/supabase/server";
 import SearchPageClient from "./SearchPageClient";
 
 export const dynamic = "force-dynamic";
 
 export default async function SearchPage() {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  const headerUser = getUserFromHeaders();
+  if (!headerUser) redirect("/login");
 
   return (
-    <Shell userEmail={user.email}>
+    <Shell userEmail={headerUser.email}>
       <div className="space-y-6">
         {/* Header */}
         <div className="border-b border-border pb-6">

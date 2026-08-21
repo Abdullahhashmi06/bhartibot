@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getUserFromHeaders } from "@/lib/supabase/server";
 import ResumeUploader from "@/components/applicant/ResumeUploader";
 import ResumeHealth from "@/components/applicant/ResumeHealth";
 import ResumeAnalyzer from "@/components/applicant/ResumeAnalyzer";
@@ -8,14 +8,14 @@ export const dynamic = "force-dynamic";
 
 export default async function ResumePage() {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return null;
+  const headerUser = getUserFromHeaders();
+  if (!headerUser) return null;
 
   const [{ data: profile }, { data: skills }, { data: projects }, { data: experience }] = await Promise.all([
-    getApplicantProfile(supabase, user.id),
-    getApplicantSkills(supabase, user.id),
-    getApplicantProjects(supabase, user.id),
-    getApplicantExperience(supabase, user.id)
+    getApplicantProfile(supabase, headerUser.id),
+    getApplicantSkills(supabase, headerUser.id),
+    getApplicantProjects(supabase, headerUser.id),
+    getApplicantExperience(supabase, headerUser.id)
   ]);
 
   return (
@@ -27,7 +27,7 @@ export default async function ResumePage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
-          <ResumeUploader currentCvPath={profile?.cv_path} userId={user.id} />
+          <ResumeUploader currentCvPath={profile?.cv_path} userId={headerUser.id} />
           <ResumeAnalyzer hasCv={Boolean(profile?.cv_path)} />
         </div>
         

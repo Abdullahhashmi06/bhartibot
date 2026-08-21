@@ -5,7 +5,7 @@ import Shell from "@/components/layout/Shell";
 import Tag from "@/components/ui/Tag";
 import ScreeningQuestions from "@/components/internships/ScreeningQuestions";
 import PublishPanel from "@/components/internships/PublishPanel";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getUserFromHeaders } from "@/lib/supabase/server";
 import {
   getInternshipBySlug,
   getInternshipRequirements,
@@ -20,13 +20,8 @@ export default async function InternshipDetailPage({
   params: { slug: string };
 }) {
   const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
+  const headerUser = getUserFromHeaders();
+  if (!headerUser) redirect("/login");
 
   const internship = await getInternshipBySlug(supabase, params.slug);
   if (!internship) {
@@ -43,7 +38,7 @@ export default async function InternshipDetailPage({
   const isPublished = internship.status === "published";
 
   return (
-    <Shell userEmail={user.email}>
+    <Shell userEmail={headerUser.email}>
       <div className="mx-auto max-w-3xl space-y-8 py-4">
         {/* Header Navigation */}
         <div className="flex items-center justify-between border-b border-border pb-4">

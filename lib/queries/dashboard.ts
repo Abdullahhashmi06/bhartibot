@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { DashboardStats, ActivityItem, Internship, Application, CandidateAiAnalysis, Requirement } from "@/lib/types";
+import { getUserFromHeaders } from "@/lib/supabase/server";
 
 export async function getDashboardAnalytics(supabase: SupabaseClient): Promise<{
   stats: DashboardStats;
@@ -11,13 +12,11 @@ export async function getDashboardAnalytics(supabase: SupabaseClient): Promise<{
   weeklyApplications: { name: string; count: number }[];
   orgResolved: boolean;
 }> {
-  // 1. Get all internships for the organization
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
+  // 1. Get user identity from middleware headers — avoids redundant getUser()
+  const headerUser = getUserFromHeaders();
+  if (!headerUser) throw new Error("Not authenticated");
 
-  const { data: profile } = await supabase.from("profiles").select("organization_id").eq("id", user.id).maybeSingle();
-  // If the profile row is missing (e.g. migration not applied / pre-backfill
-  // account), never crash the dashboard — return empty stats instead.
+  const { data: profile } = await supabase.from("profiles").select("organization_id").eq("id", headerUser.id).maybeSingle();
   if (!profile) {
     console.warn("[getDashboardAnalytics] No profile row for user — returning empty stats.");
     return {
@@ -48,6 +47,7 @@ export async function getDashboardAnalytics(supabase: SupabaseClient): Promise<{
 
   const orgId = profile.organization_id;
 
+  // 2. Fetch internships (depends on orgId)
   const { data: internships, error: internshipsError } = await supabase
     .from("internships")
     .select("*")
@@ -61,76 +61,56 @@ export async function getDashboardAnalytics(supabase: SupabaseClient): Promise<{
     );
   }
 
+  const internshipIds = internships?.map(i => i.id) || [];
   const activeInternships = internships?.filter(i => i.status !== "archived" && i.status !== "closed") || [];
   const archivedInternships = internships?.filter(i => i.status === "archived" || i.status === "closed") || [];
 
-  const internshipIds = internships?.map(i => i.id) || [];
-
-  // 2. Get applications for these internships
+  // 3. Parallel fetch: applications + requirements (both depend only on internshipIds)
   let applications: Application[] = [];
-  if (internshipIds.length > 0) {
-    const { data: apps, error: appsError } = await supabase
-      .from("applications")
-      .select("*")
-      .in("internship_id", internshipIds)
-      .order("created_at", { ascending: false });
-    if (appsError) {
-      console.warn(
-        "[getDashboardAnalytics] applications query failed (RLS/permission issue?), counting zero:",
-        appsError.message
-      );
-    }
-    if (apps) applications = apps as Application[];
-  }
-
-  // 3. Get AI Analysis for these applications
-  const appIds = applications.map(a => a.id);
-  let analyses: CandidateAiAnalysis[] = [];
-  if (appIds.length > 0) {
-    const { data: ais, error: aisError } = await supabase
-      .from("candidate_ai_analysis")
-      .select("*")
-      .in("application_id", appIds);
-    if (aisError) {
-      console.warn(
-        "[getDashboardAnalytics] candidate_ai_analysis query failed (RLS/permission issue?):",
-        aisError.message
-      );
-    }
-    if (ais) analyses = ais as CandidateAiAnalysis[];
-  }
-
-  // 4. Get requirements for top skills
   let requirements: Requirement[] = [];
   if (internshipIds.length > 0) {
-    const { data: reqs, error: reqsError } = await supabase
-      .from("requirements")
-      .select("*")
-      .in("internship_id", internshipIds);
-    if (reqsError) {
-      console.warn(
-        "[getDashboardAnalytics] requirements query failed (RLS/permission issue?):",
-        reqsError.message
-      );
+    const [appsResult, reqsResult] = await Promise.all([
+      supabase
+        .from("applications")
+        .select("*")
+        .in("internship_id", internshipIds)
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("requirements")
+        .select("*")
+        .in("internship_id", internshipIds),
+    ]);
+    if (appsResult.error) {
+      console.warn("[getDashboardAnalytics] applications query failed:", appsResult.error.message);
     }
-    if (reqs) requirements = reqs as Requirement[];
+    if (appsResult.data) applications = appsResult.data as Application[];
+    if (reqsResult.error) {
+      console.warn("[getDashboardAnalytics] requirements query failed:", reqsResult.error.message);
+    }
+    if (reqsResult.data) requirements = reqsResult.data as Requirement[];
   }
 
-  // 4.5 Get actual interviews for these apps
+  // 4. Parallel fetch: AI analyses + interview count (both depend on appIds)
+  const appIds = applications.map(a => a.id);
+  let analyses: CandidateAiAnalysis[] = [];
   let scheduledInterviews = 0;
   if (appIds.length > 0) {
-    const { count, error: interviewsError } = await supabase
-      .from("interviews")
-      .select("*", { count: "exact", head: true })
-      .in("application_id", appIds)
-      .in("status", ["scheduled", "completed", "offer_sent"]);
-    if (interviewsError) {
-      console.warn(
-        "[getDashboardAnalytics] interviews count query failed (RLS/permission issue?):",
-        interviewsError.message
-      );
+    const [aisResult, interviewsResult] = await Promise.all([
+      supabase
+        .from("candidate_ai_analysis")
+        .select("*")
+        .in("application_id", appIds),
+      supabase
+        .from("interviews")
+        .select("*", { count: "exact", head: true })
+        .in("application_id", appIds)
+        .in("status", ["scheduled", "completed", "offer_sent"]),
+    ]);
+    if (aisResult.error) {
+      console.warn("[getDashboardAnalytics] candidate_ai_analysis query failed:", aisResult.error.message);
     }
-    if (count) scheduledInterviews = count;
+    if (aisResult.data) analyses = aisResult.data as CandidateAiAnalysis[];
+    if (!interviewsResult.error && interviewsResult.count) scheduledInterviews = interviewsResult.count;
   }
 
   // Calculate Stats

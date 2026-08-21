@@ -5,33 +5,44 @@ import Shell from "@/components/layout/Shell";
 import Tag from "@/components/ui/Tag";
 import MetricCard from "@/components/ai/MetricCard";
 import { ButtonLink } from "@/components/ui/Button";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getUserFromHeaders } from "@/lib/supabase/server";
 import { getRecruiterInternships } from "@/lib/queries/internships";
-import {
-  getApplicationsCountByInternship,
-  getOrgApplicationStats,
-} from "@/lib/queries/applications";
+import { getOrgApplicationStats } from "@/lib/queries/applications";
 
 export const dynamic = "force-dynamic";
 
 export default async function ApplicationsDashboardPage() {
   const supabase = createClient();
+  const headerUser = getUserFromHeaders();
+  if (!headerUser) redirect("/login");
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
   if (!user) redirect("/login");
 
   const fullName = (user.user_metadata?.full_name as string) || null;
   const internships = await getRecruiterInternships(supabase);
   const internshipIds = internships.map((i) => i.id);
-  const [stats, counts] = await Promise.all([
+
+  // Batch: one stats query + one applications fetch instead of N count queries
+  const [stats, allApps] = await Promise.all([
     getOrgApplicationStats(supabase, internshipIds),
-    Promise.all(internships.map((i) => getApplicationsCountByInternship(supabase, i.id))),
+    internshipIds.length > 0
+      ? supabase.from("applications").select("internship_id").in("internship_id", internshipIds)
+      : Promise.resolve({ data: [], error: null }),
   ]);
-  const internshipsWithCounts = internships.map((internship, idx) => ({
+
+  // Count per internship in JS — single query instead of N
+  const countMap = new Map<string, number>();
+  internshipIds.forEach((id) => countMap.set(id, 0));
+  (allApps.data ?? []).forEach((row: { internship_id: string }) => {
+    countMap.set(row.internship_id, (countMap.get(row.internship_id) ?? 0) + 1);
+  });
+
+  const internshipsWithCounts = internships.map((internship) => ({
     ...internship,
-    count: counts[idx],
+    count: countMap.get(internship.id) ?? 0,
   }));
 
   return (

@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getUserFromHeaders } from "@/lib/supabase/server";
 import { getApplicantApplications } from "@/lib/queries/applicant";
 import ApplicationCard from "@/components/applicant/ApplicationCard";
 import Link from "next/link";
@@ -9,10 +9,10 @@ export const dynamic = "force-dynamic";
 
 export default async function ApplicationsPage() {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return null;
+  const headerUser = getUserFromHeaders();
+  if (!headerUser) return null;
 
-  const { data: applications } = await getApplicantApplications(supabase, user.email || "");
+  const { data: applications } = await getApplicantApplications(supabase, headerUser.email);
 
   return (
     <div className="space-y-8">

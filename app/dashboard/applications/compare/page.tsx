@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getUserFromHeaders } from "@/lib/supabase/server";
 import { getApplicationsByIds, getApplicationAnswersForApplications } from "@/lib/queries/applications";
 import { getCandidateAiAnalyses } from "@/lib/queries/ai-analysis";
 import type { CandidateAiAnalysis } from "@/lib/types";
@@ -12,16 +12,13 @@ export default async function ComparePage({
   searchParams: { ids?: string }
 }) {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
+  const headerUser = getUserFromHeaders();
+  if (!headerUser) redirect("/login");
 
   const idsParam = searchParams.ids;
   if (!idsParam) {
     return (
-      <Shell userEmail={user.email || ""}>
+      <Shell userEmail={headerUser.email}>
         <div className="flex items-center justify-center min-h-[50vh]">
           <p className="text-text-secondary">No candidates selected for comparison.</p>
         </div>
@@ -33,7 +30,7 @@ export default async function ComparePage({
   
   if (ids.length < 2) {
     return (
-      <Shell userEmail={user.email || ""}>
+      <Shell userEmail={headerUser.email}>
         <div className="flex items-center justify-center min-h-[50vh]">
           <p className="text-text-secondary">Please select at least 2 candidates to compare.</p>
         </div>
@@ -46,7 +43,7 @@ export default async function ComparePage({
 
   if (candidates.length < 2) {
     return (
-      <Shell userEmail={user.email || ""}>
+      <Shell userEmail={headerUser.email}>
         <div className="flex items-center justify-center min-h-[50vh]">
           <p className="text-text-secondary">Some candidates could not be found. Please try again.</p>
         </div>
@@ -77,7 +74,7 @@ export default async function ComparePage({
   });
 
   return (
-    <Shell userEmail={user.email || ""}>
+    <Shell userEmail={headerUser.email}>
       <ComparisonView 
         candidates={candidates} 
         analyses={analyses} 

@@ -19,7 +19,7 @@ export function WeaknessCard({
   return (
     <div
       className={cn(
-        "rounded-2xl border border-amber-300/40 bg-amber-50/50 p-5 shadow-subtle space-y-3",
+        "rounded-2xl border border-amber-300/40 bg-amber-50/50 p-5 shadow-subtle space-y-3 dark:bg-amber-500/10 dark:border-amber-400/25",
         className
       )}
     >
@@ -30,7 +30,7 @@ export function WeaknessCard({
         <h4 className="font-display text-sm font-semibold text-text-primary">
           {title}
         </h4>
-        <span className="ml-auto font-mono text-[10px] font-bold text-warning uppercase tracking-wider bg-white/80 px-2 py-0.5 rounded-full border border-amber-200">
+        <span className="ml-auto font-mono text-[10px] font-bold text-warning uppercase tracking-wider bg-white/80 px-2 py-0.5 rounded-full border border-amber-200 dark:bg-slate-800 dark:border-amber-400/30">
           {items.length} Concerns
         </span>
       </div>

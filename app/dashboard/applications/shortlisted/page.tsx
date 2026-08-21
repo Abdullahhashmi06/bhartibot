@@ -9,7 +9,7 @@ import {
   Calendar,
 } from "lucide-react";
 import Shell from "@/components/layout/Shell";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getUserFromHeaders } from "@/lib/supabase/server";
 import { getRecruiterInternships } from "@/lib/queries/internships";
 import ShortlistedCandidatesClient from "./ShortlistedCandidatesClient";
 
@@ -17,15 +17,15 @@ export const dynamic = "force-dynamic";
 
 export default async function ShortlistedCandidatesPage() {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  const headerUser = getUserFromHeaders();
+  if (!headerUser) redirect("/login");
 
   const internships = await getRecruiterInternships(supabase);
   const internshipIds = internships.map((i) => i.id);
 
   if (internshipIds.length === 0) {
     return (
-      <Shell userEmail={user.email}>
+      <Shell userEmail={headerUser.email}>
         <div className="space-y-6">
           <div className="flex items-center gap-2 mb-2">
             <Link
@@ -98,7 +98,7 @@ export default async function ShortlistedCandidatesPage() {
   }
 
   return (
-    <Shell userEmail={user.email}>
+    <Shell userEmail={headerUser.email}>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-border dark:border-slate-700 pb-6">
@@ -135,7 +135,7 @@ export default async function ShortlistedCandidatesPage() {
 
         <ShortlistedCandidatesClient 
           candidates={shortlistedCandidates} 
-          recruiterId={user.id} 
+          recruiterId={headerUser.id} 
         />
       </div>
     </Shell>

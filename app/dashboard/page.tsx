@@ -3,7 +3,7 @@ import { Users, PlusCircle } from "lucide-react";
 import Shell from "@/components/layout/Shell";
 import Tag from "@/components/ui/Tag";
 import { ButtonLink } from "@/components/ui/Button";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getUserFromHeaders } from "@/lib/supabase/server";
 import { getRecruiterInternships } from "@/lib/queries/internships";
 import { getApplicationsCountByInternship } from "@/lib/queries/applications";
 import { getDashboardAnalytics } from "@/lib/queries/dashboard";
@@ -14,6 +14,11 @@ export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
   const supabase = createClient();
+  const headerUser = getUserFromHeaders();
+  if (!headerUser) redirect("/login");
+
+  // getUser() still needed for user_metadata (name, org) — but only here,
+  // not in getDashboardAnalytics which we will also fix.
   const {
     data: { user },
   } = await supabase.auth.getUser();

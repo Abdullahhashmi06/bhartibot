@@ -14,7 +14,7 @@ export default function ComparisonSkills({ label, type, values }: Props) {
       initial={{ opacity: 0, y: 10 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      className="grid grid-cols-1 md:grid-cols-5 gap-4 py-6 border-b border-border/50 hover:bg-background/50 transition-colors"
+      className="grid grid-cols-1 md:grid-cols-5 gap-4 py-6 border-b border-border/50 hover:bg-background/50 transition-colors dark:hover:bg-slate-800/40"
     >
       <div className="font-medium text-text-secondary md:pl-2 pt-2">
         {label}

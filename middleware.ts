@@ -1,7 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PROTECTED_PREFIXES = ["/dashboard", "/internships", "/applicant"];
 const AUTH_PAGES = ["/login", "/signup", "/applicant-auth"];
 
 export async function middleware(request: NextRequest) {
@@ -49,7 +48,8 @@ export async function middleware(request: NextRequest) {
   }
 
   if (isProtected && user) {
-    // Check if user has an applicant role
+    // Check if user has an applicant role — this query is needed for
+    // role-based redirect logic regardless of header optimization.
     const { data: profile } = await supabase
       .from("applicant_profiles")
       .select("role")
@@ -74,13 +74,28 @@ export async function middleware(request: NextRequest) {
       // The layout will auto-create the profile
       // This prevents a redirect loop during signup
       if (!hasProfile) {
-        // Allow through - layout will create profile
+        // Allow through — layout will create profile.
+        // Set on BOTH request.headers (visible to Server Components via headers())
+        // and response.headers (carried on the response for consistency).
+        request.headers.set("x-user-id", user.id);
+        request.headers.set("x-user-email", user.email ?? "");
+        response.headers.set("x-user-id", user.id);
+        response.headers.set("x-user-email", user.email ?? "");
         return response;
       }
     }
+
+    // Inject user identity on BOTH request and response.
+    // request.headers: Server Components read this via headers() from next/headers.
+    // response.headers: ensures the header is present on the final response too.
+    request.headers.set("x-user-id", user.id);
+    request.headers.set("x-user-email", user.email ?? "");
+    response.headers.set("x-user-id", user.id);
+    response.headers.set("x-user-email", user.email ?? "");
   }
 
   if (isAuthPage && user) {
+    // Check role to redirect auth-page users to the right portal
     const { data: profile } = await supabase
       .from("applicant_profiles")
       .select("role")

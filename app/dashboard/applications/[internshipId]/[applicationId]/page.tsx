@@ -18,7 +18,7 @@ import {
 import Shell from "@/components/layout/Shell";
 import Tag from "@/components/ui/Tag";
 import StatusSelect from "@/components/applications/StatusSelect";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getUserFromHeaders } from "@/lib/supabase/server";
 import {
   getApplicationById,
   getApplicationAnswers,
@@ -26,7 +26,8 @@ import {
 import { getRecruiterInternships, getInternshipRequirements } from "@/lib/queries/internships";
 import { ensureCandidateAnalysis } from "@/lib/ai/analysis";
 import { getInterviewQuestions } from "@/lib/queries/ai-analysis";
-import AiAnalysisPanel from "@/components/applications/AiAnalysisPanel";
+import dynamicImport from "next/dynamic";
+const AiAnalysisPanel = dynamicImport(() => import("@/components/applications/AiAnalysisPanel"), { ssr: false });
 import { getAvatarUrl, extractOriginalFilename } from "@/lib/utils";
 import Timeline from "@/components/applications/Timeline";
 import RecruiterNotes from "@/components/applications/RecruiterNotes";
@@ -36,7 +37,7 @@ import InterviewStatusComponent from "@/components/applications/InterviewStatus"
 import { getInterview } from "@/lib/queries/interview";
 import { isStarred } from "@/lib/queries/star-candidates";
 import { getNotesByApplication } from "@/lib/queries/recruiter-notes";
-import { downloadCandidatePdf } from "@/lib/export/pdf";
+
 import { Button } from "@/components/ui/Button";
 
 export const dynamic = "force-dynamic";
@@ -47,10 +48,8 @@ export default async function ApplicantDetailPage({
   params: { internshipId: string; applicationId: string };
 }) {
   const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  const headerUser = getUserFromHeaders();
+  if (!headerUser) redirect("/login");
 
   const internships = await getRecruiterInternships(supabase);
   const internship = internships.find((i) => i.id === params.internshipId);
@@ -89,7 +88,7 @@ export default async function ApplicantDetailPage({
   // Fetch interview, starred status, and cached interview questions in parallel
   const [interview, starred, initialQuestions] = await Promise.all([
     getInterview(supabase, params.applicationId),
-    isStarred(supabase, user.id, params.applicationId),
+    isStarred(supabase, headerUser.id, params.applicationId),
     getInterviewQuestions(supabase, params.applicationId),
   ]);
 
@@ -106,7 +105,7 @@ export default async function ApplicantDetailPage({
   const avatarUrl = getAvatarUrl(application.applicant_name);
 
   return (
-    <Shell userEmail={user.email}>
+    <Shell userEmail={headerUser.email}>
       <div className="space-y-8">
         {/* Breadcrumb Header */}
         <div className="flex items-center justify-between border-b border-border pb-4">
@@ -140,7 +139,7 @@ export default async function ApplicantDetailPage({
                   </h1>
                   <StarButton
                     applicationId={application.id}
-                    recruiterId={user.id}
+                    recruiterId={headerUser.id}
                     initialStarred={starred}
                     size="md"
                   />
@@ -240,7 +239,7 @@ export default async function ApplicantDetailPage({
            <InterviewStatusComponent
               interview={interview}
               applicationId={application.id}
-              recruiterId={user.id}
+              recruiterId={headerUser.id}
               applicantName={application.applicant_name}
               applicantEmail={application.email}
               internshipTitle={internship.title}
@@ -279,11 +278,10 @@ export default async function ApplicantDetailPage({
         <div className="rounded-3xl border border-border dark:border-slate-700 bg-white dark:bg-slate-800 p-6 sm:p-8 shadow-card space-y-4">
           <h3 className="font-display font-bold text-lg text-primary dark:text-white border-b border-border dark:border-slate-700 pb-3">
             Internal Recruiter Notes
-          </h3>
-          <RecruiterNotes
+          </h3>            <RecruiterNotes
             applicationId={application.id}
-            recruiterId={user.id}
-            recruiterEmail={user.email}
+            recruiterId={headerUser.id}
+            recruiterEmail={headerUser.email}
           />
         </div>
 

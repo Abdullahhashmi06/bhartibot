@@ -44,7 +44,7 @@ export default function ComparisonHeader({ candidates, analyses }: Props) {
           transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
           className="bg-gradient-to-r from-[#17C6B5] via-[#6F52ED] to-[#17C6B5] rounded-2xl p-[2px] mb-8 shadow-card"
         >
-          <div className="bg-white/95 backdrop-blur rounded-[14px] p-6 md:p-8">
+          <div className="bg-white/95 backdrop-blur rounded-[14px] p-6 md:p-8 dark:bg-[#0F1729]/90 dark:backdrop-blur-xl">
             <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
               {/* Trophy + Name */}
               <div className="flex items-center gap-4 flex-shrink-0">
@@ -52,7 +52,7 @@ export default function ComparisonHeader({ candidates, analyses }: Props) {
                   initial={{ scale: 0, rotate: -20 }}
                   animate={{ scale: 1, rotate: 0 }}
                   transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-                  className="bg-gradient-to-br from-amber-400 to-amber-500 p-3.5 rounded-2xl shadow-lg shadow-amber-200/50"
+                  className="bg-gradient-to-br from-amber-400 to-amber-500 p-3.5 rounded-2xl shadow-lg shadow-amber-200/50 dark:shadow-amber-500/25"
                 >
                   <Trophy className="w-8 h-8 text-white" />
                 </motion.div>
@@ -87,7 +87,7 @@ export default function ComparisonHeader({ candidates, analyses }: Props) {
 
               {/* Score margin indicator */}
               {runnerUpId && maxScore > runnerUpScore && (
-                <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 rounded-xl border border-emerald/20 ml-auto shrink-0">
+                <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 rounded-xl border border-emerald/20 ml-auto shrink-0 dark:bg-emerald/10 dark:border-emerald-400/25">
                   <TrendingUp className="w-4 h-4 text-emerald" />
                   <span className="text-xs font-bold text-emerald">
                     +{maxScore - runnerUpScore}% ahead of runner-up
@@ -131,15 +131,15 @@ export default function ComparisonHeader({ candidates, analyses }: Props) {
               transition={{ delay: i * 0.1, duration: 0.3 }}
               className={`relative flex flex-col items-center text-center p-4 md:p-6 rounded-2xl border transition-all ${
                 isWinner 
-                  ? 'border-teal bg-gradient-to-b from-teal-light/30 to-white shadow-teal/20 shadow-md' 
-                  : 'border-border bg-white shadow-sm hover:shadow-md hover:border-slate-300'
+                  ? 'border-teal bg-gradient-to-b from-teal-light/30 to-white shadow-teal/20 shadow-md dark:border-teal/40 dark:from-teal/15 dark:to-[#1A2438] dark:shadow-teal/10' 
+                  : 'border-border bg-white shadow-sm hover:shadow-md hover:border-slate-300 dark:bg-[#1A2438] dark:hover:border-slate-600'
               }`}
             >
               {/* Rank Badge */}
               <div className={`absolute -top-2.5 -right-2.5 flex h-6 w-6 md:h-7 md:w-7 items-center justify-center rounded-full text-[10px] md:text-xs font-extrabold shadow-sm border-2 border-white ${
                 isWinner 
                   ? 'bg-gradient-primary text-white' 
-                  : 'bg-slate-100 text-text-muted'
+                  : 'bg-slate-100 text-text-muted dark:bg-slate-700 dark:border-slate-700'
               }`}>
                 {i + 1}
               </div>
@@ -154,7 +154,7 @@ export default function ComparisonHeader({ candidates, analyses }: Props) {
               <img 
                 src={getAvatarUrl(c.email)} 
                 alt={c.applicant_name}
-                className={`w-12 h-12 md:w-16 md:h-16 rounded-full border-2 mb-2 md:mb-3 ${isWinner ? 'border-teal shadow-teal' : 'border-white shadow-md'} bg-teal-light`}
+                className={`w-12 h-12 md:w-16 md:h-16 rounded-full border-2 mb-2 md:mb-3 ${isWinner ? 'border-teal shadow-teal' : 'border-white shadow-md dark:border-slate-600'} bg-teal-light dark:bg-slate-700`}
               />
               
               <h3 className="font-display font-semibold text-xs md:text-sm text-primary truncate w-full max-w-[100px] md:max-w-full" title={c.applicant_name}>

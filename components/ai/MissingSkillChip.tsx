@@ -20,7 +20,7 @@ export function MissingSkillChip({ skills, className }: MissingSkillChipProps) {
         {skills.map((skill, idx) => (
           <span
             key={idx}
-            className="inline-flex items-center gap-1 px-3 py-1 rounded-xl bg-red-50 text-danger border border-red-200 font-mono text-xs font-semibold shadow-subtle"
+            className="inline-flex items-center gap-1 px-3 py-1 rounded-xl bg-red-50 text-danger border border-red-200 font-mono text-xs font-semibold shadow-subtle dark:bg-rose-500/15 dark:border-rose-400/30 dark:text-rose-300"
           >
             <span className="h-1.5 w-1.5 rounded-full bg-danger" />
             {skill}

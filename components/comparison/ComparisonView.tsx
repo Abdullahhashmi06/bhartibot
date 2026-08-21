@@ -93,8 +93,8 @@ export default function ComparisonView({ candidates, analyses, answers }: Props)
               className={cn(
                 "flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all",
                 activeTab === tab.id
-                  ? "bg-teal-light text-teal-dark border border-teal/30 shadow-sm"
-                  : "text-text-secondary hover:text-primary hover:bg-slate-50 border border-transparent"
+                  ? "bg-teal-light text-teal-dark border border-teal/30 shadow-sm dark:bg-teal/15 dark:text-teal dark:border-teal/40"
+                  : "text-text-secondary hover:text-primary hover:bg-slate-50 border border-transparent dark:hover:bg-slate-800"
               )}
             >
               {tab.icon}
@@ -149,7 +149,7 @@ export default function ComparisonView({ candidates, analyses, answers }: Props)
               {candidates.map((c) => {
                 const dims = getScoreDims(c.id);
                 return (
-                  <div key={c.id} className="rounded-2xl border border-border bg-slate-50/30 p-5 space-y-4">
+                  <div key={c.id} className="rounded-2xl border border-border bg-slate-50/30 p-5 space-y-4 dark:bg-slate-800/40 dark:border-slate-700">
                     <h4 className="font-display font-bold text-sm text-primary flex items-center gap-2">
                       <span className="w-6 h-6 rounded-full bg-teal-light text-teal-dark flex items-center justify-center text-xs font-bold">
                         {candidates.indexOf(c) + 1}
@@ -333,7 +333,7 @@ export default function ComparisonView({ candidates, analyses, answers }: Props)
                   <UserCheck className="w-4 h-4" /> Strengths
                 </h4>
                 {candidates.map((c) => (
-                  <div key={c.id} className="rounded-2xl border border-emerald/30 bg-emerald-light/40 p-4">
+                  <div key={c.id} className="rounded-2xl border border-emerald/30 bg-emerald-light/40 p-4 dark:bg-emerald/10 dark:border-emerald-400/25">
                     <p className="text-xs font-bold text-text-secondary mb-2">{c.applicant_name}</p>
                     {analyses[c.id]?.strengths?.length ? (
                       <ul className="space-y-1.5">
@@ -355,7 +355,7 @@ export default function ComparisonView({ candidates, analyses, answers }: Props)
                   <Lightbulb className="w-4 h-4" /> Weaknesses & Gaps
                 </h4>
                 {candidates.map((c) => (
-                  <div key={c.id} className="rounded-2xl border border-amber-300/40 bg-amber-50/50 p-4">
+                  <div key={c.id} className="rounded-2xl border border-amber-300/40 bg-amber-50/50 p-4 dark:bg-amber-500/10 dark:border-amber-400/25">
                     <p className="text-xs font-bold text-text-secondary mb-2">{c.applicant_name}</p>
                     {analyses[c.id]?.weaknesses?.length ? (
                       <ul className="space-y-1.5">
@@ -419,7 +419,7 @@ export default function ComparisonView({ candidates, analyses, answers }: Props)
             <div className="md:hidden space-y-4">
               {candidates.map((c) => (
                 <details key={c.id} className="rounded-2xl border border-border overflow-hidden">
-                  <summary className="p-4 bg-slate-50/50 font-display font-bold text-sm text-primary cursor-pointer hover:bg-slate-100 transition-colors flex items-center gap-2">
+                  <summary className="p-4 bg-slate-50/50 font-display font-bold text-sm text-primary cursor-pointer hover:bg-slate-100 transition-colors flex items-center gap-2 dark:bg-slate-800/60 dark:hover:bg-slate-700/60">
                     <span className="w-5 h-5 rounded-full bg-purple-light text-purple-ai flex items-center justify-center text-[10px] font-bold">
                       {candidates.indexOf(c) + 1}
                     </span>
@@ -471,7 +471,7 @@ export default function ComparisonView({ candidates, analyses, answers }: Props)
               {candidates.map((c) => {
                 const reasoning = analyses[c.id]?.reasoning || analyses[c.id]?.parsed_resume?.summary || "No AI summary available.";
                 return (
-                  <div key={c.id} className="rounded-2xl border border-purple-ai/20 bg-purple-light/30 p-5 space-y-2">
+                  <div key={c.id} className="rounded-2xl border border-purple-ai/20 bg-purple-light/30 p-5 space-y-2 dark:bg-purple-ai/10 dark:border-purple-ai/30">
                     <div className="flex items-center gap-2">
                       <span className="w-6 h-6 rounded-full bg-purple-ai text-white flex items-center justify-center text-[10px] font-bold">
                         {candidates.indexOf(c) + 1}
