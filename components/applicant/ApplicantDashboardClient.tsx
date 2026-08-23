@@ -194,10 +194,10 @@ export default function ApplicantDashboardClient({
       {insights && <AiInsightsCard data={insights} />}
 
       {/* ── MAIN CONTENT: 2-column on desktop ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
 
-        {/* LEFT COLUMN (2/3) — primary content */}
-        <div className="lg:col-span-2 space-y-6 min-w-0">
+        {/* LEFT COLUMN — primary content */}
+        <div className="space-y-6 min-w-0">
           {/* Recommendations */}
           {topRecommended && (
             <HomepageRecommendations
@@ -277,8 +277,8 @@ export default function ApplicantDashboardClient({
           <ApplicantInterviews interviews={interviews || []} />
         </div>
 
-        {/* RIGHT COLUMN (1/3) — sidebar */}
-        <div className="space-y-5">
+        {/* RIGHT COLUMN — sidebar */}
+        <div className="space-y-5 min-w-0">
           <NotificationsPanel />
           <ProfileCompletion profile={profile} skills={skills || []} projects={projects || []} experience={experience || []} />
           <ResumeHealth profile={profile} skills={skills || []} projects={projects || []} experience={experience || []} />

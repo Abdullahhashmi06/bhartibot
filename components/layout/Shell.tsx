@@ -20,7 +20,7 @@ export default function Shell({
   userName?: string;
 }) {
   const pathname = usePathname();
-  const inDashboard = pathname?.startsWith("/dashboard") || pathname?.startsWith("/talent-pool") || pathname?.startsWith("/internships/");
+  const inDashboard = pathname?.startsWith("/dashboard") || pathname?.startsWith("/internships/");
 
   if (inDashboard) {
     return (

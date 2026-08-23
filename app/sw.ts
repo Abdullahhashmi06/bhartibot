@@ -23,7 +23,7 @@ export {};
  * InternIQ Service Worker
  *
  * Security rules (never cached):
- *  - Authenticated/private routes: /dashboard, /applicant, /talent-pool, /api, /applicant-auth
+ *  - Authenticated/private routes: /dashboard, /applicant, /api, /applicant-auth
  *  - Supabase storage (resumes, CVs, PDFs) and any *.supabase.co request
  *  - Any cross-origin API response
  *
@@ -41,7 +41,7 @@ export {};
 const PRIVATE_PATH_PREFIXES = [
   "/dashboard",
   "/applicant",
-  "/talent-pool",
+
   "/api",
   "/applicant-auth",
   // Token-keyed candidate review pages contain private recruiter/candidate

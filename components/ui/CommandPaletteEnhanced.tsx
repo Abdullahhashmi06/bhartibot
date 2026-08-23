@@ -129,7 +129,7 @@ export default function CommandPaletteEnhanced() {
       description: "View your saved candidates",
       icon: <Star className="h-4 w-4 text-amber-400" />,
       category: "navigation",
-      action: () => router.push("/talent-pool"),
+      action: () => router.push("/dashboard/talent-pool"),
       shortcut: "\u2318T",
     },
     {

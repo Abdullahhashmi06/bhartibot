@@ -42,7 +42,7 @@ const navItems = [
     shortcut: "⌘S",
   },
   {
-    href: "/talent-pool",
+    href: "/dashboard/talent-pool",
     label: "Talent Pool",
     icon: Star,
     shortcut: "⌘T",

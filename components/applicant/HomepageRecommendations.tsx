@@ -249,7 +249,7 @@ export default function HomepageRecommendations({
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {top.slice(0, 3).map((job, idx) => (
               <OpportunityCard
                 key={job.id}
@@ -290,7 +290,7 @@ export default function HomepageRecommendations({
             </div>
 
             {/* Grid — 1 mobile → 2 within each half-width desktop section */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 gap-5">
               {section.jobs.slice(0, 4).map((job, idx) => (
                 <OpportunityCard
                   key={job.id}

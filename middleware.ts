@@ -36,7 +36,7 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
   const isApplicantPath = pathname.startsWith("/applicant") && pathname !== "/applicant-auth";
-  const isDashboardPath = pathname.startsWith("/dashboard") || pathname.startsWith("/internships") || pathname.startsWith("/talent-pool");
+  const isDashboardPath = pathname.startsWith("/dashboard") || pathname.startsWith("/internships");
   
   const isProtected = isApplicantPath || isDashboardPath;
   const isAuthPage = AUTH_PAGES.includes(pathname);
