@@ -29,9 +29,9 @@ function HeroMetric({
     amber: "text-warning dark:text-amber-300",
   };
   return (
-    <div className="rounded-2xl bg-white/80 dark:bg-slate-800/80 border border-border dark:border-slate-700 px-4 py-3.5 backdrop-blur">
-      <p className={`font-display text-2xl font-extrabold ${tones[tone]}`}>{value}</p>
-      <p className="text-[11px] font-semibold text-text-secondary dark:text-slate-400 mt-0.5">
+    <div className="rounded-2xl bg-white/80 dark:bg-slate-800/80 border border-border dark:border-slate-700 px-4 py-3 backdrop-blur">
+      <p className={`font-display text-xl font-extrabold ${tones[tone]}`}>{value}</p>
+      <p className="text-[10px] font-semibold text-text-secondary dark:text-slate-400 mt-0.5">
         {label}
       </p>
     </div>
@@ -45,7 +45,7 @@ export default function ApplicantDashboardClient({
   userId: string;
   userEmail: string;
 }) {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ["applicant-dashboard", userId],
     queryFn: async () => {
       const res = await fetch("/api/data/applicant-dashboard");
@@ -56,36 +56,46 @@ export default function ApplicantDashboardClient({
     gcTime: 10 * 60_000,
   });
 
+  // Show error state if the query failed
+  if (isError && !data) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <p className="text-text-secondary">Failed to load dashboard data.</p>
+        <p className="text-sm text-text-muted mt-1">Please try refreshing the page.</p>
+      </div>
+    );
+  }
+
   // Show skeleton only when genuinely no cached data (first visit)
   if (isLoading || !data) {
     return (
-      <div className="space-y-10">
-        <section className="rounded-3xl border border-border bg-white dark:bg-slate-800 p-6 sm:p-10 shadow-card">
-          <div className="flex flex-col lg:flex-row lg:items-center gap-8">
-            <div className="flex-1 space-y-4">
-              <div className="animate-shimmer h-6 w-40 rounded-full bg-slate-200 dark:bg-slate-700" />
-              <div className="animate-shimmer h-10 w-3/4 rounded-xl bg-slate-200 dark:bg-slate-700" />
-              <div className="animate-shimmer h-4 w-2/3 rounded-lg bg-slate-200 dark:bg-slate-700" />
+      <div className="space-y-6">
+        <section className="rounded-3xl border border-border bg-white dark:bg-slate-800 p-6 sm:p-8 shadow-card">
+          <div className="flex flex-col lg:flex-row lg:items-center gap-6">
+            <div className="flex-1 space-y-3">
+              <div className="animate-shimmer h-5 w-36 rounded-full bg-slate-200 dark:bg-slate-700" />
+              <div className="animate-shimmer h-8 w-3/4 rounded-xl bg-slate-200 dark:bg-slate-700" />
+              <div className="animate-shimmer h-3.5 w-2/3 rounded-lg bg-slate-200 dark:bg-slate-700" />
             </div>
-            <div className="shrink-0 mx-auto lg:mx-0">
-              <div className="animate-shimmer h-40 w-48 rounded-3xl bg-slate-200 dark:bg-slate-700" />
+            <div className="shrink-0">
+              <div className="animate-shimmer h-28 w-36 rounded-3xl bg-slate-200 dark:bg-slate-700" />
             </div>
           </div>
         </section>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[0, 1, 2, 3].map((i) => (
-            <div key={i} className="animate-shimmer h-24 rounded-2xl bg-slate-200 dark:bg-slate-700" />
+            <div key={i} className="animate-shimmer h-20 rounded-2xl bg-slate-200 dark:bg-slate-700" />
           ))}
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-4">
             {[0, 1, 2].map((i) => (
-              <div key={i} className="animate-shimmer h-32 rounded-2xl bg-slate-200 dark:bg-slate-700" />
+              <div key={i} className="animate-shimmer h-28 rounded-2xl bg-slate-200 dark:bg-slate-700" />
             ))}
           </div>
           <div className="space-y-4">
             {[0, 1].map((i) => (
-              <div key={i} className="animate-shimmer h-48 rounded-2xl bg-slate-200 dark:bg-slate-700" />
+              <div key={i} className="animate-shimmer h-40 rounded-2xl bg-slate-200 dark:bg-slate-700" />
             ))}
           </div>
         </div>
@@ -127,94 +137,96 @@ export default function ApplicantDashboardClient({
     offers: offerCount,
   };
 
-  // Hero section — rendered directly by client component (no server component suspension)
   const recommendedCount = topRecommended?.length || 0;
   const highAcceptanceCount = (topRecommended || []).filter(
     (r: any) => r.acceptanceProbability >= 70
   ).length;
 
   return (
-    <div className="space-y-10">
-      {/* HERO */}
-      <section className="relative overflow-hidden rounded-3xl border border-teal/15 bg-gradient-to-br from-teal-light/60 via-white to-emerald-light/40 dark:from-slate-800 dark:via-slate-900 dark:to-slate-800 p-6 sm:p-10 shadow-card">
-        <div className="absolute -top-16 -right-16 h-56 w-56 rounded-full bg-teal/10 blur-3xl" />
-        <div className="absolute -bottom-20 -left-10 h-56 w-56 rounded-full bg-emerald/10 blur-3xl" />
-        <div className="relative flex flex-col lg:flex-row lg:items-center gap-8">
-          <div className="flex-1">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/70 dark:bg-slate-800/80 border border-teal/20 px-3 py-1 text-[11px] font-mono font-bold uppercase tracking-wider text-teal-dark dark:text-teal">
-              <Sparkles className="h-3.5 w-3.5" /> AI Career Advisor
+    <div className="space-y-6">
+      {/* ── HERO (compact) ── */}
+      <section className="relative overflow-hidden rounded-3xl border border-teal/15 bg-gradient-to-br from-teal-light/60 via-white to-emerald-light/40 dark:from-slate-800 dark:via-slate-900 dark:to-slate-800 p-5 sm:p-7 shadow-card">
+        <div className="absolute -top-16 -right-16 h-40 w-40 rounded-full bg-teal/10 blur-3xl" />
+        <div className="absolute -bottom-16 -left-8 h-40 w-40 rounded-full bg-emerald/10 blur-3xl" />
+        <div className="relative flex flex-col lg:flex-row lg:items-center gap-6">
+          <div className="flex-1 min-w-0">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/70 dark:bg-slate-800/80 border border-teal/20 px-2.5 py-0.5 text-[10px] font-mono font-bold uppercase tracking-wider text-teal-dark dark:text-teal">
+              <Sparkles className="h-3 w-3" /> AI Career Advisor
             </span>
-            <h1 className="mt-4 text-3xl sm:text-4xl lg:text-[2.75rem] font-display font-extrabold text-primary dark:text-white tracking-tight leading-[1.15]">
+            <h1 className="mt-3 text-2xl sm:text-3xl font-display font-extrabold text-primary dark:text-white tracking-tight leading-tight">
               Welcome back, <span className="text-gradient">{profile?.full_name?.split(" ")[0] || "Applicant"}</span>.
             </h1>
-            <p className="mt-3 text-sm sm:text-base text-text-secondary dark:text-slate-400">
-              AI has analyzed your profile — here are the internships where you&apos;re currently most competitive.
+            <p className="mt-1.5 text-sm text-text-secondary dark:text-slate-400">
+              AI has analyzed your profile — here are your best-match opportunities.
             </p>
-            <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <HeroMetric value={recommendedCount} label="Recommended Internships" tone="teal" />
-              <HeroMetric value={highAcceptanceCount} label="High Acceptance Opportunities" tone="mint" />
-              <HeroMetric value={underReview || stats.underReview} label="Applications Under Review" tone="amber" />
+
+            {/* Compact inline metrics */}
+            <div className="mt-4 flex flex-wrap gap-2.5">
+              <HeroMetric value={recommendedCount} label="Recommended" tone="teal" />
+              <HeroMetric value={highAcceptanceCount} label="High Match" tone="mint" />
+              <HeroMetric value={underReview || stats.underReview} label="Under Review" tone="amber" />
             </div>
-            <div className="mt-7 flex flex-wrap items-center gap-3">
+
+            <div className="mt-4 flex flex-wrap items-center gap-2">
               <Link href="/applicant/profile">
-                <Button variant="gradient" rightIcon={<ArrowRight className="h-4 w-4" />}>Continue improving your profile</Button>
+                <Button variant="gradient" rightIcon={<ArrowRight className="h-4 w-4" />}>Complete Profile</Button>
               </Link>
               <Link href="/applicant/internships">
-                <Button variant="outline">Explore internships</Button>
+                <Button variant="outline" size="sm">Explore Internships</Button>
               </Link>
             </div>
           </div>
           <div className="shrink-0 mx-auto lg:mx-0">
-            <div className="relative flex flex-col items-center rounded-3xl bg-white/80 dark:bg-slate-800/80 border border-border dark:border-slate-700 shadow-card px-8 py-6 backdrop-blur">
-              <CircularGauge score={profileComplete} size={128} strokeWidth={10} label="Profile Complete" />
-              <Link href="/applicant/profile" className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-teal-dark dark:text-teal hover:underline">
-                Complete it <ArrowRight className="h-3.5 w-3.5" />
+            <div className="flex flex-col items-center rounded-3xl bg-white/80 dark:bg-slate-800/80 border border-border dark:border-slate-700 shadow-card px-6 py-5 backdrop-blur">
+              <CircularGauge score={profileComplete} size={100} strokeWidth={8} label="Profile" />
+              <Link href="/applicant/profile" className="mt-3 inline-flex items-center gap-1 text-[11px] font-semibold text-teal-dark dark:text-teal hover:underline">
+                Complete it <ArrowRight className="h-3 w-3" />
               </Link>
             </div>
           </div>
         </div>
       </section>
 
-      {/* STATS */}
+      {/* ── STATS (compact row) ── */}
       <ApplicantStats stats={stats} />
 
-      {/* INTERVIEWS */}
-      <ApplicantInterviews interviews={interviews || []} />
-
-      {/* AI INSIGHTS (from deferred recommendations) */}
+      {/* ── AI INSIGHTS (inline, only when present) ── */}
       {insights && <AiInsightsCard data={insights} />}
 
-      {/* PERSONALIZED RECOMMENDATIONS */}
-      {topRecommended && (
-        <HomepageRecommendations
-          top={topRecommended}
-          trending={trending || []}
-          recentlyPosted={recentlyPosted || []}
-          closingSoon={closingSoon || []}
-          saved={savedRecs || []}
-          applied={appliedRecs || []}
-          savedJobIds={savedJobIds || []}
-          appliedJobIds={appliedJobIds || []}
-        />
-      )}
+      {/* ── MAIN CONTENT: 2-column on desktop ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
 
-      {/* BOTTOM GRID */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:items-start">
-        <div className="lg:col-span-2 space-y-8">
-          <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 sm:p-7 shadow-card border border-border">
-            <div className="flex items-center justify-between mb-6">
+        {/* LEFT COLUMN (2/3) — primary content */}
+        <div className="lg:col-span-2 space-y-6 min-w-0">
+          {/* Recommendations */}
+          {topRecommended && (
+            <HomepageRecommendations
+              top={topRecommended}
+              trending={trending || []}
+              recentlyPosted={recentlyPosted || []}
+              closingSoon={closingSoon || []}
+              saved={savedRecs || []}
+              applied={appliedRecs || []}
+              savedJobIds={savedJobIds || []}
+              appliedJobIds={appliedJobIds || []}
+            />
+          )}
+
+          {/* Recent Applications */}
+          <div className="bg-white dark:bg-slate-800 rounded-3xl p-5 sm:p-6 shadow-card border border-border">
+            <div className="flex items-center justify-between mb-4">
               <div>
-                <h2 className="text-xl font-display font-bold text-primary dark:text-white">
+                <h2 className="text-lg font-display font-bold text-primary dark:text-white">
                   Recent Applications
                 </h2>
-                <p className="text-xs text-text-muted mt-0.5">Track your submitted applications</p>
+                <p className="text-[11px] text-text-muted mt-0.5">Track your submitted applications</p>
               </div>
               <Link href="/applicant/applications">
                 <Button variant="ghost" size="sm" className="text-teal">View All</Button>
               </Link>
             </div>
             {applications && applications.length > 0 ? (
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 {applications.slice(0, 5).map((app: any) => {
                   const getStatusConfig = (status: string) => {
                     switch (status) {
@@ -228,22 +240,22 @@ export default function ApplicantDashboardClient({
                   };
                   const statusConf = getStatusConfig(app.status);
                   return (
-                    <div key={app.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl border border-border dark:border-slate-700 hover:border-teal/30 hover:shadow-subtle transition-all duration-200 group gap-4">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-light to-emerald-light dark:from-teal/20 dark:to-emerald/15 border border-teal/15 dark:border-teal/25 flex items-center justify-center text-lg font-bold text-teal-dark dark:text-teal shrink-0">
+                    <div key={app.id} className="flex items-center justify-between p-3.5 rounded-2xl border border-border dark:border-slate-700 hover:border-teal/30 hover:shadow-subtle transition-all duration-200 group">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-light to-emerald-light dark:from-teal/20 dark:to-emerald/15 border border-teal/15 dark:border-teal/25 flex items-center justify-center text-sm font-bold text-teal-dark dark:text-teal shrink-0">
                           {app.internships?.company_name?.charAt(0) || "C"}
                         </div>
-                        <div>
-                          <h3 className="font-semibold text-primary dark:text-white group-hover:text-teal-dark dark:group-hover:text-teal transition-colors">{app.internships?.title || "Internship"}</h3>
-                          <p className="text-sm text-text-secondary">{app.internships?.company_name || "Company"}</p>
+                        <div className="min-w-0">
+                          <h3 className="font-semibold text-sm text-primary dark:text-white group-hover:text-teal-dark dark:group-hover:text-teal transition-colors truncate">{app.internships?.title || "Internship"}</h3>
+                          <p className="text-xs text-text-secondary truncate">{app.internships?.company_name || "Company"}</p>
                         </div>
                       </div>
-                      <div className="flex items-center justify-between sm:flex-col sm:items-end gap-2 sm:gap-1">
-                        <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold ${statusConf.bg} ${statusConf.color} ${statusConf.border} border capitalize`}>
+                      <div className="flex items-center gap-3 shrink-0 ml-3">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-semibold ${statusConf.bg} ${statusConf.color} ${statusConf.border} border capitalize`}>
                           {app.status.replace("_", " ")}
                         </span>
-                        <p className="text-xs text-text-muted flex items-center gap-1">
-                          <Clock className="w-3 h-3" /> {formatDateShort(app.created_at)}
+                        <p className="text-[10px] text-text-muted hidden sm:flex items-center gap-1">
+                          <Clock className="w-2.5 h-2.5" /> {formatDateShort(app.created_at)}
                         </p>
                       </div>
                     </div>
@@ -251,18 +263,22 @@ export default function ApplicantDashboardClient({
                 })}
               </div>
             ) : (
-              <div className="text-center py-14 bg-slate-50 dark:bg-slate-800 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
-                <Briefcase className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-                <p className="text-text-secondary font-medium">No applications yet. Start exploring!</p>
+              <div className="text-center py-10 bg-slate-50 dark:bg-slate-800 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
+                <Briefcase className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                <p className="text-text-secondary text-sm font-medium">No applications yet. Start exploring!</p>
                 <Link href="/applicant/internships">
-                  <Button variant="outline" className="mt-4">Find Internships</Button>
+                  <Button variant="outline" size="sm" className="mt-3">Find Internships</Button>
                 </Link>
               </div>
             )}
           </div>
+
+          {/* Interviews */}
+          <ApplicantInterviews interviews={interviews || []} />
         </div>
 
-        <div className="space-y-8">
+        {/* RIGHT COLUMN (1/3) — sidebar */}
+        <div className="space-y-5">
           <NotificationsPanel />
           <ProfileCompletion profile={profile} skills={skills || []} projects={projects || []} experience={experience || []} />
           <ResumeHealth profile={profile} skills={skills || []} projects={projects || []} experience={experience || []} />

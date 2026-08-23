@@ -228,7 +228,7 @@ export default function HomepageRecommendations({
   };
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-6">
       {/* ⭐ TOP RECOMMENDED — your most competitive opportunities */}
       {top.length > 0 && (
         <section className="animate-fade-up">
@@ -271,7 +271,7 @@ export default function HomepageRecommendations({
       {/* RESPONSIVE SECTIONS — side by side on desktop so there is no
           wasted vertical blank space; the role count sits inline next to
           the title instead of floating far right. */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-10">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-6">
         {sections.map((section, sectionIdx) => (
           <section key={section.key} className="animate-fade-up min-w-0" style={{ animationDelay: `${sectionIdx * 0.06}s` }}>
             <div className="mb-4">

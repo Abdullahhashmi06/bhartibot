@@ -15,7 +15,7 @@ export default function RecruiterDashboardClient({
   userId: string;
   userEmail: string;
 }) {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ["recruiter-dashboard", userId],
     queryFn: async () => {
       const res = await fetch("/api/data/recruiter-dashboard");
@@ -25,6 +25,16 @@ export default function RecruiterDashboardClient({
     staleTime: 30_000,
     gcTime: 5 * 60_000,
   });
+
+  // Show error state if the query failed
+  if (isError && !data) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <p className="text-text-secondary">Failed to load dashboard data.</p>
+        <p className="text-sm text-text-muted mt-1">Please try refreshing the page.</p>
+      </div>
+    );
+  }
 
   // Show skeleton only when there is genuinely no cached data (first visit)
   if (isLoading || !data) {

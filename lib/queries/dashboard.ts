@@ -1,8 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { DashboardStats, ActivityItem, Internship, Application, CandidateAiAnalysis, Requirement } from "@/lib/types";
-import { getUserFromHeaders } from "@/lib/supabase/server";
 
-export async function getDashboardAnalytics(supabase: SupabaseClient): Promise<{
+export async function getDashboardAnalytics(supabase: SupabaseClient, userId: string): Promise<{
   stats: DashboardStats;
   recentActivity: ActivityItem[];
   topUniversities: { university: string; applicants: number; avgScore: number }[];
@@ -12,11 +11,7 @@ export async function getDashboardAnalytics(supabase: SupabaseClient): Promise<{
   weeklyApplications: { name: string; count: number }[];
   orgResolved: boolean;
 }> {
-  // 1. Get user identity from middleware headers — avoids redundant getUser()
-  const headerUser = getUserFromHeaders();
-  if (!headerUser) throw new Error("Not authenticated");
-
-  const { data: profile } = await supabase.from("profiles").select("organization_id").eq("id", headerUser.id).maybeSingle();
+  const { data: profile } = await supabase.from("profiles").select("organization_id").eq("id", userId).maybeSingle();
   if (!profile) {
     console.warn("[getDashboardAnalytics] No profile row for user — returning empty stats.");
     return {

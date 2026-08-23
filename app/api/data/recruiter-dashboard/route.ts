@@ -17,7 +17,7 @@ export async function GET() {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  const data = await getDashboardAnalytics(supabase);
+  const data = await getDashboardAnalytics(supabase, user.id);
   const fullName = (user.user_metadata?.full_name as string) || null;
   const orgName = (user.user_metadata?.organization_name as string) || null;
   return NextResponse.json({ ...data, userName: fullName || orgName });
