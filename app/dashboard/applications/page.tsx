@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight, Users, Sparkles, XCircle, Clock, PlusCircle, ArrowLeft, Briefcase } from "lucide-react";
-import Shell from "@/components/layout/Shell";
 import Tag from "@/components/ui/Tag";
 import MetricCard from "@/components/ai/MetricCard";
 import { ButtonLink } from "@/components/ui/Button";
@@ -46,7 +45,7 @@ export default async function ApplicationsDashboardPage() {
   }));
 
   return (
-    <Shell userEmail={user.email} userName={fullName || undefined}>
+    <>
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-border pb-6">
         <div>
@@ -163,6 +162,6 @@ export default async function ApplicationsDashboardPage() {
           </div>
         )}
       </div>
-    </Shell>
+    </>
   );
 }

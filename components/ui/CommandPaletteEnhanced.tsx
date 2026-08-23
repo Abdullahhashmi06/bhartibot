@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 
 interface CommandItem {
@@ -49,6 +50,7 @@ export default function CommandPaletteEnhanced() {
   const listRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const supabase = createClient();
+  const queryClient = useQueryClient();
   const debouncedQuery = useDebounce(query, 150);
 
   useEffect(() => {
@@ -181,6 +183,7 @@ export default function CommandPaletteEnhanced() {
       icon: <LogOut className="h-4 w-4 text-danger" />,
       category: "actions",
       action: async () => {
+        queryClient.clear();
         await supabase.auth.signOut();
         router.push("/login");
         router.refresh();

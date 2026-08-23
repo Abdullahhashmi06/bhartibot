@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 
 export default function LogoutButton({
@@ -14,8 +15,12 @@ export default function LogoutButton({
 }) {
   const router = useRouter();
   const supabase = createClient();
+  const queryClient = useQueryClient();
 
   async function handleLogout() {
+    // Clear all cached server-state data to prevent cross-user data leakage
+    // on same-tab account switches.
+    queryClient.clear();
     await supabase.auth.signOut();
     router.push("/login");
     router.refresh();

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { User, Edit2, Check, X } from "lucide-react";
 
@@ -17,6 +18,7 @@ export default function PersonalInfoEditor({ profile }: { profile: any }) {
     portfolio_url: profile?.portfolio_url || "",
   });
   const supabase = createClient();
+  const queryClient = useQueryClient();
 
   const handleSave = async () => {
     try {
@@ -27,8 +29,9 @@ export default function PersonalInfoEditor({ profile }: { profile: any }) {
       if (error) throw error;
       toast.success("Personal information updated!");
       setIsEditing(false);
-      // Let's force a refresh to update the header as well
-      window.location.reload();
+      // Invalidate profile cache so header and other components show fresh data
+      queryClient.invalidateQueries({ queryKey: ["applicant-profile"] });
+      queryClient.invalidateQueries({ queryKey: ["applicant-dashboard"] });
     } catch (e: any) {
       toast.error(e.message || "Failed to update");
     }

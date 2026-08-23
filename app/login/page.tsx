@@ -103,7 +103,6 @@ function LoginForm() {
 
     const next = safeRedirectPath(searchParams.get("next"), "/dashboard");
     router.push(next);
-    router.refresh();
     return null;
   }
 

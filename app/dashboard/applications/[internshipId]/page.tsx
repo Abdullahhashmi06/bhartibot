@@ -1,7 +1,6 @@
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Users, Briefcase, Plus, Sparkles } from "lucide-react";
-import Shell from "@/components/layout/Shell";
 import Tag from "@/components/ui/Tag";
 import MetricCard from "@/components/ai/MetricCard";
 import ApplicantList from "@/components/applications/ApplicantList";
@@ -60,8 +59,7 @@ export default async function InternshipApplicantsPage({
   }
 
   return (
-    <Shell userEmail={headerUser.email}>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Breadcrumb Navigation */}
         <div className="flex items-center justify-between border-b border-border pb-4">
           <Link
@@ -198,6 +196,5 @@ export default async function InternshipApplicantsPage({
           </div>
         )}
       </div>
-    </Shell>
   );
 }

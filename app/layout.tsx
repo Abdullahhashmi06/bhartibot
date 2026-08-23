@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import QueryProvider from "@/components/providers/QueryProvider";
 import PwaRoot from "@/components/pwa/PwaRoot";
 
 export const metadata: Metadata = {
@@ -103,9 +104,11 @@ export default function RootLayout({
         />
       </head>
       <body className="h-full bg-background dark:bg-slate-950 font-sans text-text-primary dark:text-slate-100 antialiased selection:bg-teal/20 selection:text-teal-dark">
-        <ThemeProvider>
-          {children}
-        </ThemeProvider>
+        <QueryProvider>
+          <ThemeProvider>
+            {children}
+          </ThemeProvider>
+        </QueryProvider>
         <PwaRoot />
       </body>
     </html>

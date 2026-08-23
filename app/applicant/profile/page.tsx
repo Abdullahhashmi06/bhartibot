@@ -1,41 +1,15 @@
-import { createClient, getUserFromHeaders } from "@/lib/supabase/server";
-import { getApplicantProfile, getApplicantSkills, getApplicantProjects, getApplicantExperience } from "@/lib/queries/applicant";
-import ProfileHeader from "@/components/applicant/ProfileHeader";
-import PersonalInfoEditor from "@/components/applicant/PersonalInfoEditor";
-import EducationEditor from "@/components/applicant/EducationEditor";
-import SkillEditor from "@/components/applicant/SkillEditor";
-import ProjectEditor from "@/components/applicant/ProjectEditor";
-import ExperienceEditor from "@/components/applicant/ExperienceEditor";
+import { redirect } from "next/navigation";
+import { getUserFromHeaders } from "@/lib/supabase/server";
+import ProfileClient from "@/components/applicant/ProfileClient";
 
 export const dynamic = "force-dynamic";
 
+/**
+ * Thin auth shell — data fetching moved to ProfileClient via React Query.
+ */
 export default async function ProfilePage() {
-  const supabase = createClient();
   const headerUser = getUserFromHeaders();
-  if (!headerUser) return null;
+  if (!headerUser) redirect("/applicant-auth");
 
-  const [{ data: profile }, { data: skills }, { data: projects }, { data: experience }] = await Promise.all([
-    getApplicantProfile(supabase, headerUser.id),
-    getApplicantSkills(supabase, headerUser.id),
-    getApplicantProjects(supabase, headerUser.id),
-    getApplicantExperience(supabase, headerUser.id)
-  ]);
-
-  return (
-    <div className="max-w-4xl mx-auto space-y-8 pb-12">
-      <ProfileHeader profile={profile} />
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div className="md:col-span-2 space-y-8">
-          <PersonalInfoEditor profile={profile} />
-          <EducationEditor profile={profile} />
-          <ExperienceEditor experience={experience || []} />
-          <ProjectEditor projects={projects || []} />
-        </div>
-        <div className="space-y-8">
-          <SkillEditor skills={skills || []} />
-        </div>
-      </div>
-    </div>
-  );
+  return <ProfileClient userId={headerUser.id} />;
 }

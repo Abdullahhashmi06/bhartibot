@@ -1,7 +1,6 @@
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Edit3 } from "lucide-react";
-import Shell from "@/components/layout/Shell";
 import Tag from "@/components/ui/Tag";
 import EditInternshipForm from "@/components/internships/EditInternshipForm";
 import ScreeningQuestions from "@/components/internships/ScreeningQuestions";
@@ -33,8 +32,7 @@ export default async function EditInternshipPage({
   ]);
 
   return (
-    <Shell userEmail={headerUser.email}>
-      <div className="mx-auto max-w-3xl space-y-8 py-4">
+    <div className="mx-auto max-w-3xl space-y-8 py-4">
         {/* Breadcrumb Header */}
         <div className="flex items-center justify-between border-b border-border pb-4">
           <Link
@@ -78,6 +76,5 @@ export default async function EditInternshipPage({
           initialStatus={internship.status}
         />
       </div>
-    </Shell>
   );
 }

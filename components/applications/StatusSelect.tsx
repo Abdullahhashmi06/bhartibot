@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { Check, ChevronDown, Loader2 } from "lucide-react";
 import { updateStatusServerAction } from "@/app/dashboard/applications/statusActions";
 import { ApplicationStatus } from "@/lib/types";
@@ -44,6 +45,7 @@ export default function StatusSelect({
   onStatusChange?: (newStatus: string) => void;
 }) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   // Track the current displayed status (mutable — changes on every select)
   const [status, setStatus] = useState<ApplicationStatus | string>(initialStatus);
   const [saving, setSaving] = useState(false);
@@ -92,8 +94,9 @@ export default function StatusSelect({
       setTimeout(() => setSaved(false), 2000);
       // Notify parent so it can update local UI state immediately
       onStatusChange?.(next);
-      // router.refresh() is now handled by revalidatePath in the server action
-      // but we still call it to ensure client-side router cache is cleared
+      // Invalidate React Query caches so other pages show fresh data
+      queryClient.invalidateQueries({ queryKey: ["recruiter-applications"] });
+      queryClient.invalidateQueries({ queryKey: ["recruiter-dashboard"] });
       router.refresh();
     }
   }

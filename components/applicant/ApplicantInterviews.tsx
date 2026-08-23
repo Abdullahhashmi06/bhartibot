@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   CalendarDays,
@@ -39,7 +39,7 @@ type ModalMode = "decline" | "reschedule";
 export default function ApplicantInterviews({
   interviews,
 }: ApplicantInterviewsProps) {
-  const router = useRouter();
+  const queryClient = useQueryClient();
   const [modal, setModal] = useState<{
     mode: ModalMode;
     interview: ApplicantInterview;
@@ -75,7 +75,7 @@ export default function ApplicantInterviews({
               : "Reschedule request sent"
         );
         closeModal();
-        router.refresh();
+        queryClient.invalidateQueries({ queryKey: ["applicant-dashboard"] });
       } else {
         toast.error(res.error || "Something went wrong. Please try again.");
       }

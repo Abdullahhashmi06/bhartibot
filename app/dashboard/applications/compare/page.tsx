@@ -3,7 +3,6 @@ import { createClient, getUserFromHeaders } from "@/lib/supabase/server";
 import { getApplicationsByIds, getApplicationAnswersForApplications } from "@/lib/queries/applications";
 import { getCandidateAiAnalyses } from "@/lib/queries/ai-analysis";
 import type { CandidateAiAnalysis } from "@/lib/types";
-import Shell from "@/components/layout/Shell";
 import ComparisonView from "@/components/comparison/ComparisonView";
 
 export default async function ComparePage({
@@ -18,11 +17,9 @@ export default async function ComparePage({
   const idsParam = searchParams.ids;
   if (!idsParam) {
     return (
-      <Shell userEmail={headerUser.email}>
-        <div className="flex items-center justify-center min-h-[50vh]">
-          <p className="text-text-secondary">No candidates selected for comparison.</p>
-        </div>
-      </Shell>
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <p className="text-text-secondary">No candidates selected for comparison.</p>
+      </div>
     );
   }
 
@@ -30,11 +27,9 @@ export default async function ComparePage({
   
   if (ids.length < 2) {
     return (
-      <Shell userEmail={headerUser.email}>
-        <div className="flex items-center justify-center min-h-[50vh]">
-          <p className="text-text-secondary">Please select at least 2 candidates to compare.</p>
-        </div>
-      </Shell>
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <p className="text-text-secondary">Please select at least 2 candidates to compare.</p>
+      </div>
     );
   }
 
@@ -43,11 +38,9 @@ export default async function ComparePage({
 
   if (candidates.length < 2) {
     return (
-      <Shell userEmail={headerUser.email}>
-        <div className="flex items-center justify-center min-h-[50vh]">
-          <p className="text-text-secondary">Some candidates could not be found. Please try again.</p>
-        </div>
-      </Shell>
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <p className="text-text-secondary">Some candidates could not be found. Please try again.</p>
+      </div>
     );
   }
 
@@ -74,12 +67,10 @@ export default async function ComparePage({
   });
 
   return (
-    <Shell userEmail={headerUser.email}>
-      <ComparisonView 
+    <ComparisonView 
         candidates={candidates} 
         analyses={analyses} 
         answers={answers} 
       />
-    </Shell>
   );
 }

@@ -24,6 +24,7 @@ import { recruiterInterviewAction } from "@/app/dashboard/applications/interview
 import Tag from "@/components/ui/Tag";
 import InterviewScheduler from "./InterviewScheduler";
 import InterviewFeedback from "./InterviewFeedback";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface InterviewStatusProps {
   interview?: Interview | null;
@@ -117,8 +118,11 @@ export default function InterviewStatusComponent({
   const [showScheduler, setShowScheduler] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
   const handleUpdate = () => {
+    queryClient.invalidateQueries({ queryKey: ["recruiter-applications"] });
+    queryClient.invalidateQueries({ queryKey: ["recruiter-dashboard"] });
     router.refresh();
   };
 

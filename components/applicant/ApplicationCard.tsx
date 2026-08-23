@@ -5,8 +5,8 @@ import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/Button";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { RefreshCw, ExternalLink } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import ApplicationTimeline from "./ApplicationTimeline";
 import { cn, formatDateShort } from "@/lib/utils";
 
@@ -142,7 +142,7 @@ export default function ApplicationCard({ app }: { app: any }) {
   const [withdrawing, setWithdrawing] = useState(false);
   const [reapplying, setReapplying] = useState(false);
   const supabase = createClient();
-  const router = useRouter();
+  const queryClient = useQueryClient();
 
   const theme = STAGE_THEMES[status] || DEFAULT_THEME;
 
@@ -154,7 +154,8 @@ export default function ApplicationCard({ app }: { app: any }) {
       if (error) throw error;
       toast.success("Application withdrawn successfully");
       setStatus("withdrawn");
-      router.refresh();
+      queryClient.invalidateQueries({ queryKey: ["applicant-applications"] });
+      queryClient.invalidateQueries({ queryKey: ["applicant-dashboard"] });
     } catch (e: any) {
       toast.error(e.message || "Failed to withdraw application");
     } finally {
@@ -201,7 +202,8 @@ export default function ApplicationCard({ app }: { app: any }) {
 
       if (error) throw error;
       toast.success("Re-applied successfully! Good luck!");
-      router.refresh();
+      queryClient.invalidateQueries({ queryKey: ["applicant-applications"] });
+      queryClient.invalidateQueries({ queryKey: ["applicant-dashboard"] });
     } catch (e: any) {
       toast.error(e.message || "Failed to re-apply");
     } finally {

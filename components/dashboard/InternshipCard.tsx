@@ -9,6 +9,7 @@ import { Internship } from "@/lib/types";
 import { formatDateShort } from "@/lib/utils";
 import { duplicateInternshipAction, archiveInternshipAction, restoreInternshipAction } from "@/app/dashboard/actions";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface InternshipCardProps {
   internship: Internship & { applicantCount: number };
@@ -18,6 +19,7 @@ export default function InternshipCard({ internship }: InternshipCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isPending, setIsPending] = useState(false);
+  const queryClient = useQueryClient();
 
   const handleDuplicate = async () => {
     setIsMenuOpen(false);
@@ -26,6 +28,7 @@ export default function InternshipCard({ internship }: InternshipCardProps) {
     try {
       await duplicateInternshipAction(internship.id);
       toast.success("Internship duplicated successfully", { id: "dup" });
+      queryClient.invalidateQueries({ queryKey: ["recruiter-dashboard"] });
     } catch (e: any) {
       toast.error(e.message || "Failed to duplicate", { id: "dup" });
     } finally {
@@ -42,9 +45,11 @@ export default function InternshipCard({ internship }: InternshipCardProps) {
       if (isArchiving) {
         await archiveInternshipAction(internship.id);
         toast.success("Internship archived", { id: "arc" });
+        queryClient.invalidateQueries({ queryKey: ["recruiter-dashboard"] });
       } else {
         await restoreInternshipAction(internship.id);
         toast.success("Internship restored to draft", { id: "arc" });
+        queryClient.invalidateQueries({ queryKey: ["recruiter-dashboard"] });
       }
     } catch (e: any) {
       toast.error(e.message || "Failed to update status", { id: "arc" });

@@ -4,7 +4,6 @@ import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, CheckCircle2, Plus, Sparkles, Trash2, ListChecks, HelpCircle, Briefcase, Lightbulb, Github, Linkedin } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import Shell from "@/components/layout/Shell";
 import { Button } from "@/components/ui/Button";
 import FormNotice from "@/components/ui/FormNotice";
 import Tag from "@/components/ui/Tag";
@@ -18,6 +17,7 @@ import RecruiterTips from "@/components/internships/RecruiterTips";
 import { createClient } from "@/lib/supabase/client";
 import { createInternship } from "@/lib/queries/internships";
 import { FIELD_OPTIONS, WorkMode, QuestionType } from "@/lib/types";
+import { useQueryClient } from "@tanstack/react-query";
 
 const WORK_MODES: { value: WorkMode; label: string }[] = [
   { value: "on-site", label: "On-site" },
@@ -28,6 +28,7 @@ const WORK_MODES: { value: WorkMode; label: string }[] = [
 export default function CreateInternshipPage() {
   const router = useRouter();
   const supabase = createClient();
+  const queryClient = useQueryClient();
 
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [title, setTitle] = useState("");
@@ -151,13 +152,12 @@ export default function CreateInternshipPage() {
       return;
     }
 
+    queryClient.invalidateQueries({ queryKey: ["recruiter-dashboard"] });
     router.push("/dashboard");
-    router.refresh();
   }
 
   return (
-    <Shell>
-      <div className="mx-auto max-w-4xl gap-6 lg:grid lg:grid-cols-[1fr_260px] py-4">
+    <div className="mx-auto max-w-4xl gap-6 lg:grid lg:grid-cols-[1fr_260px] py-4">
         {/* MAIN CONTENT */}
         <div className="space-y-8 min-w-0">
           {/* Top Header */}
@@ -610,7 +610,6 @@ export default function CreateInternshipPage() {
           </div>
         </div>
       </div>
-    </Shell>
   );
 }
 

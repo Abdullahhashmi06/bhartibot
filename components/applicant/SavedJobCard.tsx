@@ -4,6 +4,7 @@ import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import OpportunityCard from "@/components/applicant/OpportunityCard";
 import MatchDrawer from "@/components/applicant/MatchDrawer";
 import type { RecommendationResult } from "@/lib/ai/recommendations";
@@ -21,6 +22,7 @@ export default function SavedJobCard({
   const [unsaving, setUnsaving] = useState(false);
   const supabase = createClient();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   // Unsave works even without an explicit onUnsave prop (server-driven pages
   // don't pass one) — the card removes the row itself and refreshes.
@@ -43,7 +45,6 @@ export default function SavedJobCard({
         .eq("internship_id", job.id);
       if (error) throw error;
       toast.success("Job removed from saved list");
-      router.refresh();
     } catch (e: any) {
       toast.error(e.message || "Failed to remove");
     } finally {
@@ -94,7 +95,8 @@ export default function SavedJobCard({
       if (error) throw error;
       toast.success("Application submitted successfully!");
       setAlreadyApplied(true);
-      router.refresh();
+      queryClient.invalidateQueries({ queryKey: ["applicant-applications"] });
+      queryClient.invalidateQueries({ queryKey: ["applicant-dashboard"] });
     } catch (e: any) {
       toast.error(e.message || "Failed to apply");
     } finally {

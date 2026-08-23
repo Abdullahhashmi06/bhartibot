@@ -12,6 +12,7 @@ import {
   unpublishInternship,
 } from "@/lib/queries/internships";
 import { InternshipStatus } from "@/lib/types";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function PublishPanel({
   internshipId,
@@ -26,6 +27,7 @@ export default function PublishPanel({
 }) {
   const router = useRouter();
   const supabase = createClient();
+  const queryClient = useQueryClient();
 
   const [status, setStatus] = useState(initialStatus);
   const [slug, setSlug] = useState(publicSlug);
@@ -66,6 +68,7 @@ export default function PublishPanel({
 
     setStatus(internship.status);
     setSlug(internship.public_slug);
+    queryClient.invalidateQueries({ queryKey: ["recruiter-dashboard"] });
     router.refresh();
   }
 
@@ -87,6 +90,7 @@ export default function PublishPanel({
 
     setStatus(internship.status);
     setCopied(false);
+    queryClient.invalidateQueries({ queryKey: ["recruiter-dashboard"] });
     router.refresh();
   }
 

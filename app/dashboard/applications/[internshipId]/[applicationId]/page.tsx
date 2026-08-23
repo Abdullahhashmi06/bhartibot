@@ -15,7 +15,6 @@ import {
   ExternalLink,
   Download,
 } from "lucide-react";
-import Shell from "@/components/layout/Shell";
 import Tag from "@/components/ui/Tag";
 import StatusSelect from "@/components/applications/StatusSelect";
 import { createClient, getUserFromHeaders } from "@/lib/supabase/server";
@@ -105,8 +104,7 @@ export default async function ApplicantDetailPage({
   const avatarUrl = getAvatarUrl(application.applicant_name);
 
   return (
-    <Shell userEmail={headerUser.email}>
-      <div className="space-y-8">
+    <div className="space-y-8">
         {/* Breadcrumb Header */}
         <div className="flex items-center justify-between border-b border-border pb-4">
           <Link
@@ -321,7 +319,6 @@ export default async function ApplicantDetailPage({
           internshipTitle={internship.title}
         />
       </div>
-    </Shell>
   );
 }
 

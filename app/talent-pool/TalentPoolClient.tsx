@@ -13,6 +13,7 @@ import {
   Star,
   X,
 } from "lucide-react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { removeFromTalentPool, TalentPoolEntry } from "@/lib/queries/talent-pool";
 import { toast } from "sonner";
@@ -173,13 +174,13 @@ export default function TalentPoolClient({
                   </div>
 
                   <div className="mt-4 flex items-center gap-2 pt-3 border-t border-border dark:border-slate-700">
-                    <a
+                    <Link
                       href={`/dashboard/applications/${app.internship_id}/${app.id}`}
                       className="inline-flex items-center gap-1.5 rounded-lg bg-teal-light text-teal-dark text-[11px] font-semibold px-3 py-1.5 hover:bg-teal/20 transition-colors"
                     >
                       <ExternalLink className="h-3 w-3" />
                       View Profile
-                    </a>
+                    </Link>
                     {(app as any).recommendation && (
                       <Tag tone={(app as any).recommendation === "Hire" ? "teal" : (app as any).recommendation === "Interview" ? "purple" : "amber"}>
                         {(app as any).recommendation}

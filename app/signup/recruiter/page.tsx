@@ -72,7 +72,6 @@ export default function RecruiterSignupPage() {
 
     if (data.session) {
       router.push("/dashboard");
-      router.refresh();
       return;
     }
 
@@ -91,7 +90,6 @@ export default function RecruiterSignupPage() {
     }
 
     router.push("/dashboard");
-    router.refresh();
     return null;
   }
 

@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeft, Edit3, Users, Briefcase } from "lucide-react";
-import Shell from "@/components/layout/Shell";
 import Tag from "@/components/ui/Tag";
 import ScreeningQuestions from "@/components/internships/ScreeningQuestions";
 import PublishPanel from "@/components/internships/PublishPanel";
@@ -38,8 +37,7 @@ export default async function InternshipDetailPage({
   const isPublished = internship.status === "published";
 
   return (
-    <Shell userEmail={headerUser.email}>
-      <div className="mx-auto max-w-3xl space-y-8 py-4">
+    <div className="mx-auto max-w-3xl space-y-8 py-4">
         {/* Header Navigation */}
         <div className="flex items-center justify-between border-b border-border pb-4">
           <Link
@@ -121,7 +119,6 @@ export default async function InternshipDetailPage({
           initialStatus={internship.status}
         />
       </div>
-    </Shell>
   );
 }
 

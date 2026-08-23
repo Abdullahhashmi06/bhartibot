@@ -15,6 +15,7 @@ import {
 import { toast } from "sonner";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   bulkUpdateApplicationStatus,
   bulkDeleteApplications,
@@ -39,8 +40,9 @@ export default function BulkToolbar({
   onClear,
   onActionComplete,
 }: BulkToolbarProps) {
-  const router = useRouter();
-  const supabase = createClient();
+  const router = useRouter();  const supabase = createClient();
+  const queryClient = useQueryClient();
+
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
     action: "shortlist" | "reject" | "review" | "delete" | null;
@@ -76,6 +78,8 @@ export default function BulkToolbar({
       );
       onClear();
       onActionComplete();
+      queryClient.invalidateQueries({ queryKey: ["recruiter-applications"] });
+      queryClient.invalidateQueries({ queryKey: ["recruiter-dashboard"] });
       router.refresh();
     }
   }
@@ -93,6 +97,8 @@ export default function BulkToolbar({
       );
       onClear();
       onActionComplete();
+      queryClient.invalidateQueries({ queryKey: ["recruiter-applications"] });
+      queryClient.invalidateQueries({ queryKey: ["recruiter-dashboard"] });
       router.refresh();
     }
   }

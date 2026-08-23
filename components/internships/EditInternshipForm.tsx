@@ -6,6 +6,7 @@ import { PlusCircle, Trash2, Save, FileText, Github, Linkedin } from "lucide-rea
 import { Button } from "@/components/ui/Button";
 import FormNotice from "@/components/ui/FormNotice";
 import { createClient } from "@/lib/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 import { updateInternship } from "@/lib/queries/internships";
 import { Internship, Requirement, RequirementType } from "@/lib/types";
 
@@ -21,6 +22,7 @@ export default function EditInternshipForm({
 }) {
   const router = useRouter();
   const supabase = createClient();
+  const queryClient = useQueryClient();
 
   const [title, setTitle] = useState(internship.title);
   const [description, setDescription] = useState(internship.description ?? "");
@@ -111,6 +113,7 @@ export default function EditInternshipForm({
     }
 
     setSuccess(true);
+    queryClient.invalidateQueries({ queryKey: ["recruiter-dashboard"] });
     router.refresh();
   }
 
