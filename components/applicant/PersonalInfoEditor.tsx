@@ -5,6 +5,12 @@ import { createClient } from "@/lib/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { User, Edit2, Check, X } from "lucide-react";
+import {
+  isValidPersonName,
+  isValidPhoneNumber,
+  sanitizePersonName,
+  sanitizePhoneNumber,
+} from "@/lib/utils";
 
 export default function PersonalInfoEditor({ profile }: { profile: any }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -24,8 +30,27 @@ export default function PersonalInfoEditor({ profile }: { profile: any }) {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-      
-      const { error } = await supabase.from("applicant_profiles").update(formData).eq("id", user.id);
+
+      const cleanFullName = sanitizePersonName(formData.full_name || "");
+      const cleanPhone = sanitizePhoneNumber(formData.phone || "");
+
+      if (!cleanFullName || !isValidPersonName(cleanFullName)) {
+        toast.error("Full name must contain letters and spaces only.");
+        return;
+      }
+
+      if (cleanPhone && !isValidPhoneNumber(cleanPhone)) {
+        toast.error("Phone number must contain at least 7 digits and valid phone formatting.");
+        return;
+      }
+
+      const payload = {
+        ...formData,
+        full_name: cleanFullName,
+        phone: cleanPhone,
+      };
+
+      const { error } = await supabase.from("applicant_profiles").update(payload).eq("id", user.id);
       if (error) throw error;
       toast.success("Personal information updated!");
       setIsEditing(false);
@@ -63,11 +88,11 @@ export default function PersonalInfoEditor({ profile }: { profile: any }) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="text-xs font-medium text-text-secondary">Full Name</label>
-              <input type="text" value={formData.full_name} onChange={e => setFormData({...formData, full_name: e.target.value})} className="w-full mt-1 p-2 border border-border rounded-lg text-sm" />
+              <input type="text" value={formData.full_name} onChange={e => setFormData({...formData, full_name: sanitizePersonName(e.target.value)})} className="w-full mt-1 p-2 border border-border rounded-lg text-sm" />
             </div>
             <div>
               <label className="text-xs font-medium text-text-secondary">Phone Number</label>
-              <input type="tel" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="w-full mt-1 p-2 border border-border rounded-lg text-sm" placeholder="+1 (555) 000-0000" />
+              <input type="tel" value={formData.phone} onChange={e => setFormData({...formData, phone: sanitizePhoneNumber(e.target.value)})} className="w-full mt-1 p-2 border border-border rounded-lg text-sm" placeholder="+1 (555) 000-0000" />
             </div>
             <div>
               <label className="text-xs font-medium text-text-secondary">Location</label>

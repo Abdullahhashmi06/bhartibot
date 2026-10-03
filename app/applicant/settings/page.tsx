@@ -12,6 +12,12 @@ import {
   formatBuildDate,
 } from "@/lib/version";
 import {
+  isValidPersonName,
+  isValidPhoneNumber,
+  sanitizePersonName,
+  sanitizePhoneNumber,
+} from "@/lib/utils";
+import {
   getNotificationPermission,
   ensureNotificationPermission,
 } from "@/lib/pwa/sw-register";
@@ -42,9 +48,22 @@ export default function SettingsPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      const cleanName = sanitizePersonName(profile.full_name || "");
+      const cleanPhone = sanitizePhoneNumber(profile.phone || "");
+
+      if (!cleanName || !isValidPersonName(cleanName)) {
+        toast.error("Full name must contain letters and spaces only.");
+        return;
+      }
+
+      if (cleanPhone && !isValidPhoneNumber(cleanPhone)) {
+        toast.error("Phone number must contain at least 7 digits and valid phone formatting.");
+        return;
+      }
+
       const { error } = await supabase.from("applicant_profiles").update({
-        full_name: profile.full_name,
-        phone: profile.phone,
+        full_name: cleanName,
+        phone: cleanPhone,
         location: profile.location,
         bio: profile.bio,
         github_url: profile.github_url,
@@ -115,7 +134,7 @@ export default function SettingsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="text-sm font-medium text-text-secondary mb-1.5 block">Full Name</label>
-              <input type="text" value={profile.full_name || ""} onChange={e => setProfile({...profile, full_name: e.target.value})} className="w-full p-3 rounded-xl border border-border dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white" />
+              <input type="text" value={profile.full_name || ""} onChange={e => setProfile({...profile, full_name: sanitizePersonName(e.target.value)})} className="w-full p-3 rounded-xl border border-border dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white" />
             </div>
             <div>
               <label className="text-sm font-medium text-text-secondary dark:text-slate-400 mb-1.5 block">Email Address (Read Only)</label>
@@ -123,7 +142,7 @@ export default function SettingsPage() {
             </div>
             <div>
               <label className="text-sm font-medium text-text-secondary dark:text-slate-400 mb-1.5 block">Phone Number</label>
-              <input type="tel" value={profile.phone || ""} onChange={e => setProfile({...profile, phone: e.target.value})} className="w-full p-3 rounded-xl border border-border dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white" placeholder="+1 (555) 000-0000" />
+              <input type="tel" value={profile.phone || ""} onChange={e => setProfile({...profile, phone: sanitizePhoneNumber(e.target.value)})} className="w-full p-3 rounded-xl border border-border dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white" placeholder="+1 (555) 000-0000" />
             </div>
             <div>
               <label className="text-sm font-medium text-text-secondary dark:text-slate-400 mb-1.5 block">Location</label>

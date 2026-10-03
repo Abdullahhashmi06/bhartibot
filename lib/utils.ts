@@ -50,6 +50,48 @@ export function isValidCgpa(value: string): boolean {
 }
 
 /**
+ * Sanitizes a human name so it accepts only letters and common spacing marks.
+ * Disallows digits and unsupported symbols while preserving common names.
+ */
+export function sanitizePersonName(value: string): string {
+  return value
+    .replace(/[\d]/g, "")
+    .replace(/[^\p{L}\p{M}\s.'’\-]/gu, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
+/**
+ * Validates a person name using letters, spaces, apostrophes, and hyphens.
+ * Rejects numeric-only or symbol-heavy values.
+ */
+export function isValidPersonName(value: string): boolean {
+  const cleaned = sanitizePersonName(value).trim();
+  if (!cleaned || cleaned.length < 2) return false;
+  return /^[\p{L}][\p{L}\p{M}\s.'’\-]*[\p{L}]$/u.test(cleaned);
+}
+
+/**
+ * Sanitizes phone input to allow only standard phone formatting characters.
+ */
+export function sanitizePhoneNumber(value: string): string {
+  return value
+    .replace(/[A-Za-z]/g, "")
+    .replace(/[^\d+()\-\.\s]/g, "")
+    .replace(/(\+)(?=\+)|\s{2,}/g, "$1")
+    .trim();
+}
+
+/**
+ * Accepts standard international and local phone numbers.
+ * Requires at least 7 digits and no more than 15 digits total.
+ */
+export function isValidPhoneNumber(value: string): boolean {
+  const digits = value.replace(/\D/g, "");
+  return digits.length >= 7 && digits.length <= 15;
+}
+
+/**
  * Sanitizes a `next`/redirect parameter to a safe internal path.
  *
  * Prevents open-redirect: only relative paths starting with a single "/" are

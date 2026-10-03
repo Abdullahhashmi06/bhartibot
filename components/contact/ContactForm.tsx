@@ -7,6 +7,7 @@ import FormNotice from "@/components/ui/FormNotice";
 import { Input } from "@/components/ui/Input";
 import { submitContactMessage } from "@/app/contact/actions";
 import { getRecaptchaToken } from "@/lib/recaptcha/client";
+import { isValidPersonName, sanitizePersonName } from "@/lib/utils";
 
 interface FieldErrors {
   name?: string;
@@ -33,7 +34,12 @@ export default function ContactForm() {
 
   function validate(): boolean {
     const next: FieldErrors = {};
-    if (!name.trim()) next.name = "Your name is required.";
+    const cleanName = sanitizePersonName(name);
+    if (!cleanName) {
+      next.name = "Your name is required.";
+    } else if (!isValidPersonName(cleanName)) {
+      next.name = "Please enter a valid name using letters and spaces only.";
+    }
     if (!email.trim()) {
       next.email = "Your email is required.";
     } else if (!isValidEmail(email)) {
@@ -114,7 +120,7 @@ export default function ContactForm() {
           label="Name"
           placeholder="Your full name"
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={(e) => setName(sanitizePersonName(e.target.value))}
           error={errors.name}
           maxLength={120}
           required

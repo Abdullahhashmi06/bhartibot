@@ -13,6 +13,10 @@ import {
   verifyRecaptcha,
   recaptchaErrorMessage,
 } from "@/lib/recaptcha/client";
+import {
+  isValidPersonName,
+  sanitizePersonName,
+} from "@/lib/utils";
 
 type Step = "details" | "otp";
 
@@ -31,6 +35,24 @@ export default function RecruiterSignupPage() {
   async function handleSignup(e: FormEvent) {
     e.preventDefault();
     setError(null);
+
+    const cleanFullName = sanitizePersonName(fullName);
+    const cleanEmail = email.trim();
+
+    if (!cleanFullName || !isValidPersonName(cleanFullName)) {
+      setError("Please enter a valid full name using letters and spaces only.");
+      return;
+    }
+
+    if (!orgName.trim()) {
+      setError("Please enter your organization name.");
+      return;
+    }
+
+    if (!cleanEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
 
     if (password.length < 8) {
       setError("Password must be at least 8 characters long.");
@@ -51,7 +73,7 @@ export default function RecruiterSignupPage() {
       password,
       options: {
         data: {
-          full_name: fullName.trim(),
+          full_name: cleanFullName,
           organization_name: orgName.trim(),
         },
         emailRedirectTo: `${window.location.origin}/auth/callback`,
@@ -156,7 +178,7 @@ export default function RecruiterSignupPage() {
                     type="text"
                     placeholder="Abdullah Khan"
                     value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
+                    onChange={(e) => setFullName(sanitizePersonName(e.target.value))}
                     required
                     className="w-full rounded-xl border border-border bg-slate-50/50 px-3.5 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-teal focus:bg-white focus:outline-none transition-all"
                   />

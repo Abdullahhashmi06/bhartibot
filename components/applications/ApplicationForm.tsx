@@ -9,7 +9,14 @@ import { createClient } from "@/lib/supabase/client";
 import { createApplication } from "@/lib/queries/applications";
 import { ScreeningQuestion } from "@/lib/types";
 import { uploadCv } from "@/lib/queries/storage";
-import { isValidCgpa, extractOriginalFilename } from "@/lib/utils";
+import {
+  isValidCgpa,
+  extractOriginalFilename,
+  isValidPersonName,
+  isValidPhoneNumber,
+  sanitizePersonName,
+  sanitizePhoneNumber,
+} from "@/lib/utils";
 import {
   verifyRecaptcha,
   recaptchaErrorMessage,
@@ -162,8 +169,22 @@ export default function ApplicationForm({
     e.preventDefault();
     setError(null);
 
-    if (!applicantName.trim() || !email.trim()) {
-      setError("Full Name and Email address are required.");
+    const cleanedName = sanitizePersonName(applicantName);
+    const cleanedPhone = sanitizePhoneNumber(phone);
+    const trimmedEmail = email.trim();
+
+    if (!cleanedName || !isValidPersonName(cleanedName)) {
+      setError("Please enter a valid full name using letters and spaces only.");
+      return;
+    }
+
+    if (!trimmedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
+    if (cleanedPhone && !isValidPhoneNumber(cleanedPhone)) {
+      setError("Please enter a valid phone number using digits and common phone formatting.");
       return;
     }
 
@@ -241,13 +262,17 @@ export default function ApplicationForm({
       cvPath = profileCvPath;
     }
 
+    setApplicantName(cleanedName);
+    setPhone(cleanedPhone);
+    setEmail(trimmedEmail);
+
     const { application, error: submitError } = await createApplication(
       supabase,
       {
         internship_id: internshipId,
-        applicant_name: applicantName,
-        email,
-        phone,
+        applicant_name: cleanedName,
+        email: trimmedEmail,
+        phone: cleanedPhone,
         university,
         degree,
         semester,
@@ -318,7 +343,7 @@ export default function ApplicationForm({
           <input
             type="text"
             value={applicantName}
-            onChange={(e) => setApplicantName(e.target.value)}
+            onChange={(e) => setApplicantName(sanitizePersonName(e.target.value))}
             placeholder="Ayesha Khan"
             maxLength={120}
             className={inputClass}
@@ -340,7 +365,7 @@ export default function ApplicationForm({
             <input
               type="tel"
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              onChange={(e) => setPhone(sanitizePhoneNumber(e.target.value))}
               placeholder="+92 300 1234567"
               maxLength={40}
               className={inputClass}

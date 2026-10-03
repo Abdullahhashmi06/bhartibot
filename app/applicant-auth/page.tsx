@@ -12,6 +12,10 @@ import {
   verifyRecaptcha,
   recaptchaErrorMessage,
 } from "@/lib/recaptcha/client";
+import {
+  isValidPersonName,
+  sanitizePersonName,
+} from "@/lib/utils";
 
 export default function ApplicantAuthPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -87,10 +91,16 @@ export default function ApplicantAuthPage() {
     }
   };
 
+  const validateEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) {
       toast.error("Please enter your email address");
+      return;
+    }
+    if (!validateEmail(email)) {
+      toast.error("Please enter a valid email address.");
       return;
     }
     setLoading(true);
@@ -115,6 +125,10 @@ export default function ApplicantAuthPage() {
   const handleOtpRequest = async () => {
     if (!email.trim()) {
       toast.error("Please enter your email address");
+      return;
+    }
+    if (!validateEmail(email)) {
+      toast.error("Please enter a valid email address.");
       return;
     }
     setLoading(true);
@@ -167,6 +181,33 @@ export default function ApplicantAuthPage() {
     e.preventDefault();
     setLoading(true);
 
+    const trimmedEmail = email.trim();
+    const cleanedName = sanitizePersonName(fullName);
+
+    if (!isLogin && !cleanedName) {
+      toast.error("Please enter your full name.");
+      setLoading(false);
+      return;
+    }
+
+    if (!isLogin && !isValidPersonName(cleanedName)) {
+      toast.error("Full name must contain letters and spaces only.");
+      setLoading(false);
+      return;
+    }
+
+    if (!trimmedEmail || !validateEmail(trimmedEmail)) {
+      toast.error("Please enter a valid email address.");
+      setLoading(false);
+      return;
+    }
+
+    if (!isLogin && password.length < 8) {
+      toast.error("Password must be at least 8 characters long.");
+      setLoading(false);
+      return;
+    }
+
     const check = await verifyRecaptcha(isLogin ? "login" : "signup");
     if (!check.ok) {
       toast.error(recaptchaErrorMessage());
@@ -178,7 +219,7 @@ export default function ApplicantAuthPage() {
       if (isLogin) {
         // Password login
         const { data, error } = await supabase.auth.signInWithPassword({
-          email: email.trim(),
+          email: trimmedEmail,
           password,
         });
         if (error) {
@@ -203,10 +244,10 @@ export default function ApplicantAuthPage() {
       } else {
         // Password signup
         const { data, error } = await supabase.auth.signUp({
-          email: email.trim(),
+          email: trimmedEmail,
           password,
           options: {
-            data: { full_name: fullName, role: "applicant" },
+            data: { full_name: cleanedName, role: "applicant" },
           },
         });
         if (error) throw error;
@@ -448,7 +489,7 @@ export default function ApplicantAuthPage() {
                       type="text"
                       required
                       value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
+                      onChange={(e) => setFullName(sanitizePersonName(e.target.value))}
                       className="w-full pl-9 pr-4 py-2 rounded-xl border border-border dark:border-slate-600 dark:bg-slate-800 dark:text-white focus:border-teal focus:ring-1 focus:ring-teal outline-none transition-all"
                       placeholder="John Doe"
                     />
@@ -478,11 +519,11 @@ export default function ApplicantAuthPage() {
                   <input
                     type="password"
                     required
-                    minLength={6}
+                    minLength={8}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full pl-9 pr-4 py-2 rounded-xl border border-border dark:border-slate-600 dark:bg-slate-800 dark:text-white focus:border-teal focus:ring-1 focus:ring-teal outline-none transition-all"
-                    placeholder="At least 6 characters"
+                    placeholder="At least 8 characters"
                   />
                 </div>
               </div>
