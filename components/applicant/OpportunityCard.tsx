@@ -235,14 +235,14 @@ export default function OpportunityCard({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.97 }}
       transition={{ delay: Math.min(index * 0.05, 0.3), duration: 0.4 }}
-      className={`relative flex flex-col overflow-hidden bg-white dark:bg-slate-800 rounded-3xl shadow-card border border-border dark:border-slate-700 p-6 ${toneStyle.hoverBorder} hover:shadow-hover hover:-translate-y-1 transition-all duration-300 group h-full`}
+      className={`@container relative flex flex-col overflow-hidden bg-white dark:bg-slate-800 rounded-3xl shadow-card border border-border dark:border-slate-700 p-6 ${toneStyle.hoverBorder} hover:shadow-hover hover:-translate-y-1 transition-all duration-300 group h-full`}
     >
       {/* Section accent bar */}
       <div aria-hidden className={`absolute top-0 inset-x-0 h-1 bg-gradient-to-r ${toneStyle.bar}`} />
 
 
       {/* COMPANY BLOCK + COMPACT METRICS ROW */}
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col gap-4 @md:flex-row @md:items-start @md:justify-between">
         <div className="flex items-center gap-3 min-w-0">
           <div
             className={`h-12 w-12 rounded-2xl bg-gradient-to-br ${logoGradient} text-white flex items-center justify-center font-display font-bold text-xl shadow-teal shrink-0`}
@@ -261,7 +261,7 @@ export default function OpportunityCard({
 
         {/* Elegant glass metric chips — small rings, premium not shouty.
             Both chips share fixed sizing so they always align. */}
-        <div className="flex items-start gap-3 shrink-0">
+        <div className="flex w-fit items-start gap-3 shrink-0 @md:ml-auto">
           <div className="flex flex-col items-center rounded-2xl bg-slate-50/80 dark:bg-slate-700/40 border border-border dark:border-slate-600 px-4 py-3 min-w-[76px]">
             <CircularGauge score={job.matchScore} size={56} strokeWidth={4.5} label="AI Match" />
           </div>

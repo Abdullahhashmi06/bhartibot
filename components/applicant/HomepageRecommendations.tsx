@@ -228,11 +228,11 @@ export default function HomepageRecommendations({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="@container space-y-6">
       {/* ⭐ TOP RECOMMENDED — your most competitive opportunities */}
       {top.length > 0 && (
         <section className="animate-fade-up">
-          <div className="flex items-end justify-between mb-6">
+          <div className="mb-6 flex flex-col items-start gap-3 @md:flex-row @md:items-end @md:justify-between">
             <div>
               <h2 className="text-2xl font-display font-bold text-primary dark:text-white flex items-center gap-2">
                 <span className="text-xl">⭐</span> Recommended Based On Your Profile
@@ -249,7 +249,7 @@ export default function HomepageRecommendations({
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6 @xl:grid-cols-2">
             {top.slice(0, 3).map((job, idx) => (
               <OpportunityCard
                 key={job.id}
@@ -271,7 +271,7 @@ export default function HomepageRecommendations({
       {/* RESPONSIVE SECTIONS — side by side on desktop so there is no
           wasted vertical blank space; the role count sits inline next to
           the title instead of floating far right. */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-6">
+      <div className="grid grid-cols-1 gap-x-6 gap-y-6 @xl:grid-cols-2">
         {sections.map((section, sectionIdx) => (
           <section key={section.key} className="animate-fade-up min-w-0" style={{ animationDelay: `${sectionIdx * 0.06}s` }}>
             <div className="mb-4">
