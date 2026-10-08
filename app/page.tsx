@@ -7,14 +7,11 @@ import {
   Sparkles,
   ArrowRight,
   ShieldCheck,
+  CheckCircle2,
   Zap,
   Target,
-  FileCheck,
-  CheckCircle2,
-  Users,
   ChevronDown,
   BarChart3,
-  Award,
 } from "lucide-react";
 import Shell from "@/components/layout/Shell";
 import { ButtonLink } from "@/components/ui/Button";
@@ -57,7 +54,9 @@ export default function LandingPage() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="mt-6 max-w-2xl text-base sm:text-xl text-text-secondary leading-relaxed font-sans"
           >
-            Empower recruiters with automated CV evidence mapping, radial AI match scoring, and screening intelligence. You still make the hiring call — InternIQ delivers the evidence.
+            Screen internship applicants with evidence-backed AI reports that
+            show how each CV aligns with your role requirements. You review the
+            evidence and make every hiring decision.
           </motion.p>
 
           <motion.div
@@ -67,17 +66,37 @@ export default function LandingPage() {
             className="mt-8 flex flex-wrap items-center justify-center gap-4"
           >
             <ButtonLink
-              href="/signup"
+              href="/signup/recruiter"
               variant="gradient"
               size="lg"
               rightIcon={<ArrowRight className="h-5 w-5" />}
             >
-              Get Started Now
+              Create a Recruiter Account
             </ButtonLink>
             <ButtonLink href="/login" variant="secondary" size="lg">
-              Log in to Dashboard
+              Log in
             </ButtonLink>
           </motion.div>
+
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-text-secondary">
+            <span className="inline-flex items-center gap-1.5">
+              <CheckCircle2 className="h-4 w-4 text-teal" aria-hidden="true" />
+              Recruiters make every hiring decision
+            </span>
+            <Link
+              href="/privacy#storage"
+              className="inline-flex items-center gap-1.5 underline decoration-teal/40 underline-offset-4 hover:text-teal-dark"
+            >
+              <ShieldCheck className="h-4 w-4 text-teal" aria-hidden="true" />
+              CVs use private storage
+            </Link>
+            <Link
+              href="/ai-disclaimer"
+              className="underline decoration-teal/40 underline-offset-4 hover:text-teal-dark"
+            >
+              Read about AI limitations
+            </Link>
+          </div>
 
           {/* MOCKUP ILLUSTRATION AREA */}
           <motion.div
@@ -87,17 +106,17 @@ export default function LandingPage() {
             className="mt-16 w-full max-w-5xl overflow-hidden rounded-3xl border border-border bg-white p-3 sm:p-4 shadow-2xl relative"
           >
             <div className="rounded-2xl border border-border/80 bg-slate-900 p-6 text-white text-left space-y-6">
-              <div className="flex items-center justify-between border-b border-white/10 pb-4">
+              <div className="flex flex-col gap-3 border-b border-white/10 pb-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-3">
                   <div className="h-3 w-3 rounded-full bg-red-500" />
                   <div className="h-3 w-3 rounded-full bg-yellow-500" />
                   <div className="h-3 w-3 rounded-full bg-green-500" />
                   <span className="ml-2 font-mono text-xs text-slate-400">
-                    InternIQ AI Candidate Synthesizer — Production Preview
+                    Illustrative sample report · fictional data
                   </span>
                 </div>
-                <span className="font-mono text-xs bg-purple-ai/30 text-purple-light border border-purple-ai/40 px-3 py-1 rounded-full">
-                  Score: 92% Highly Recommended
+                <span className="self-start rounded-full border border-purple-ai/40 bg-purple-ai/30 px-3 py-1 font-mono text-xs text-purple-light sm:self-auto">
+                  Example only
                 </span>
               </div>
 
@@ -106,14 +125,14 @@ export default function LandingPage() {
                   <div className="flex items-center justify-between bg-white/5 p-4 rounded-xl border border-white/10">
                     <div>
                       <h4 className="font-display text-lg font-bold text-white">
-                        Ayesha Khan — Machine Learning Applicant
+                        Sample candidate — Machine Learning Intern
                       </h4>
                       <p className="text-xs text-slate-400 font-mono">
-                        National University of Sciences and Technology · 3.85 CGPA
+                        Fictional profile · illustrative evidence
                       </p>
                     </div>
                     <span className="px-3 py-1 rounded-full bg-emerald/20 text-emerald text-xs font-mono font-bold">
-                      Shortlisted
+                      Recruiter review
                     </span>
                   </div>
 
@@ -124,11 +143,11 @@ export default function LandingPage() {
                     <div className="space-y-1.5">
                       <div className="flex items-center justify-between text-xs bg-white/5 px-3 py-2 rounded-lg">
                         <span>Python & PyTorch Experience</span>
-                        <span className="text-emerald font-bold">✓ 3 Projects Verified</span>
+                        <span className="text-emerald font-bold">Evidence listed</span>
                       </div>
                       <div className="flex items-center justify-between text-xs bg-white/5 px-3 py-2 rounded-lg">
                         <span>Data Preprocessing & Pandas</span>
-                        <span className="text-emerald font-bold">✓ Demonstrated</span>
+                        <span className="text-emerald font-bold">Evidence listed</span>
                       </div>
                     </div>
                   </div>
@@ -136,13 +155,13 @@ export default function LandingPage() {
 
                 <div className="bg-gradient-to-br from-purple-ai/20 to-teal/20 p-5 rounded-2xl border border-white/10 flex flex-col justify-between items-center text-center">
                   <div className="font-mono text-xs uppercase text-slate-300 tracking-wider">
-                    AI Match Index
+                    Match to role criteria
                   </div>
-                  <div className="font-display font-extrabold text-5xl text-gradient my-2">
-                    92%
+                  <div className="font-display font-extrabold text-4xl text-gradient my-2">
+                    Strong
                   </div>
                   <p className="text-xs text-slate-300">
-                    High probability for interview success based on screening criteria.
+                    Illustrative match only. A recruiter reviews the evidence and makes the decision.
                   </p>
                 </div>
               </div>
@@ -151,40 +170,15 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* STATISTICS BANNER */}
-      <section className="border-y border-border bg-white py-12">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 gap-8 md:grid-cols-4 text-center">
-            {[
-              { value: "10x", label: "Faster Candidate Screening", className: "text-primary" },
-              { value: "99.4%", label: "CV Evidence Accuracy", className: "text-teal-dark" },
-              { value: "0 Hours", label: "Manual Parsing Required", className: "text-purple-ai" },
-              { value: "100%", label: "Recruiter Control Preserved", className: "text-emerald" },
-            ].map((stat, idx) => (
-              <Reveal key={stat.label} variant="fade-up" delay={idx * 0.08}>
-                <div>
-                  <div className={`font-display font-extrabold text-3xl sm:text-4xl ${stat.className}`}>
-                    {stat.value}
-                  </div>
-                  <p className="mt-1 text-xs sm:text-sm text-text-secondary font-medium">
-                    {stat.label}
-                  </p>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* FEATURE CARDS SECTION */}
-      <section className="py-20 bg-background">
+      <section id="features" className="scroll-mt-24 py-20 bg-background">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
             <span className="font-mono text-xs font-bold uppercase tracking-wider text-teal">
-              Engineered for Excellence
+              Evidence to support your decisions
             </span>
             <h2 className="font-display font-extrabold text-3xl sm:text-5xl text-primary tracking-tight">
-              Everything you need to hire top talent effortlessly.
+              Spend less time sorting CVs and more time reviewing the evidence.
             </h2>
           </div>
 
@@ -193,24 +187,24 @@ export default function LandingPage() {
               <FeatureCard
                 icon={<Target className="h-6 w-6 text-teal" />}
                 eyebrow="01 · Define Requirements"
-                title="Tailored Screening Criteria"
-                description="Specify required & preferred technical skills, academic qualifications, and custom screening questions for each role."
+                title="Set consistent role criteria"
+                description="Choose the required and preferred skills, qualifications, and screening questions you want to use for each internship."
               />
             </Reveal>
             <Reveal variant="fade-up" delay={0.15}>
               <FeatureCard
                 icon={<Zap className="h-6 w-6 text-purple-ai" />}
-                eyebrow="02 · Instant AI Analysis"
-                title="Evidence Mapping Engine"
-                description="InternIQ automatically extracts candidate evidence from PDF resumes, mapping projects and achievements directly to your specifications."
+                eyebrow="02 · AI-assisted review"
+                title="See evidence behind each match"
+                description="Review extracted details from PDF CVs alongside the role criteria, then check the source material for context."
               />
             </Reveal>
             <Reveal variant="fade-up" delay={0.25}>
               <FeatureCard
                 icon={<BarChart3 className="h-6 w-6 text-emerald" />}
                 eyebrow="03 · Modern Dashboard"
-                title="Actionable Analytics Report"
-                description="Review visual radial gauges, strength/weakness matrices, interview probability, and missing skills chips with one click."
+                title="Compare applicants consistently"
+                description="Use role-based match summaries and evidence to guide your review. InternIQ supports your assessment; it does not predict interview or job success."
               />
             </Reveal>
           </div>
@@ -218,14 +212,14 @@ export default function LandingPage() {
       </section>
 
       {/* HOW IT WORKS SECTION */}
-      <section className="py-20 bg-white border-t border-border">
+      <section id="how-it-works" className="scroll-mt-24 py-20 bg-white border-t border-border">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
             <h2 className="font-display font-extrabold text-3xl sm:text-4xl text-primary">
               How InternIQ Works
             </h2>
             <p className="text-text-secondary text-sm sm:text-base">
-              A 3-step streamlined workflow designed for high-efficiency hiring teams.
+              Set role criteria, share an application link, then review candidate evidence.
             </p>
           </div>
 
@@ -233,8 +227,8 @@ export default function LandingPage() {
             <Reveal variant="slide-right" delay={0.05}>
               <StepItem
                 step="1"
-                title="Create Internship Wizard"
-                description="Define role titles, work mode (Remote/On-site), duration, and screening requirements in seconds."
+                title="Create an internship"
+                description="Define the role, work mode, duration, and the criteria you want to review."
               />
             </Reveal>
             <Reveal variant="fade-up" delay={0.15}>
@@ -247,8 +241,8 @@ export default function LandingPage() {
             <Reveal variant="slide-left" delay={0.25}>
               <StepItem
                 step="3"
-                title="Review AI Evidence Report"
-                description="Get instant candidate rankings, AI match scores, strength breakdowns, and shortlist applicants with confidence."
+                title="Review candidate evidence"
+                description="Compare extracted evidence against your criteria and decide which applicants to follow up with."
               />
             </Reveal>
           </div>
@@ -256,7 +250,7 @@ export default function LandingPage() {
       </section>
 
       {/* FAQ ACCORDION SECTION */}
-      <section className="py-20 bg-background">
+      <section id="faq" className="scroll-mt-24 py-20 bg-background">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12 space-y-3">
             <h2 className="font-display font-extrabold text-3xl text-primary">
@@ -267,9 +261,17 @@ export default function LandingPage() {
           <div className="space-y-4">
             <Reveal variant="fade-down" delay={0.05}>
               <FaqItem
-                question="Does InternIQ replace recruiter decisions?"
+                question="Does InternIQ automatically reject or select candidates?"
                 answer={
-                  <div><p><strong>No.</strong> InternIQ is an evidence organizer, not a decision maker.</p><ul className="list-disc pl-5 space-y-1 mt-2"><li>It parses resumes and evaluates qualifications against your specific requirements</li><li>Provides transparent evidence mapping with source citations</li><li>Generates match scores based on objective criteria</li></ul><p className="mt-2">Recruiters always retain full control over hiring decisions — InternIQ delivers the evidence to make those decisions faster and more informed.</p></div>
+                  <p>
+                    No. InternIQ provides AI-assisted analysis and match summaries
+                    against the criteria configured for a role. Recruiters must
+                    review the evidence and make all hiring decisions. Read the{" "}
+                    <Link href="/ai-disclaimer" className="font-semibold text-teal-dark underline underline-offset-2">
+                      Responsible AI guidance
+                    </Link>
+                    .
+                  </p>
                 }
                 isOpen={faqOpen === 0}
                 onToggle={() => setFaqOpen(faqOpen === 0 ? null : 0)}
@@ -277,9 +279,18 @@ export default function LandingPage() {
             </Reveal>
             <Reveal variant="fade-down" delay={0.12}>
               <FaqItem
-                question="Do applicants need an account to apply?"
+                question="How accurate are InternIQ's AI analyses?"
                 answer={
-                  <div><p><strong>No account is required</strong> for applicants applying through public links.</p><p className="mt-2">Recruiters generate a unique application URL for each internship posting. Applicants can apply directly by uploading their CV and answering screening questions — no sign-up needed.</p><p className="mt-2">However, applicants who <em>choose</em> to create an account gain access to application tracking, AI-powered job recommendations, and profile management.</p></div>
+                  <p>
+                    AI analysis can be incomplete or incorrect, and InternIQ does
+                    not guarantee accuracy. Use match summaries as a starting
+                    point, review the CV and supporting evidence, and do not treat
+                    a score as a prediction of interview or job success. See{" "}
+                    <Link href="/ai-disclaimer#possible-inaccuracies" className="font-semibold text-teal-dark underline underline-offset-2">
+                      possible AI inaccuracies
+                    </Link>
+                    .
+                  </p>
                 }
                 isOpen={faqOpen === 1}
                 onToggle={() => setFaqOpen(faqOpen === 1 ? null : 1)}
@@ -287,12 +298,70 @@ export default function LandingPage() {
             </Reveal>
             <Reveal variant="fade-down" delay={0.19}>
               <FaqItem
-                question="What file formats are supported for CV analysis?"
+                question="How does InternIQ address potential bias?"
                 answer={
-                  <div><p>InternIQ currently supports <strong>PDF format</strong> for CV analysis.</p><ul className="list-disc pl-5 space-y-1 mt-2"><li>Standard PDF documents up to 10 MB</li><li>Text-based PDFs are parsed for education, skills, projects, and experience</li><li>Scanned image PDFs may have limited extraction accuracy</li></ul><p className="mt-2">We recommend applicants upload text-based PDF resumes for the most accurate AI evidence mapping.</p></div>
+                  <p>
+                    AI systems may reflect biases in their training data. Review
+                    each applicant fairly, follow your organization&apos;s
+                    policies, and do not rely on an AI score alone. Our{" "}
+                    <Link href="/ai-disclaimer#possible-inaccuracies" className="font-semibold text-teal-dark underline underline-offset-2">
+                      Responsible AI page
+                    </Link>{" "}
+                    explains known limitations.
+                  </p>
                 }
                 isOpen={faqOpen === 2}
                 onToggle={() => setFaqOpen(faqOpen === 2 ? null : 2)}
+              />
+            </Reveal>
+            <Reveal variant="fade-down" delay={0.23}>
+              <FaqItem
+                question="How are uploaded CVs stored and retained?"
+                answer={
+                  <p>
+                    CVs are held in private storage with restricted access
+                    controls. Information needed for AI features may be sent to
+                    AI service providers. The{" "}
+                    <Link href="/privacy" className="font-semibold text-teal-dark underline underline-offset-2">
+                      Privacy Policy
+                    </Link>
+                    {" "}says data is retained only as long as needed to provide
+                    the service, meet legal obligations, or resolve disputes;
+                    it does not specify a fixed retention period.
+                  </p>
+                }
+                isOpen={faqOpen === 3}
+                onToggle={() => setFaqOpen(faqOpen === 3 ? null : 3)}
+              />
+            </Reveal>
+            <Reveal variant="fade-down" delay={0.27}>
+              <FaqItem
+                question="Do applicants need an account to apply?"
+                answer={
+                  <p>
+                    No. Applicants can apply through a recruiter&apos;s public
+                    internship link without creating an account. Applicants who
+                    choose to create one can also access application tracking,
+                    job recommendations, and profile management.
+                  </p>
+                }
+                isOpen={faqOpen === 4}
+                onToggle={() => setFaqOpen(faqOpen === 4 ? null : 4)}
+              />
+            </Reveal>
+            <Reveal variant="fade-down" delay={0.31}>
+              <FaqItem
+                question="What file formats and sizes are supported for CV analysis?"
+                answer={
+                  <p>
+                    CV analysis supports PDF files. Uploads are limited to 8 MB,
+                    while the AI analysis path accepts files up to 5 MB. Keep a
+                    CV at 5 MB or less for AI analysis. Text-based PDFs generally
+                    extract more reliably; scanned PDFs may be incomplete.
+                  </p>
+                }
+                isOpen={faqOpen === 5}
+                onToggle={() => setFaqOpen(faqOpen === 5 ? null : 5)}
               />
             </Reveal>
           </div>
@@ -307,15 +376,15 @@ export default function LandingPage() {
             Ready to transform your recruitment process?
           </h2>
           <p className="text-slate-300 max-w-2xl mx-auto text-sm sm:text-lg">
-            Join forward-thinking recruiting teams using InternIQ to discover potential and make data-backed hiring decisions.
+            Organize applications, compare role-related evidence, and make informed hiring decisions with recruiter-led AI support.
           </p>
           <ButtonLink
-            href="/signup"
+            href="/signup/recruiter"
             variant="gradient"
             size="lg"
             rightIcon={<ArrowRight className="h-5 w-5" />}
           >
-            Create Your Account
+            Create a Recruiter Account
           </ButtonLink>
         </div>
       </section>

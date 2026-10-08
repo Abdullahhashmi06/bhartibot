@@ -1,12 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Sparkles, LogIn, UserPlus } from "lucide-react";
+import { LogIn, Menu, UserPlus, X } from "lucide-react";
 import { ButtonLink } from "@/components/ui/Button";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 
 export default function Navbar() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
   const inDashboard = pathname?.startsWith("/dashboard");
   const inApplicant = pathname === "/applicant" || pathname?.startsWith("/applicant/");
@@ -42,8 +44,40 @@ export default function Navbar() {
           </div>
         </Link>
 
+        <nav
+          aria-label="Main navigation"
+          className="hidden items-center gap-5 text-sm font-medium text-text-secondary lg:flex"
+        >
+          <Link href="/#features" className="transition-colors hover:text-teal-dark">
+            Features
+          </Link>
+          <Link href="/#how-it-works" className="transition-colors hover:text-teal-dark">
+            How it works
+          </Link>
+          <Link href="/#faq" className="transition-colors hover:text-teal-dark">
+            FAQ
+          </Link>
+          <Link href="/ai-disclaimer" className="transition-colors hover:text-teal-dark">
+            Responsible AI
+          </Link>
+        </nav>
+
         {/* Action Buttons */}
         <div className="flex items-center gap-3">
+          <button
+            type="button"
+            aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+            aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-navigation"
+            onClick={() => setMobileMenuOpen((open) => !open)}
+            className="rounded-lg p-2 text-text-secondary transition-colors hover:bg-slate-100 hover:text-teal-dark dark:hover:bg-slate-800 dark:hover:text-teal-300 lg:hidden"
+          >
+            {mobileMenuOpen ? (
+              <X className="h-5 w-5" />
+            ) : (
+              <Menu className="h-5 w-5" />
+            )}
+          </button>
           <ThemeToggle />
           <ButtonLink
             href="/login"
@@ -59,11 +93,32 @@ export default function Navbar() {
             size="sm"
             leftIcon={<UserPlus className="h-4 w-4" />}
           >
-            Sign Up
+            <span className="hidden sm:inline">Create account</span>
+            <span className="sm:hidden">Sign up</span>
           </ButtonLink>
         </div>
       </div>
+      <nav
+        id="mobile-navigation"
+        aria-label="Mobile navigation"
+        className={`${mobileMenuOpen ? "block" : "hidden"} space-y-1 border-t border-border px-4 py-3 dark:border-slate-800 lg:hidden`}
+      >
+        {[
+          { href: "/#features", label: "Features" },
+          { href: "/#how-it-works", label: "How it works" },
+          { href: "/#faq", label: "FAQ" },
+          { href: "/ai-disclaimer", label: "Responsible AI" },
+        ].map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            onClick={() => setMobileMenuOpen(false)}
+            className="block rounded-lg px-3 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-slate-100 hover:text-teal-dark dark:hover:bg-slate-800 dark:hover:text-teal-300"
+          >
+            {item.label}
+          </Link>
+        ))}
+      </nav>
     </header>
   );
 }
-

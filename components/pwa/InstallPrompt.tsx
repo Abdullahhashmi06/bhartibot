@@ -15,6 +15,7 @@ export default function InstallPrompt() {
   const [dismissed, setDismissed] = useState(false);
   const [isIos, setIsIos] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [hasEngaged, setHasEngaged] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -35,12 +36,21 @@ export default function InstallPrompt() {
       return;
     }
 
+    const engagementScrollY = Math.max(500, window.innerHeight * 0.9);
+    const onScroll = () => {
+      if (window.scrollY >= engagementScrollY) {
+        setHasEngaged(true);
+        window.removeEventListener("scroll", onScroll);
+      }
+    };
     const handler = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e);
     };
     const onInstalled = () => setDismissed(true);
 
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("beforeinstallprompt", handler);
     window.addEventListener("appinstalled", onInstalled);
 
@@ -49,6 +59,7 @@ export default function InstallPrompt() {
     }
 
     return () => {
+      window.removeEventListener("scroll", onScroll);
       window.removeEventListener("beforeinstallprompt", handler);
       window.removeEventListener("appinstalled", onInstalled);
     };
@@ -69,11 +80,11 @@ export default function InstallPrompt() {
     setDismissed(true);
   };
 
-  if (!mounted || dismissed || isStandalone()) return null;
+  if (!mounted || dismissed || !hasEngaged || isStandalone()) return null;
   if (!deferredPrompt && !isIos) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 z-[9970] max-w-xs w-[calc(100vw-2rem)] animate-fade-up">
+    <div className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] z-[9970] mx-auto w-auto max-w-xs animate-fade-up sm:inset-x-auto sm:right-4 sm:bottom-4 sm:mx-0">
       <div className="rounded-2xl border border-border dark:border-slate-700 bg-white dark:bg-slate-800 p-4 shadow-hover">
         <button
           onClick={dismiss}
