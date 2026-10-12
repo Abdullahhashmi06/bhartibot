@@ -49,6 +49,8 @@ export default function InternshipExplorer({
   const [filterWorkMode, setFilterWorkMode] = useState("");
   const [filterLocation, setFilterLocation] = useState("");
   const [filterField, setFilterField] = useState("");
+  const [filterType, setFilterType] = useState("");
+  const [filterDuration, setFilterDuration] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [showExpired, setShowExpired] = useState(false);
   const [saved, setSaved] = useState<Set<string>>(new Set(savedJobIds));
@@ -66,17 +68,56 @@ export default function InternshipExplorer({
     () => Array.from(new Set(all.map((i) => i.field).filter(Boolean))) as string[],
     [all]
   );
+  const uniqueTypes = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          all
+            .map((i) => i.internship_type)
+            .filter((type): type is string => Boolean(type))
+            .map((type) => type.replace("_", " "))
+        )
+      ) as string[],
+    [all]
+  );
+  const uniqueDurations = useMemo(
+    () =>
+      Array.from(new Set(all.map((i) => i.duration).filter(Boolean))) as string[],
+    [all]
+  );
 
   const matchesQuery = (item: RecommendationResult) => {
-    if (
-      searchQuery &&
-      !item.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
-      !item.company_name.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-      return false;
+    const query = searchQuery.trim().toLowerCase();
+    if (query) {
+      const searchableText = [
+        item.title,
+        item.company_name,
+        item.field,
+        item.location,
+        ...(item.required_skills ?? []),
+        ...(item.preferred_skills ?? []),
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      if (!searchableText.includes(query)) return false;
+    }
+
     if (filterWorkMode && item.work_mode !== filterWorkMode) return false;
     if (filterLocation && item.location !== filterLocation) return false;
     if (filterField && item.field !== filterField) return false;
+    if (
+      filterType &&
+      (item.internship_type || "").replace("_", " ").toLowerCase() !==
+        filterType.toLowerCase()
+    )
+      return false;
+    if (filterDuration && item.duration !== filterDuration) return false;
+    if (showExpired && item.deadline) {
+      const deadline = new Date(item.deadline).getTime();
+      if (deadline >= Date.now()) return false;
+    }
     return true;
   };
 
@@ -84,13 +125,21 @@ export default function InternshipExplorer({
   const filteredOthers = others.filter(matchesQuery);
 
   const hasActiveFilters =
-    filterWorkMode || filterLocation || filterField || searchQuery || showExpired;
+    filterWorkMode ||
+    filterLocation ||
+    filterField ||
+    filterType ||
+    filterDuration ||
+    searchQuery ||
+    showExpired;
 
   const clearFilters = () => {
     setSearchQuery("");
     setFilterWorkMode("");
     setFilterLocation("");
     setFilterField("");
+    setFilterType("");
+    setFilterDuration("");
     setShowExpired(false);
   };
 
@@ -220,7 +269,7 @@ export default function InternshipExplorer({
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted h-5 w-5" />
             <input
               type="text"
-              placeholder="Search by role or company..."
+              placeholder="Search by role, company, or skill..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-12 pr-4 py-3 rounded-2xl border border-border bg-white dark:bg-slate-800 shadow-sm focus:border-teal focus:ring-1 focus:ring-teal outline-none transition-all dark:text-white"
@@ -235,9 +284,14 @@ export default function InternshipExplorer({
             {hasActiveFilters && (
               <span className="ml-1 px-1.5 py-0.5 bg-teal text-white text-[10px] rounded-full font-bold">
                 {
-                  [filterWorkMode, filterLocation, filterField, searchQuery].filter(
-                    Boolean
-                  ).length
+                  [
+                    filterWorkMode,
+                    filterLocation,
+                    filterField,
+                    filterType,
+                    filterDuration,
+                    searchQuery,
+                  ].filter(Boolean).length + (showExpired ? 1 : 0)
                 }
               </span>
             )}
@@ -264,7 +318,7 @@ export default function InternshipExplorer({
                     Clear all
                   </button>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
                   <div>
                     <label className="text-[10px] font-bold uppercase tracking-wider text-text-muted block mb-1.5">
                       Work Mode
@@ -310,6 +364,40 @@ export default function InternshipExplorer({
                       {uniqueFields.map((f) => (
                         <option key={f} value={f}>
                           {f}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-text-muted block mb-1.5">
+                      Job Type
+                    </label>
+                    <select
+                      value={filterType}
+                      onChange={(e) => setFilterType(e.target.value)}
+                      className="w-full rounded-xl border border-border bg-slate-50 dark:bg-slate-700 px-3 py-2.5 text-sm dark:text-white focus:border-teal focus:outline-none"
+                    >
+                      <option value="">All Types</option>
+                      {uniqueTypes.map((type) => (
+                        <option key={type} value={type}>
+                          {type}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-text-muted block mb-1.5">
+                      Duration
+                    </label>
+                    <select
+                      value={filterDuration}
+                      onChange={(e) => setFilterDuration(e.target.value)}
+                      className="w-full rounded-xl border border-border bg-slate-50 dark:bg-slate-700 px-3 py-2.5 text-sm dark:text-white focus:border-teal focus:outline-none"
+                    >
+                      <option value="">Any Duration</option>
+                      {uniqueDurations.map((duration) => (
+                        <option key={duration} value={duration}>
+                          {duration}
                         </option>
                       ))}
                     </select>
