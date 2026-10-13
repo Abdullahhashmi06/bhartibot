@@ -14,6 +14,8 @@ import {
   Menu,
   X,
   ChevronRight,
+  Sparkles,
+  Bell,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -27,6 +29,8 @@ const navItems = [
   { href: "/applicant/applications", label: "My Applications", icon: Briefcase },
   { href: "/applicant/saved", label: "Saved Jobs", icon: Bookmark },
   { href: "/applicant/resume", label: "Resume", icon: FileText },
+  { href: "/applicant/cv-optimization", label: "CV Optimization", icon: Sparkles },
+  { href: "/applicant/job-alerts", label: "Job Alerts", icon: Bell },
   { href: "/applicant/settings", label: "Settings", icon: Settings },
 ];
 

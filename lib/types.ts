@@ -437,3 +437,114 @@ export interface SharedReviewData {
   include_notes: boolean;
   expires_at: string | null;
 }
+
+// ── CV Optimization ──────────────────────────────────────────────────────────
+
+export type SuggestionSection = "summary" | "experience" | "projects" | "skills" | "education";
+export type SuggestionCategory = "wording" | "achievement" | "keyword" | "clarity" | "formatting";
+export type SuggestionImpact = "high" | "medium" | "low";
+export type SuggestionStatus = "pending" | "accepted" | "rejected";
+
+export interface CvOptimizationSuggestion {
+  id: string;
+  section: SuggestionSection;
+  category: SuggestionCategory;
+  originalText: string;
+  suggestedText: string;
+  explanation: string;
+  impact: SuggestionImpact;
+  status: SuggestionStatus;
+  userEdit?: string | null;
+}
+
+export interface CvStrengthEvidence {
+  title: string;
+  evidence: string;
+}
+
+export interface CvMissingEvidence {
+  requirement: string;
+  gapDescription: string;
+  advice: string;
+}
+
+export interface CvKeywordAnalysis {
+  matchedKeywords: string[];
+  missingKeywords: string[];
+}
+
+export interface CvOptimizationAnalysis {
+  id?: string;
+  applicant_id?: string;
+  original_cv_path?: string | null;
+  target_job_id?: string | null;
+  target_role_title: string;
+  target_role_description?: string;
+  version: number;
+  match_score: number;
+  summary: string;
+  strengths: CvStrengthEvidence[];
+  missing_evidence: CvMissingEvidence[];
+  keyword_analysis: CvKeywordAnalysis;
+  suggestions: CvOptimizationSuggestion[];
+  optimized_content?: {
+    summary?: string;
+    skills?: string[];
+    experience?: string[];
+    projects?: string[];
+    education?: string[];
+    certifications?: string[];
+    [key: string]: any;
+  };
+  model_version?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// ── Job Alerts ───────────────────────────────────────────────────────────────
+
+export type JobAlertFrequency = "instant" | "daily" | "weekly";
+export type JobAlertChannel = "in_app" | "browser" | "email";
+
+export interface JobAlert {
+  id: string;
+  applicant_id: string;
+  title: string;
+  target_role: string | null;
+  skills: string[];
+  companies: string[];
+  location: string | null;
+  work_mode: string;
+  match_threshold: number;
+  frequency: JobAlertFrequency;
+  channels: JobAlertChannel[];
+  is_active: boolean;
+  last_run_at: string | null;
+  created_at: string;
+  updated_at: string;
+  matches_count?: number;
+}
+
+export interface CreateJobAlertInput {
+  title: string;
+  target_role?: string;
+  skills?: string[];
+  companies?: string[];
+  location?: string;
+  work_mode?: string;
+  match_threshold?: number;
+  frequency?: JobAlertFrequency;
+  channels?: JobAlertChannel[];
+}
+
+export interface JobAlertMatch {
+  id: string;
+  alert_id: string;
+  applicant_id: string;
+  internship_id: string;
+  match_reasons: string[];
+  score: number;
+  notified_channels: string[];
+  created_at: string;
+  internship?: ApplicantFeedItem | Internship;
+}

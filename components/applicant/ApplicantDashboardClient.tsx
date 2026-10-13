@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { Briefcase, Clock, ArrowRight, Sparkles } from "lucide-react";
+import { Briefcase, Clock, ArrowRight, Sparkles, Bell } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import ApplicantInterviews from "@/components/applicant/ApplicantInterviews";
 import NotificationsPanel from "@/components/notifications/NotificationsPanel";
@@ -282,6 +282,40 @@ export default function ApplicantDashboardClient({
           <NotificationsPanel />
           <ProfileCompletion profile={profile} skills={skills || []} projects={projects || []} experience={experience || []} />
           <ResumeHealth profile={profile} skills={skills || []} projects={projects || []} experience={experience || []} />
+
+          {/* Career Tools Quick Access */}
+          <div className="rounded-3xl border border-border dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-card space-y-3">
+            <h3 className="font-display font-bold text-sm text-primary dark:text-white flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-teal" /> AI Career Tools
+            </h3>
+            <div className="space-y-2 text-xs">
+              <Link
+                href="/applicant/cv-optimization"
+                className="flex items-center justify-between p-3 rounded-2xl border border-teal/20 bg-teal-light/20 dark:bg-teal/5 hover:border-teal/40 transition-all group"
+              >
+                <div>
+                  <p className="font-semibold text-primary dark:text-white group-hover:text-teal transition-colors">
+                    CV Optimizer
+                  </p>
+                  <p className="text-[11px] text-text-secondary">Tailor bullets for a specific role</p>
+                </div>
+                <ArrowRight className="h-4 w-4 text-teal shrink-0 group-hover:translate-x-0.5 transition-transform" />
+              </Link>
+
+              <Link
+                href="/applicant/job-alerts"
+                className="flex items-center justify-between p-3 rounded-2xl border border-border dark:border-slate-700 hover:border-teal/40 transition-all group"
+              >
+                <div>
+                  <p className="font-semibold text-primary dark:text-white group-hover:text-teal transition-colors flex items-center gap-1.5">
+                    <Bell className="h-3.5 w-3.5 text-teal" /> Job Alerts
+                  </p>
+                  <p className="text-[11px] text-text-secondary">Get notified when matches go live</p>
+                </div>
+                <ArrowRight className="h-4 w-4 text-text-muted group-hover:text-teal shrink-0 group-hover:translate-x-0.5 transition-transform" />
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     </div>
